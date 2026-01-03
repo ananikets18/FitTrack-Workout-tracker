@@ -1,0 +1,416 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useWorkouts } from '../context/WorkoutContext';
+import Card from '../components/common/Card';
+import Button from '../components/common/Button';
+import Modal from '../components/common/Modal';
+import SkeletonCard from '../components/common/SkeletonCard';
+import { formatDate, calculateTotalSets, calculateExerciseVolume, kgToTons, getProgressiveOverload } from '../utils/calculations';
+import { exportToExcel, exportToJSON, importFromJSON, importFromExcel } from '../utils/exportUtils';
+import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+const History = () => {
+  const navigate = useNavigate();
+  const { workouts, deleteWorkout, setCurrentWorkout, importWorkouts, isLoading } = useWorkouts();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const filteredWorkouts = workouts.filter(workout =>
+    workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    workout.exercises?.some(ex =>
+      ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
+
+  const handleViewDetails = (workout) => {
+    setSelectedWorkout(workout);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleEditWorkout = (workout) => {
+    setCurrentWorkout(workout);
+    navigate('/log');
+  };
+
+  const handleDeleteWorkout = (id) => {
+    if (window.confirm('Are you sure you want to delete this workout?')) {
+      deleteWorkout(id);
+      setIsDetailModalOpen(false);
+    }
+  };
+
+  const handleExport = (format) => {
+    if (workouts.length === 0) {
+      toast.error('No workouts to export');
+      return;
+    }
+
+    let success = false;
+    switch (format) {
+      case 'excel':
+        success = exportToExcel(workouts);
+        break;
+      case 'json':
+        success = exportToJSON(workouts);
+        break;
+      default:
+        break;
+    }
+
+    if (success) {
+      toast.success(`Exported successfully as ${format.toUpperCase()}!`);
+    } else {
+      toast.error('Export failed. Please try again.');
+    }
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    
+    try {
+      let importedWorkouts;
+      
+      if (fileExtension === 'json') {
+        importedWorkouts = await importFromJSON(file);
+      } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+        importedWorkouts = await importFromExcel(file);
+      } else {
+        toast.error('Unsupported file format. Use JSON or Excel files.');
+        return;
+      }
+      
+      importWorkouts(importedWorkouts);
+      toast.success(`Successfully imported ${importedWorkouts.length} workout(s)!`);
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error(error.message || 'Failed to import workouts');
+    }
+    
+    // Reset file input
+    e.target.value = '';
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Workout History</h1>
+          <p className="text-gray-600 mt-2">View and manage your past workouts</p>
+        </div>
+        
+        {/* Import/Export Buttons */}
+        <div className="flex items-center gap-2">
+          {/* Import Button */}
+          <label
+            htmlFor="import-file"
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
+            title="Import workouts"
+          >
+            <Upload className="w-4 h-4" />
+            <span className="hidden md:inline">Import</span>
+          </label>
+          <input
+            id="import-file"
+            type="file"
+            accept=".json,.xlsx,.xls"
+            onChange={handleImport}
+            className="hidden"
+          />
+          
+          {/* Export Buttons */}
+          {workouts.length > 0 && (
+            <>
+              <button
+                onClick={() => handleExport('excel')}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm transition-colors"
+                title="Export as Excel"
+              >
+                <Sheet className="w-4 h-4" />
+                <span className="hidden md:inline">Excel</span>
+              </button>
+              <button
+                onClick={() => handleExport('json')}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition-colors"
+                title="Export as JSON"
+              >
+                <FileJson className="w-4 h-4" />
+                <span className="hidden md:inline">JSON</span>
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <Card>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search workouts or exercises..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+        </div>
+      </Card>
+
+      {/* Workouts List */}
+      {isLoading ? (
+        <div className="space-y-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : filteredWorkouts.length === 0 ? (
+        <Card className="text-center py-12">
+          <div className="text-4xl mb-4">📋</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            {searchTerm ? 'No workouts found' : 'No workouts yet'}
+          </h3>
+          <p className="text-gray-600">
+            {searchTerm
+              ? 'Try adjusting your search terms'
+              : 'Start logging workouts to see them here'}
+          </p>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {filteredWorkouts.map((workout) => (
+            <Card
+              key={workout.id}
+              hover
+              onClick={() => handleViewDetails(workout)}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold text-gray-900">{workout.name}</h3>
+                  <div className="flex items-center space-x-2 mt-2 text-gray-600">
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-sm">{formatDate(workout.date)}</span>
+                  </div>
+                  <div className="flex items-center space-x-4 mt-3 text-sm text-gray-600">
+                    <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
+                    <span>•</span>
+                    <span>{calculateTotalSets(workout)} sets</span>
+                    {workout.duration > 0 && (
+                      <>
+                        <span>•</span>
+                        <span>{workout.duration} min</span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {workout.exercises?.slice(0, 3).map((ex, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full"
+                      >
+                        {ex.name}
+                      </span>
+                    ))}
+                    {workout.exercises?.length > 3 && (
+                      <span className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full">
+                        +{workout.exercises.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Workout Detail Modal */}
+      {selectedWorkout && (
+        <Modal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          title={selectedWorkout.name}
+          size="lg"
+        >
+          <div className="space-y-6">
+            {/* Workout Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Date</p>
+                <p className="font-semibold">{formatDate(selectedWorkout.date)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Duration</p>
+                <p className="font-semibold">
+                  {selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Exercises</p>
+                <p className="font-semibold">{selectedWorkout.exercises?.length || 0}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Sets</p>
+                <p className="font-semibold">{calculateTotalSets(selectedWorkout)}</p>
+              </div>
+            </div>
+
+            {/* Notes */}
+            {selectedWorkout.notes && (
+              <div>
+                <p className="text-sm text-gray-600 mb-2">Notes</p>
+                <p className="p-3 bg-gray-50 rounded-lg">{selectedWorkout.notes}</p>
+              </div>
+            )}
+
+            {/* Exercises */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Exercises</h3>
+              <div className="space-y-4">
+                {selectedWorkout.exercises?.map((exercise) => {
+                  const exerciseVolume = calculateExerciseVolume(exercise);
+                  const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+                  const progressData = getProgressiveOverload(exercise.name, selectedWorkout, workouts);
+                  const isCardioOrBodyweight = exercise.category === 'cardio' || maxWeight === 0;
+                  
+                  return (
+                    <div key={exercise.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900">{exercise.name}</h4>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className="inline-block px-2 py-1 text-xs font-semibold text-primary-600 bg-primary-50 rounded-full">
+                              {exercise.category}
+                            </span>
+                            {!isCardioOrBodyweight && (
+                              <>
+                                <span className="text-xs text-gray-600">
+                                  Volume: {kgToTons(exerciseVolume)}T ({exerciseVolume}kg)
+                                </span>
+                                <span className="text-xs text-gray-600">
+                                  Max: {maxWeight}kg
+                                </span>
+                              </>
+                            )}
+                            {isCardioOrBodyweight && (
+                              <span className="text-xs text-gray-600">
+                                Duration/Bodyweight
+                              </span>
+                            )}
+                          </div>
+                          {progressData && progressData.status !== 'new' && (
+                            <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${
+                              progressData.status === 'improved' ? 'text-green-600' :
+                              progressData.status === 'declined' ? 'text-red-600' : 'text-gray-600'
+                            }`}>
+                              {progressData.status === 'improved' && <TrendingUp className="w-3 h-3" />}
+                              {progressData.status === 'declined' && <TrendingDown className="w-3 h-3" />}
+                              {progressData.status === 'maintained' && <Minus className="w-3 h-3" />}
+                              {progressData.message}
+                            </div>
+                          )}
+                          {progressData && progressData.status === 'new' && (
+                            <div className="text-xs text-blue-600 font-medium mt-2">
+                              🎉 {progressData.message}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {isCardioOrBodyweight ? (
+                          // Cardio/Bodyweight display
+                          <>
+                            <div className="grid grid-cols-3 gap-2 text-sm font-semibold text-gray-700">
+                              <div>Set</div>
+                              <div>Duration/Reps</div>
+                              <div className="text-right">Status</div>
+                            </div>
+                            {exercise.sets.map((set, index) => (
+                              <div
+                                key={index}
+                                className={`grid grid-cols-3 gap-2 text-sm ${
+                                  set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
+                                } py-2 px-2 rounded`}
+                              >
+                                <div className="font-medium">{index + 1}</div>
+                                <div className="font-semibold">{set.reps} mins</div>
+                                <div className="text-right text-xs">
+                                  {set.completed ? '✓ Done' : '-'}
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        ) : (
+                          // Weight training display
+                          <>
+                            <div className="grid grid-cols-4 gap-2 text-sm font-semibold text-gray-700">
+                              <div>Set</div>
+                              <div>Weight × Reps</div>
+                              <div className="text-right">Volume</div>
+                              <div className="text-right">Status</div>
+                            </div>
+                            {exercise.sets.map((set, index) => {
+                              const setVolume = set.reps * set.weight;
+                              return (
+                                <div
+                                  key={index}
+                                  className={`grid grid-cols-4 gap-2 text-sm ${
+                                    set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
+                                  } py-2 px-2 rounded`}
+                                >
+                                  <div className="font-medium">{index + 1}</div>
+                                  <div className="font-semibold">{set.weight}kg × {set.reps}</div>
+                                  <div className="text-right font-medium">{setVolume}kg</div>
+                                  <div className="text-right text-xs">
+                                    {set.completed ? '✓ Done' : '-'}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </>
+                        )}
+                      </div>
+
+                      {exercise.notes && (
+                        <p className="text-sm text-gray-600 mt-3 p-2 bg-amber-50 border border-amber-200 rounded">
+                          📝 {exercise.notes}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex space-x-2 pt-4 border-t">
+              <Button
+                variant="primary"
+                onClick={() => handleEditWorkout(selectedWorkout)}
+                className="flex-1"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Workout
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => handleDeleteWorkout(selectedWorkout.id)}
+                className="flex-1"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+};
+
+export default History;
