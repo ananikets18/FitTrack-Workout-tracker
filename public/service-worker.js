@@ -1,4 +1,4 @@
-const CACHE_VERSION = '1.0.0';
+const CACHE_VERSION = '1.0.1'; // Updated after cleanup
 const CACHE_NAME = `fittrack-v${CACHE_VERSION}`;
 const RUNTIME_CACHE = `fittrack-runtime-v${CACHE_VERSION}`;
 
@@ -80,7 +80,7 @@ self.addEventListener('fetch', (event) => {
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   const currentCaches = [CACHE_NAME, RUNTIME_CACHE];
-  
+
   event.waitUntil(
     caches
       .keys()
