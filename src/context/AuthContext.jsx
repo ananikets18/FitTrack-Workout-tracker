@@ -21,11 +21,18 @@ export const AuthProvider = ({ children }) => {
   // Define validateUserProfile BEFORE useEffect
   const validateUserProfile = async (userId) => {
     try {
-      const { data, error } = await supabase
+      // Add timeout to profile check
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile check timeout')), 5000)
+      );
+      
+      const profilePromise = supabase
         .from('profiles')
         .select('id')
         .eq('id', userId)
         .single();
+
+      const { data, error } = await Promise.race([profilePromise, timeoutPromise]);
 
       if (error || !data) {
         if (import.meta.env.MODE !== 'production') {
@@ -44,6 +51,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    // Add timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      if (import.meta.env.MODE !== 'production') {
+        console.warn('Session load timeout - setting loading to false');
+      }
+      setLoading(false);
+      setSession(null);
+      setUser(null);
+      setSessionExpiresAt(null);
+    }, 10000); // 10 second timeout
+
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       try {
@@ -78,7 +96,8 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setSessionExpiresAt(null);
       } finally {
-        // ALWAYS set loading to false
+        // Clear timeout and ALWAYS set loading to false
+        clearTimeout(loadingTimeout);
         setLoading(false);
       }
     }).catch(error => {
@@ -86,6 +105,7 @@ export const AuthProvider = ({ children }) => {
       if (import.meta.env.MODE !== 'production') {
         console.error('getSession error:', error);
       }
+      clearTimeout(loadingTimeout);
       setLoading(false);
     });
 
