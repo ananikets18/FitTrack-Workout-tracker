@@ -98,17 +98,6 @@ export const WorkoutProvider = ({ children }) => {
     setUseSupabase(!!user);
   }, [user]);
 
-  // Load data on mount
-  useEffect(() => {
-    if (!user) {
-      // Use localStorage when not authenticated
-      loadFromLocalStorage();
-    } else {
-      // Use Supabase when authenticated
-      loadFromSupabase();
-    }
-  }, [user, loadFromLocalStorage, loadFromSupabase]);
-
   const loadFromLocalStorage = useCallback(() => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
 
@@ -171,6 +160,17 @@ export const WorkoutProvider = ({ children }) => {
       setIsInitialized();
     }
   }, [user]);
+
+  // Load data on mount
+  useEffect(() => {
+    if (!user) {
+      // Use localStorage when not authenticated
+      loadFromLocalStorage();
+    } else {
+      // Use Supabase when authenticated
+      loadFromSupabase();
+    }
+  }, [user, loadFromLocalStorage, loadFromSupabase]);
 
   // Save to localStorage whenever workouts change (but only after initial load and if not using Supabase)
   useEffect(() => {
