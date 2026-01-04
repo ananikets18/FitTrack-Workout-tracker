@@ -49,7 +49,10 @@ export const AuthProvider = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event);
+      // Only log in development
+      if (import.meta.env.MODE !== 'production') {
+        console.log('Auth state changed:', event);
+      }
       
       // Validate profile on sign in events
       if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {

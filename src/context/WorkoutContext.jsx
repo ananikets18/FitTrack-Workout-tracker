@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { db, transformWorkoutFromDB } from '../lib/supabase';
 import { storage } from '../utils/storage';
 import { migrateData } from '../utils/migration';
+import { sanitizeWorkout } from '../utils/validation';
 
 const WorkoutContext = createContext();
 
@@ -188,8 +189,11 @@ export const WorkoutProvider = ({ children }) => {
 
   // Actions
   const addWorkout = async (workout) => {
+    // Sanitize workout data before saving
+    const sanitized = sanitizeWorkout(workout);
+    
     const newWorkout = {
-      ...workout,
+      ...sanitized,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
@@ -201,7 +205,9 @@ export const WorkoutProvider = ({ children }) => {
         dispatch({ type: ACTIONS.ADD_WORKOUT, payload: transformed });
         return transformed;
       } catch (error) {
-        console.error('❌ Error adding workout to Supabase:', error);
+        if (import.meta.env.MODE !== 'production') {
+          console.error('❌ Error adding workout to Supabase:', error);
+        }
         throw error;
       }
     } else {
@@ -219,9 +225,9 @@ export const WorkoutProvider = ({ children }) => {
       id: crypto.randomUUID(),
       type: 'rest_day',
       date: selectedDate.toISOString(),
-      recoveryQuality: restDayData.recoveryQuality,
-      activities: restDayData.activities || [],
-      notes: restDayData.notes || '',
+      recoveryQuality: Math.max(1, Math.min(5, parseInt(restDayData.recoveryQuality) || 3)),
+      activities: Array.isArray(restDayData.activities) ? restDayData.activities : [],
+      notes: (restDayData.notes || '').trim().slice(0, 1000),
       createdAt: new Date().toISOString(),
     };
 
@@ -232,7 +238,9 @@ export const WorkoutProvider = ({ children }) => {
         dispatch({ type: ACTIONS.ADD_WORKOUT, payload: transformed });
         return transformed;
       } catch (error) {
-        console.error('❌ Error adding rest day to Supabase:', error);
+        if (import.meta.env.MODE !== 'production') {
+          console.error('❌ Error adding rest day to Supabase:', error);
+        }
         throw error;
       }
     } else {
@@ -242,12 +250,17 @@ export const WorkoutProvider = ({ children }) => {
   };
 
   const updateWorkout = async (workout) => {
+    // Sanitize before updating
+    const sanitized = sanitizeWorkout(workout);
+    
     if (useSupabase && user) {
       try {
-        await db.updateWorkout(workout.id, workout, user.id);
-        dispatch({ type: ACTIONS.UPDATE_WORKOUT, payload: workout });
+        await db.updateWorkout(sanitized.id, sanitized, user.id);
+        dispatch({ type: ACTIONS.UPDATE_WORKOUT, payload: sanitized });
       } catch (error) {
-        console.error('❌ Error updating workout in Supabase:', error);
+        if (import.meta.env.MODE !== 'production') {
+          console.error('❌ Error updating workout in Supabase:', error);
+        }
         throw error;
       }
     } else {

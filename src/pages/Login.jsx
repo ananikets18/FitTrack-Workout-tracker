@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { DumbbellIcon, SparklesIcon } from 'lucide-react';
+import { loginRateLimiter, signupRateLimiter } from '../utils/rateLimiter';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,15 +26,68 @@ const Login = () => {
     setLoading(true);
     setError(null);
 
+    // Check rate limiting
+    const limiter = view === 'sign_up' ? signupRateLimiter : loginRateLimiter;
+    const rateLimitCheck = limiter.isAllowed(email.toLowerCase());
+    
+    if (!rateLimitCheck.allowed) {
+      setError(rateLimitCheck.reason);
+      setLoading(false);
+      return;
+    }
+
+    // Client-side validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      setLoading(false);
+      return;
+    }
+
+    if (view === 'sign_up') {
+      // Additional password strength check for signup
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasLowerCase = /[a-z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+      
+      if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+        setError('Password must contain uppercase, lowercase, and numbers');
+        setLoading(false);
+        return;
+      }
+
+      if (!name || name.trim().length < 2) {
+        setError('Please enter a valid name (at least 2 characters)');
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       if (view === 'sign_up') {
-        await signUp(email, password, { name });
+        await signUp(email.trim().toLowerCase(), password, { name: name.trim() });
       } else {
-        await signIn(email, password);
+        await signIn(email.trim().toLowerCase(), password);
       }
+      // Record successful attempt
+      limiter.recordAttempt(email.toLowerCase(), true);
       navigate('/', { replace: true });
     } catch (err) {
-      setError(err.message);
+      // Record failed attempt
+      limiter.recordAttempt(email.toLowerCase(), false);
+      
+      const remaining = limiter.getRemainingAttempts(email.toLowerCase());
+      if (remaining > 0 && remaining <= 3) {
+        setError(`${err.message} (${remaining} attempts remaining)`);
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -132,10 +186,15 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   placeholder="••••••••"
                 />
+                {view === 'sign_up' && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Min 8 chars with uppercase, lowercase, and numbers
+                  </p>
+                )}
               </div>
 
               {error && (

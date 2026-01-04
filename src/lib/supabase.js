@@ -5,7 +5,18 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
+  if (import.meta.env.MODE === 'production') {
+    // In production, throw error - app cannot function without credentials
+    throw new Error('Missing Supabase configuration. Please contact support.');
+  } else {
+    // In development, log warning
+    console.error('⚠️ Missing Supabase environment variables. Check your .env file.');
+  }
+}
+
+// Validate URL format
+if (supabaseUrl && !supabaseUrl.startsWith('https://')) {
+  throw new Error('Invalid Supabase URL format');
 }
 
 // Create Supabase client
