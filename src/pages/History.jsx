@@ -103,27 +103,78 @@ const History = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Workout History</h1>
-          <p className="text-gray-600 mt-2">View and manage your past workouts</p>
+      <div>
+        <div className="flex items-start justify-between gap-3 mb-3 md:mb-0">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Workout History</h1>
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1 md:mt-2">View and manage your past workouts</p>
+          </div>
+          
+          {/* Import/Export Buttons - Desktop */}
+          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+            {/* Import Button */}
+            <label
+              htmlFor="import-file"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
+              title="Import workouts"
+            >
+              <Upload className="w-4 h-4" />
+              <span className="hidden lg:inline">Import</span>
+            </label>
+            <input
+              id="import-file"
+              type="file"
+              accept=".json,.xlsx,.xls"
+              onChange={handleImport}
+              className="hidden"
+            />
+            
+            {/* Export Buttons */}
+            {workouts.length > 0 && (
+              <>
+                <button
+                  onClick={() => handleExport('csv')}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
+                  title="Export as CSV"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span className="hidden lg:inline">CSV</span>
+                </button>
+                <button
+                  onClick={() => handleExport('excel')}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
+                  title="Export as Excel"
+                >
+                  <Sheet className="w-4 h-4" />
+                  <span className="hidden lg:inline">Excel</span>
+                </button>
+                <button
+                  onClick={() => handleExport('json')}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
+                  title="Export as JSON"
+                >
+                  <FileJson className="w-4 h-4" />
+                  <span className="hidden lg:inline">JSON</span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
         
-        {/* Import/Export Buttons */}
-        <div className="flex items-center gap-2">
+        {/* Import/Export Buttons - Mobile */}
+        <div className="flex md:hidden items-center gap-2">
           {/* Import Button */}
           <label
-            htmlFor="import-file"
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
+            htmlFor="import-file-mobile"
+            className="flex items-center justify-center px-2.5 py-2 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
             title="Import workouts"
           >
             <Upload className="w-4 h-4" />
-            <span className="hidden md:inline">Import</span>
           </label>
           <input
-            id="import-file"
+            id="import-file-mobile"
             type="file"
             accept=".json,.xlsx,.xls"
             onChange={handleImport}
@@ -135,27 +186,24 @@ const History = () => {
             <>
               <button
                 onClick={() => handleExport('csv')}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
+                className="flex items-center justify-center px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95"
                 title="Export as CSV"
               >
                 <FileSpreadsheet className="w-4 h-4" />
-                <span className="hidden md:inline">CSV</span>
               </button>
               <button
                 onClick={() => handleExport('excel')}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
+                className="flex items-center justify-center px-2.5 py-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95"
                 title="Export as Excel"
               >
                 <Sheet className="w-4 h-4" />
-                <span className="hidden md:inline">Excel</span>
               </button>
               <button
                 onClick={() => handleExport('json')}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
+                className="flex items-center justify-center px-2.5 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95"
                 title="Export as JSON"
               >
                 <FileJson className="w-4 h-4" />
-                <span className="hidden md:inline">JSON</span>
               </button>
             </>
           )}

@@ -53,54 +53,54 @@ const NumberPicker = ({
   return (
     <div className={`flex flex-col ${className}`}>
       {label && (
-        <label className="text-sm font-semibold text-gray-700 mb-2">
+        <label className="text-xs md:text-sm font-semibold text-gray-700 mb-1.5">
           {label}
         </label>
       )}
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1.5 md:space-x-2">
         {/* Decrement Button */}
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={handleDecrement}
-          className="flex items-center justify-center w-12 h-12 bg-gray-200 hover:bg-gray-300 rounded-xl active:bg-gray-400 transition-colors"
+          className="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 bg-gray-200 hover:bg-gray-300 rounded-lg md:rounded-xl active:bg-gray-400 transition-colors flex-shrink-0"
           type="button"
         >
-          <Minus className="w-5 h-5 text-gray-700" />
+          <Minus className="w-4 h-4 text-gray-700" />
         </motion.button>
 
         {/* Value Display */}
-        <div className="flex-1 flex items-center justify-center bg-gray-100 rounded-xl h-12 px-4">
+        <div className="flex-1 flex items-center justify-center bg-gray-100 rounded-lg md:rounded-xl h-9 md:h-10 px-2 md:px-3 min-w-0">
           <input
             type="number"
             value={inputValue}
             onChange={handleInputChange}
-            className="w-full text-center text-2xl font-bold text-gray-900 bg-transparent border-none focus:outline-none appearance-none"
+            className="w-full text-center text-lg md:text-xl font-bold text-gray-900 bg-transparent border-none focus:outline-none appearance-none"
             style={{ MozAppearance: 'textfield' }}
           />
-          {unit && <span className="ml-2 text-sm font-semibold text-gray-600">{unit}</span>}
+          {unit && <span className="ml-1 text-xs md:text-sm font-semibold text-gray-600 flex-shrink-0">{unit}</span>}
         </div>
 
         {/* Increment Button */}
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={handleIncrement}
-          className="flex items-center justify-center w-12 h-12 bg-primary-600 hover:bg-primary-700 rounded-xl active:bg-primary-800 transition-colors"
+          className="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 bg-primary-600 hover:bg-primary-700 rounded-lg md:rounded-xl active:bg-primary-800 transition-colors flex-shrink-0"
           type="button"
         >
-          <Plus className="w-5 h-5 text-white" />
+          <Plus className="w-4 h-4 text-white" />
         </motion.button>
       </div>
 
       {/* Quick Increment Buttons */}
       {quickIncrements.length > 0 && (
-        <div className="flex items-center justify-center space-x-2 mt-3">
+        <div className="flex items-center justify-center flex-wrap gap-1.5 md:gap-2 mt-2">
           {quickIncrements.map((inc) => (
             <motion.button
               key={inc}
               whileTap={{ scale: 0.95 }}
               onClick={() => handleQuickChange(inc)}
-              className="px-3 py-1.5 text-sm font-semibold bg-gray-200 hover:bg-gray-300 rounded-lg active:bg-gray-400 transition-colors"
+              className="px-2 md:px-2.5 py-1 text-xs md:text-sm font-semibold bg-gray-200 hover:bg-gray-300 rounded-md active:bg-gray-400 transition-colors whitespace-nowrap"
               type="button"
             >
               {inc > 0 ? '+' : ''}{inc}{unit}

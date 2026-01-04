@@ -789,25 +789,25 @@ const WorkoutLogMobile = () => {
               </motion.button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {newExercise.sets.map((set, index) => {
                 const isCardio = newExercise.category === 'cardio';
                 
                 return (
-                  <div key={index} className="bg-gray-50 rounded-xl p-3 md:p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-base md:text-lg font-bold text-gray-900">Set {index + 1}</span>
+                  <div key={index} className="bg-gray-50 rounded-lg p-2.5 md:p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm md:text-base font-bold text-gray-900">Set {index + 1}</span>
                       {newExercise.sets.length > 1 && (
                         <button
                           onClick={() => handleRemoveSet(index)}
-                          className="p-1.5 active:bg-red-100 rounded-lg text-red-600"
+                          className="p-1 active:bg-red-100 rounded-lg text-red-600"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                       {isCardio ? (
                         // Cardio exercises: Duration only
                         <>
