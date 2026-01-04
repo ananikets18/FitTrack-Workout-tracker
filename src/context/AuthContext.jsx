@@ -45,51 +45,126 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+
     // Add timeout to prevent infinite loading
     const loadingTimeout = setTimeout(() => {
-      if (import.meta.env.MODE !== 'production') {
-        console.warn('Session load timeout - setting loading to false WITHOUT clearing session');
+      if (isMounted && import.meta.env.MODE !== 'production') {
+        console.warn('[Auth] Session load timeout - setting loading to false');
       }
-      // Only set loading to false, DON'T clear the session
-      // The session will be managed by onAuthStateChange
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     }, 15000); // 15 second timeout
 
-    // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // Robust session recovery with multiple fallback layers
+    const recoverSession = async () => {
       try {
-        // On page refresh, trust the existing session without validation
-        // Profile validation only happens on new sign-ins
-        if (session?.user) {
+        if (import.meta.env.MODE !== 'production') {
+          console.log('[Auth] Starting session recovery...');
+        }
+
+        // Layer 1: Try to get existing session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error('[Auth] getSession error:', sessionError);
+
+          // Layer 2: Try to refresh the session
+          if (import.meta.env.MODE !== 'production') {
+            console.log('[Auth] Attempting session refresh...');
+          }
+
+          const { data: { session: refreshedSession }, error: refreshError } =
+            await supabase.auth.refreshSession();
+
+          if (refreshError) {
+            console.error('[Auth] refreshSession error:', refreshError);
+
+            // Layer 3: Try to get user directly
+            if (import.meta.env.MODE !== 'production') {
+              console.log('[Auth] Attempting to get user...');
+            }
+
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+            if (userError || !user) {
+              console.error('[Auth] getUser error:', userError);
+              // All recovery attempts failed - clear state
+              if (isMounted) {
+                setSession(null);
+                setUser(null);
+                setSessionExpiresAt(null);
+              }
+              return;
+            }
+
+            // User exists but no session - this shouldn't happen
+            console.warn('[Auth] User exists but no session - clearing corrupted state');
+            if (isMounted) {
+              setSession(null);
+              setUser(null);
+              setSessionExpiresAt(null);
+            }
+            return;
+          }
+
+          // Refresh succeeded
+          if (refreshedSession && isMounted) {
+            if (import.meta.env.MODE !== 'production') {
+              console.log('[Auth] Session refreshed successfully');
+            }
+            setSession(refreshedSession);
+            setUser(refreshedSession.user);
+            setSessionExpiresAt(refreshedSession.expires_at ?
+              new Date(refreshedSession.expires_at * 1000) : null);
+          }
+          return;
+        }
+
+        // Layer 1 succeeded - we have a session
+        if (session?.user && isMounted) {
+          if (import.meta.env.MODE !== 'production') {
+            console.log('[Auth] Session recovered from storage');
+          }
           setSession(session);
           setUser(session.user);
-          setSessionExpiresAt(session.expires_at ? new Date(session.expires_at * 1000) : null);
-        } else {
+          setSessionExpiresAt(session.expires_at ?
+            new Date(session.expires_at * 1000) : null);
+        } else if (isMounted) {
+          // No session found - user is logged out
+          if (import.meta.env.MODE !== 'production') {
+            console.log('[Auth] No session found - user logged out');
+          }
           setSession(null);
           setUser(null);
           setSessionExpiresAt(null);
         }
       } catch (error) {
         // Catch any unexpected errors
-        if (import.meta.env.MODE !== 'production') {
-          console.error('Session load error:', error);
+        console.error('[Auth] Unexpected error during session recovery:', error);
+        if (isMounted) {
+          setSession(null);
+          setUser(null);
+          setSessionExpiresAt(null);
         }
-        setSession(null);
-        setUser(null);
-        setSessionExpiresAt(null);
       } finally {
         // Clear timeout and ALWAYS set loading to false
         clearTimeout(loadingTimeout);
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    }).catch(error => {
-      // Catch promise rejection
-      if (import.meta.env.MODE !== 'production') {
-        console.error('getSession error:', error);
-      }
+    };
+
+    // Start recovery
+    recoverSession();
+
+    // Cleanup
+    return () => {
+      isMounted = false;
       clearTimeout(loadingTimeout);
-      setLoading(false);
-    });
+    };
 
     // Listen for auth changes
     const {
@@ -252,30 +327,57 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = async () => {
     try {
+      if (import.meta.env.MODE !== 'production') {
+        console.log('[Auth] Signing out...');
+      }
+
       const { error } = await supabase.auth.signOut();
 
       // If error is "session missing", that's okay - clear local state anyway
       if (error && !error.message?.includes('session missing')) {
-        throw error;
+        console.error('[Auth] SignOut error:', error);
+        // Don't throw - continue with cleanup
       }
 
-      // Clear local state regardless
+      // Clear local state
       setUser(null);
       setSession(null);
       setSessionExpiresAt(null);
 
-      // Clear any cached data
-      localStorage.removeItem('supabase.auth.token');
+      // Thoroughly clear ALL Supabase auth data from localStorage
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (
+            key.startsWith('sb-') ||
+            key.includes('supabase') ||
+            key.includes('auth-token')
+          )) {
+            keysToRemove.push(key);
+          }
+        }
+
+        keysToRemove.forEach(key => {
+          localStorage.removeItem(key);
+          if (import.meta.env.MODE !== 'production') {
+            console.log(`[Auth] Cleared localStorage key: ${key}`);
+          }
+        });
+
+        if (import.meta.env.MODE !== 'production') {
+          console.log(`[Auth] Cleared ${keysToRemove.length} auth keys from localStorage`);
+        }
+      } catch (storageError) {
+        console.error('[Auth] Error clearing localStorage:', storageError);
+      }
 
     } catch (error) {
       // Even if logout fails, clear local state
+      console.error('[Auth] Unexpected logout error:', error);
       setUser(null);
       setSession(null);
       setSessionExpiresAt(null);
-
-      if (import.meta.env.MODE !== 'production') {
-        console.error('Logout error:', error);
-      }
 
       // Don't throw - allow logout to complete
     }
