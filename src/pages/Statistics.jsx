@@ -13,6 +13,7 @@ import {
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import BottomSheet from '../components/common/BottomSheet';
+import { VolumeChart, FrequencyChart, PRProgressionChart } from '../components/charts/WorkoutCharts';
 import { TrendingUp, Award, Flame, Dumbbell, Calendar, Target, Weight, Activity, Clock, ChevronRight } from 'lucide-react';
 import { startOfWeek, endOfWeek, eachDayOfInterval, format, isSameDay } from 'date-fns';
 
@@ -158,22 +159,22 @@ const Statistics = () => {
 
       {/* This Week Activity */}
       <Card>
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">This Week's Activity</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">This Week's Activity</h2>
         <div className="grid grid-cols-7 gap-2">
           {thisWeekWorkouts.map((day, index) => {
             const isToday = isSameDay(day.date, now);
             const hasWorkouts = day.count > 0;
             return (
               <div key={index} className="text-center">
-                <div className="text-sm text-gray-600 mb-2">{day.day}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">{day.day}</div>
                 <div
                   onClick={() => handleDayClick(day)}
                   className={`h-20 rounded-lg flex items-center justify-center font-bold text-lg transition-all ${
                     hasWorkouts
                       ? 'bg-primary-500 text-white cursor-pointer hover:bg-primary-600 active:scale-95'
                       : isToday
-                      ? 'bg-gray-200 text-gray-600 border-2 border-primary-500'
-                      : 'bg-gray-100 text-gray-400'
+                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-2 border-primary-500'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'
                   }`}
                 >
                   {day.count > 0 ? day.count : '-'}
@@ -183,6 +184,29 @@ const Statistics = () => {
           })}
         </div>
       </Card>
+
+      {/* Progress Charts */}
+      {workouts.length >= 3 && (
+        <>
+          {/* Volume Trend */}
+          <Card>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Volume Trend (Last 30 Days)</h2>
+            <VolumeChart workouts={workouts} />
+          </Card>
+
+          {/* Workout Frequency */}
+          <Card>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Workout Frequency (Last 7 Days)</h2>
+            <FrequencyChart workouts={workouts} />
+          </Card>
+
+          {/* PR Progression */}
+          <Card>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Personal Records Progression</h2>
+            <PRProgressionChart workouts={workouts} />
+          </Card>
+        </>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Records */}

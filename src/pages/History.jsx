@@ -6,8 +6,8 @@ import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import SkeletonCard from '../components/common/SkeletonCard';
 import { formatDate, calculateTotalSets, calculateExerciseVolume, kgToTons, getProgressiveOverload } from '../utils/calculations';
-import { exportToExcel, exportToJSON, importFromJSON, importFromExcel } from '../utils/exportUtils';
-import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload } from 'lucide-react';
+import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExcel } from '../utils/exportUtils';
+import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const History = () => {
@@ -49,6 +49,9 @@ const History = () => {
 
     let success = false;
     switch (format) {
+      case 'csv':
+        success = exportToCSV(workouts);
+        break;
       case 'excel':
         success = exportToExcel(workouts);
         break;
@@ -127,8 +130,16 @@ const History = () => {
           {workouts.length > 0 && (
             <>
               <button
+                onClick={() => handleExport('csv')}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
+                title="Export as CSV"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                <span className="hidden md:inline">CSV</span>
+              </button>
+              <button
                 onClick={() => handleExport('excel')}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
                 title="Export as Excel"
               >
                 <Sheet className="w-4 h-4" />
@@ -136,7 +147,7 @@ const History = () => {
               </button>
               <button
                 onClick={() => handleExport('json')}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
                 title="Export as JSON"
               >
                 <FileJson className="w-4 h-4" />

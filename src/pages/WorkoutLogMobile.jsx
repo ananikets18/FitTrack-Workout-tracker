@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkouts } from '../context/WorkoutContext';
+import { useTemplates } from '../context/TemplateContext';
 import { useMotionValue, useTransform } from 'framer-motion';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
@@ -8,13 +9,14 @@ import Card from '../components/common/Card';
 import NumberPicker from '../components/common/NumberPicker';
 import RestTimer from '../components/workout/RestTimer';
 import Modal from '../components/common/Modal';
-import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar, BookmarkPlus, FileText, ChevronRight } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { searchExercises, getExercisesByCategory, getCategoryForExercise } from '../data/exercises';
 
 const WorkoutLogMobile = () => {
   const navigate = useNavigate();
   const { addWorkout, updateWorkout, currentWorkout, clearCurrentWorkout } = useWorkouts();
+  const { templates, saveTemplate } = useTemplates();
   
   // Check if we're editing an existing workout
   const isEditMode = !!currentWorkout;
@@ -27,6 +29,7 @@ const WorkoutLogMobile = () => {
    
   const [notes, setNotes] = useState('');
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(false);
@@ -262,6 +265,50 @@ const WorkoutLogMobile = () => {
     setTimeout(() => navigate('/history'), 1000);
   };
 
+  const handleSaveAsTemplate = () => {
+    if (!workoutName.trim()) {
+      toast.error('Please enter a workout name');
+      return;
+    }
+
+    if (exercises.length === 0) {
+      toast.error('Please add at least one exercise');
+      return;
+    }
+
+    const templateData = {
+      name: workoutName,
+      exercises: exercises.map(ex => ({
+        name: ex.name,
+        category: ex.category,
+        sets: ex.sets.map(set => ({
+          reps: set.reps,
+          weight: set.weight,
+          completed: false
+        })),
+        notes: ex.notes
+      })),
+      duration: parseInt(duration) || 0,
+    };
+
+    saveTemplate(templateData);
+    toast.success('Saved as template! 📋');
+    vibrate([50, 30, 50]);
+  };
+
+  const handleLoadTemplate = (template) => {
+    setWorkoutName(template.name);
+    setExercises(template.exercises.map(ex => ({
+      ...ex,
+      id: crypto.randomUUID(),
+      sets: ex.sets.map(set => ({ ...set, completed: false }))
+    })));
+    setDuration(template.duration?.toString() || '');
+    setIsTemplateModalOpen(false);
+    toast.success(`Loaded "${template.name}" template`);
+    vibrate(30);
+  };
+
   const handleCancelWarning = () => {
     setShowExitWarning(false);
     setPendingNavigation(null);
@@ -366,20 +413,47 @@ const WorkoutLogMobile = () => {
             if (isEditMode) clearCurrentWorkout();
             handleNavigation('/');
           }}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+          className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
         >
           <ArrowLeft className="w-6 h-6" />
           <span className="font-semibold">Back</span>
         </button>
 
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={handleSaveWorkout}
-          className="flex items-center space-x-2 px-6 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-lg active:bg-primary-700"
-        >
-          <Save className="w-5 h-5" />
-          <span>{isEditMode ? 'Update' : 'Save'}</span>
-        </motion.button>
+        <div className="flex items-center space-x-2">
+          {/* Load Template Button */}
+          {!isEditMode && exercises.length === 0 && templates.length > 0 && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsTemplateModalOpen(true)}
+              className="flex items-center space-x-2 px-4 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-xl shadow-sm"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">Templates</span>
+            </motion.button>
+          )}
+          
+          {/* Save as Template Button */}
+          {!isEditMode && exercises.length > 0 && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSaveAsTemplate}
+              className="flex items-center space-x-2 px-4 py-2.5 bg-purple-600 text-white font-semibold rounded-xl shadow-sm"
+            >
+              <BookmarkPlus className="w-4 h-4" />
+              <span className="hidden sm:inline">Template</span>
+            </motion.button>
+          )}
+          
+          {/* Save Workout Button */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={handleSaveWorkout}
+            className="flex items-center space-x-2 px-6 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-lg active:bg-primary-700"
+          >
+            <Save className="w-5 h-5" />
+            <span>{isEditMode ? 'Update' : 'Save'}</span>
+          </motion.button>
+        </div>
       </div>
 
       {isEditMode && (
@@ -700,6 +774,48 @@ const WorkoutLogMobile = () => {
           setIsTimerOpen(false);
         }}
       />
+
+      {/* Template Selection Modal */}
+      <Modal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        title="Load Template"
+      >
+        <div className="space-y-3">
+          {templates.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-600">No templates saved yet</p>
+              <p className="text-sm text-gray-500 mt-1">Create a workout and save it as a template!</p>
+            </div>
+          ) : (
+            templates.map((template) => (
+              <motion.div
+                key={template.id}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleLoadTemplate(template)}
+                className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{template.name}</h3>
+                    <div className="flex items-center space-x-3 text-sm text-gray-600 dark:text-gray-400">
+                      <span>{template.exercises?.length || 0} exercises</span>
+                      {template.duration > 0 && (
+                        <>
+                          <span>•</span>
+                          <span>{template.duration} min</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+      </Modal>
 
       {/* Exit Warning Modal */}
       <Modal

@@ -2,6 +2,56 @@ import * as XLSX from 'xlsx';
 import { formatDate, calculateTotalVolume, calculateTotalSets } from './calculations';
 import { validateImportedData } from './validation';
 
+// Export workouts as CSV
+export const exportToCSV = (workouts) => {
+  try {
+    // Create CSV header
+    const headers = ['Date', 'Workout Name', 'Exercise', 'Category', 'Set', 'Reps', 'Weight (kg)', 'Volume (kg)', 'Duration (min)', 'Notes'];
+    
+    // Create CSV rows
+    const rows = [];
+    workouts.forEach(workout => {
+      workout.exercises?.forEach(exercise => {
+        exercise.sets.forEach((set, index) => {
+          rows.push([
+            formatDate(workout.date),
+            workout.name,
+            exercise.name,
+            exercise.category,
+            index + 1,
+            set.reps,
+            set.weight,
+            (set.reps * set.weight).toFixed(2),
+            workout.duration || '',
+            (workout.notes || exercise.notes || '').replace(/,/g, ';') // Replace commas to avoid CSV issues
+          ]);
+        });
+      });
+    });
+    
+    // Convert to CSV string
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\\n');
+    
+    // Download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `fittrack-workouts-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    return true;
+  } catch (error) {
+    console.error('Error exporting to CSV:', error);
+    return false;
+  }
+};
+
 // Export workouts as JSON
 export const exportToJSON = (workouts) => {
   try {

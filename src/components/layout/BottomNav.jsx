@@ -28,7 +28,7 @@ const BottomNav = () => {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50 shadow-lifted">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 pb-safe z-50 shadow-lifted transition-colors">
       <div className="flex items-center justify-around px-2 h-16">
         {/* eslint-disable-next-line no-unused-vars */}
         {navItems.map(({ path, label, icon: NavIcon, primary }) => {
@@ -55,7 +55,7 @@ const BottomNav = () => {
                 <>
                   <motion.div
                     whileTap={{ scale: 0.85 }}
-                    className={`flex flex-col items-center justify-center transition-colors min-h-[48px] ${active ? 'text-primary-600' : 'text-gray-500'
+                    className={`flex flex-col items-center justify-center transition-colors min-h-[48px] ${active ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'
                       }`}
                   >
                     <NavIcon className="w-6 h-6 mb-1" strokeWidth={active ? 2.5 : 2} />
