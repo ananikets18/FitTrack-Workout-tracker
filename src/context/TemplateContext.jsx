@@ -39,10 +39,14 @@ export const TemplateProvider = ({ children }) => {
       const loadedTemplates = stored ? JSON.parse(stored) : [];
       setTemplates(loadedTemplates);
     } catch (error) {
-      console.error('Error loading templates:', error);
+      if (import.meta.env.MODE !== 'production') {
+        console.error('Error loading templates:', error);
+      }
       setTemplates([]);
+    } finally {
+      // Always set loading to false
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const loadFromSupabase = async () => {
@@ -51,10 +55,14 @@ export const TemplateProvider = ({ children }) => {
       const data = await db.getTemplates(user.id);
       setTemplates(data || []);
     } catch (error) {
-      console.error('Error loading templates from Supabase:', error);
+      if (import.meta.env.MODE !== 'production') {
+        console.error('Error loading templates from Supabase:', error);
+      }
       setTemplates([]);
+    } finally {
+      // Always set loading to false
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   // Save to localStorage whenever templates change (only if not using Supabase)

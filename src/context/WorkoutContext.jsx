@@ -112,35 +112,46 @@ export const WorkoutProvider = ({ children }) => {
   const loadFromLocalStorage = () => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
     
-    // Run data migrations first
-    const migrationResult = migrateData();
-    if (migrationResult.migrated) {
-      console.info(`Data migrated from ${migrationResult.fromVersion} to ${migrationResult.toVersion}`);
-    }
-    
-    // Simulate brief loading to show skeleton
-    const timer = setTimeout(() => {
-      try {
-        const data = storage.get();
-        if (data.workouts && Array.isArray(data.workouts)) {
-          dispatch({ type: ACTIONS.SET_WORKOUTS, payload: data.workouts });
-        } else {
-          dispatch({ type: ACTIONS.SET_LOADING, payload: false });
-        }
-        
-        // Restore currentWorkout if it exists
-        if (data.currentWorkout) {
-          dispatch({ type: ACTIONS.SET_CURRENT_WORKOUT, payload: data.currentWorkout });
-        }
-      } catch (error) {
-        console.error('❌ Error loading from localStorage:', error);
-        dispatch({ type: ACTIONS.SET_LOADING, payload: false });
-      } finally {
-        setIsInitialized();
+    try {
+      // Run data migrations first
+      const migrationResult = migrateData();
+      if (migrationResult.migrated && import.meta.env.MODE !== 'production') {
+        console.info(`Data migrated from ${migrationResult.fromVersion} to ${migrationResult.toVersion}`);
       }
-    }, 300);
+      
+      // Simulate brief loading to show skeleton
+      const timer = setTimeout(() => {
+        try {
+          const data = storage.get();
+          if (data.workouts && Array.isArray(data.workouts)) {
+            dispatch({ type: ACTIONS.SET_WORKOUTS, payload: data.workouts });
+          } else {
+            dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+          }
+          
+          // Restore currentWorkout if it exists
+          if (data.currentWorkout) {
+            dispatch({ type: ACTIONS.SET_CURRENT_WORKOUT, payload: data.currentWorkout });
+          }
+        } catch (error) {
+          if (import.meta.env.MODE !== 'production') {
+            console.error('❌ Error loading from localStorage:', error);
+          }
+          dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+        } finally {
+          setIsInitialized();
+        }
+      }, 300);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    } catch (error) {
+      // Catch migration errors
+      if (import.meta.env.MODE !== 'production') {
+        console.error('❌ Migration error:', error);
+      }
+      dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+      setIsInitialized();
+    }
   };
 
   const loadFromSupabase = async () => {
@@ -150,10 +161,13 @@ export const WorkoutProvider = ({ children }) => {
       const workouts = await db.getWorkouts(user.id);
       const transformed = workouts.map(transformWorkoutFromDB);
       dispatch({ type: ACTIONS.SET_WORKOUTS, payload: transformed });
-      setIsInitialized();
     } catch (error) {
-      console.error('❌ Error loading from Supabase:', error);
+      if (import.meta.env.MODE !== 'production') {
+        console.error('❌ Error loading from Supabase:', error);
+      }
       dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+    } finally {
+      // Always mark as initialized
       setIsInitialized();
     }
   };
