@@ -44,13 +44,15 @@ const Login = () => {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
-      setLoading(false);
-      return;
-    }
-
+    // Password validation - stricter for signup, lenient for signin
     if (view === 'sign_up') {
+      // Strict validation for new signups
+      if (password.length < 8) {
+        setError('Password must be at least 8 characters long');
+        setLoading(false);
+        return;
+      }
+
       // Additional password strength check for signup
       const hasUpperCase = /[A-Z]/.test(password);
       const hasLowerCase = /[a-z]/.test(password);
@@ -64,6 +66,13 @@ const Login = () => {
 
       if (!name || name.trim().length < 2) {
         setError('Please enter a valid name (at least 2 characters)');
+        setLoading(false);
+        return;
+      }
+    } else {
+      // For sign in, just check it's not empty (allow legacy passwords)
+      if (!password || password.length === 0) {
+        setError('Password is required');
         setLoading(false);
         return;
       }
