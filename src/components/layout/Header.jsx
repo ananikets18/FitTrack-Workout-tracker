@@ -32,11 +32,18 @@ const Header = () => {
     try {
       lightHaptic();
       await signOut();
+      // Clear all local storage
+      localStorage.clear();
       toast.success('Logged out successfully');
       navigate('/login', { replace: true });
     } catch (error) {
-      toast.error('Failed to logout');
-      console.error('Logout error:', error);
+      // Even if logout fails, redirect to login
+      localStorage.clear();
+      navigate('/login', { replace: true });
+      
+      if (import.meta.env.MODE !== 'production') {
+        console.error('Logout error:', error);
+      }
     }
   };
 

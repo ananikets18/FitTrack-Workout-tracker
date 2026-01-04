@@ -18,29 +18,73 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [sessionExpiresAt, setSessionExpiresAt] = useState(null);
 
+  // Define validateUserProfile BEFORE useEffect
+  const validateUserProfile = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+      if (error || !data) {
+        if (import.meta.env.MODE !== 'production') {
+          console.error('User profile not found:', error);
+        }
+        throw new Error('User profile not found. Please contact support.');
+      }
+
+      return true;
+    } catch (err) {
+      if (import.meta.env.MODE !== 'production') {
+        console.error('Profile validation error:', err);
+      }
+      throw err;
+    }
+  };
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      // Validate profile exists for existing session
-      if (session?.user) {
-        try {
-          await validateUserProfile(session.user.id);
-          setSession(session);
-          setUser(session.user);
-          setSessionExpiresAt(session.expires_at ? new Date(session.expires_at * 1000) : null);
-        } catch (error) {
-          // Profile doesn't exist, clear session
-          console.error('Profile validation failed on session load:', error);
-          await supabase.auth.signOut();
+      try {
+        // Validate profile exists for existing session
+        if (session?.user) {
+          try {
+            await validateUserProfile(session.user.id);
+            setSession(session);
+            setUser(session.user);
+            setSessionExpiresAt(session.expires_at ? new Date(session.expires_at * 1000) : null);
+          } catch (error) {
+            // Profile doesn't exist, clear session
+            if (import.meta.env.MODE !== 'production') {
+              console.error('Profile validation failed on session load:', error);
+            }
+            await supabase.auth.signOut();
+            setSession(null);
+            setUser(null);
+            setSessionExpiresAt(null);
+          }
+        } else {
           setSession(null);
           setUser(null);
           setSessionExpiresAt(null);
-          toast.error('Your account is no longer active. Please contact support.');
         }
-      } else {
+      } catch (error) {
+        // Catch any unexpected errors
+        if (import.meta.env.MODE !== 'production') {
+          console.error('Session load error:', error);
+        }
         setSession(null);
         setUser(null);
         setSessionExpiresAt(null);
+      } finally {
+        // ALWAYS set loading to false
+        setLoading(false);
+      }
+    }).catch(error => {
+      // Catch promise rejection
+      if (import.meta.env.MODE !== 'production') {
+        console.error('getSession error:', error);
       }
       setLoading(false);
     });
@@ -122,30 +166,7 @@ export const AuthProvider = ({ children }) => {
 
     const interval = setInterval(checkExpiry, 30000); // Check every 30 seconds
     return () => clearInterval(interval);
-  }, [sessionExpiresAt]);
-
-  // Validate that user profile exists in the database
-  const validateUserProfile = async (userId) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .single();
-
-      if (error || !data) {
-        console.error('User profile not found:', error);
-        // Sign out user if profile doesn't exist
-        await supabase.auth.signOut();
-        throw new Error('User profile not found. Please contact support.');
-      }
-
-      return true;
-    } catch (err) {
-      console.error('Profile validation error:', err);
-      throw err;
-    }
-  };
+  }, [sessionExpiresAt, validateUserProfile]);
 
   const signUp = async (email, password, metadata = {}) => {
     const { data, error } = await supabase.auth.signUp({
@@ -204,8 +225,34 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      // If error is "session missing", that's okay - clear local state anyway
+      if (error && !error.message?.includes('session missing')) {
+        throw error;
+      }
+      
+      // Clear local state regardless
+      setUser(null);
+      setSession(null);
+      setSessionExpiresAt(null);
+      
+      // Clear any cached data
+      localStorage.removeItem('supabase.auth.token');
+      
+    } catch (error) {
+      // Even if logout fails, clear local state
+      setUser(null);
+      setSession(null);
+      setSessionExpiresAt(null);
+      
+      if (import.meta.env.MODE !== 'production') {
+        console.error('Logout error:', error);
+      }
+      
+      // Don't throw - allow logout to complete
+    }
   };
 
   const resetPassword = async (email) => {
