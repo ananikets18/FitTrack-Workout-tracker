@@ -63,13 +63,13 @@ const Home = () => {
 
       {/* Stats Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           <SkeletonStatCard />
           <SkeletonStatCard />
           <SkeletonStatCard />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {stats.map((stat, index) => (
             <motion.div
               key={index}
@@ -78,11 +78,11 @@ const Home = () => {
               transition={{ delay: index * 0.1 }}
             >
               <Card elevated className="text-center">
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${stat.bgColor} mb-3 shadow-soft`}>
-                  <stat.icon className={`w-8 h-8 ${stat.color}`} />
+                <div className={`inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-2xl ${stat.bgColor} mb-2 md:mb-3 shadow-soft`}>
+                  <stat.icon className={`w-6 h-6 md:w-8 md:h-8 ${stat.color}`} />
                 </div>
-                <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">{stat.value}</div>
-                <div className="text-gray-500 text-sm font-medium">{stat.label}</div>
+                <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                <div className="text-gray-500 text-xs md:text-sm font-medium">{stat.label}</div>
               </Card>
             </motion.div>
           ))}

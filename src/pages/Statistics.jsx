@@ -120,16 +120,16 @@ const Statistics = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {stats.map((stat, index) => (
-          <Card key={index} className="border border-gray-100">
-            <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full ${stat.bgColor} mb-4`}>
-              <stat.icon className={`w-6 h-6 ${stat.color}`} />
+          <Card key={index} elevated className="text-center">
+            <div className={`inline-flex items-center justify-center w-11 h-11 md:w-14 md:h-14 rounded-2xl ${stat.bgColor} mb-2 md:mb-3 shadow-soft`}>
+              <stat.icon className={`w-5 h-5 md:w-7 md:h-7 ${stat.color}`} />
             </div>
-            <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
-            <div className="text-gray-600 font-medium">{stat.label}</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+            <div className="text-gray-600 text-xs md:text-sm font-medium">{stat.label}</div>
             {stat.subtitle && (
-              <div className="text-xs text-gray-500 mt-1">{stat.subtitle}</div>
+              <div className="text-xs text-gray-500 mt-1 hidden md:block">{stat.subtitle}</div>
             )}
           </Card>
         ))}

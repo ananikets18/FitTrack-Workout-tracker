@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const NumberPicker = ({
   value,

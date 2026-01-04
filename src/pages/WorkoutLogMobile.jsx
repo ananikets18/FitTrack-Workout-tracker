@@ -8,7 +8,7 @@ import Card from '../components/common/Card';
 import NumberPicker from '../components/common/NumberPicker';
 import RestTimer from '../components/workout/RestTimer';
 import Modal from '../components/common/Modal';
-import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { searchExercises, getExercisesByCategory, getCategoryForExercise } from '../data/exercises';
 
@@ -21,6 +21,7 @@ const WorkoutLogMobile = () => {
   const editingWorkoutId = currentWorkout?.id;
 
   const [workoutName, setWorkoutName] = useState('');
+  const [workoutDate, setWorkoutDate] = useState(new Date().toISOString().split('T')[0]); // YYYY-MM-DD format
   const [exercises, setExercises] = useState([]);
   const [duration, setDuration] = useState('');
    
@@ -35,6 +36,7 @@ const WorkoutLogMobile = () => {
   useEffect(() => {
     if (currentWorkout) {
       setWorkoutName(currentWorkout.name || '');
+      setWorkoutDate(currentWorkout.date ? new Date(currentWorkout.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
       setExercises(currentWorkout.exercises || []);
       setDuration(currentWorkout.duration?.toString() || '');
       setNotes(currentWorkout.notes || '');
@@ -232,9 +234,13 @@ const WorkoutLogMobile = () => {
       return;
     }
 
+    // Convert selected date to ISO string at current time
+    const selectedDate = new Date(workoutDate);
+    selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
+    
     const workoutData = {
       name: workoutName,
-      date: isEditMode ? currentWorkout.date : new Date().toISOString(),
+      date: selectedDate.toISOString(),
       exercises,
       duration: parseInt(duration) || 0,
       notes,
@@ -410,6 +416,20 @@ const WorkoutLogMobile = () => {
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
               placeholder="60"
+              className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
+              <Calendar className="w-4 h-4" />
+              <span>Workout Date</span>
+            </label>
+            <input
+              type="date"
+              value={workoutDate}
+              onChange={(e) => setWorkoutDate(e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
               className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
