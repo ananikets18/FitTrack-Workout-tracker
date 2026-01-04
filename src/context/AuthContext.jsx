@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 const AuthContext = createContext({});
 
@@ -15,26 +16,70 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
+  const [sessionExpiresAt, setSessionExpiresAt] = useState(null);
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setSessionExpiresAt(session?.expires_at ? new Date(session.expires_at * 1000) : null);
       setLoading(false);
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event);
       setSession(session);
       setUser(session?.user ?? null);
+      setSessionExpiresAt(session?.expires_at ? new Date(session.expires_at * 1000) : null);
       setLoading(false);
+
+      // Show notifications for auth events
+      if (event === 'SIGNED_IN') {
+        toast.success('Successfully signed in!');
+      } else if (event === 'SIGNED_OUT') {
+        toast.success('Successfully signed out');
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed automatically');
+      } else if (event === 'USER_UPDATED') {
+        toast.success('Profile updated');
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Session expiry warning
+  useEffect(() => {
+    if (!sessionExpiresAt) return;
+
+    const checkExpiry = () => {
+      const now = new Date();
+      const timeUntilExpiry = sessionExpiresAt.getTime() - now.getTime();
+      const minutesUntilExpiry = Math.floor(timeUntilExpiry / 1000 / 60);
+
+      // Warn 5 minutes before expiry
+      if (minutesUntilExpiry === 5) {
+        toast('Session expires in 5 minutes', {
+          icon: '⏰',
+          duration: 5000,
+        });
+      }
+
+      // Warn 1 minute before expiry
+      if (minutesUntilExpiry === 1) {
+        toast.error('Session expires in 1 minute!', {
+          duration: 5000,
+        });
+      }
+    };
+
+    const interval = setInterval(checkExpiry, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, [sessionExpiresAt]);
 
   const signUp = async (email, password, metadata = {}) => {
     const { data, error } = await supabase.auth.signUp({
@@ -107,16 +152,34 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const getSessionInfo = () => {
+    if (!session || !sessionExpiresAt) return null;
+    
+    const now = new Date();
+    const timeUntilExpiry = sessionExpiresAt.getTime() - now.getTime();
+    const minutesUntilExpiry = Math.floor(timeUntilExpiry / 1000 / 60);
+    const hoursUntilExpiry = Math.floor(minutesUntilExpiry / 60);
+    
+    return {
+      expiresAt: sessionExpiresAt,
+      minutesRemaining: minutesUntilExpiry,
+      hoursRemaining: hoursUntilExpiry,
+      isExpiringSoon: minutesUntilExpiry < 10,
+    };
+  };
+
   const value = {
     user,
     session,
     loading,
+    sessionExpiresAt,
     signUp,
     signIn,
     signOut,
     resetPassword,
     updatePassword,
     updateProfile,
+    getSessionInfo,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

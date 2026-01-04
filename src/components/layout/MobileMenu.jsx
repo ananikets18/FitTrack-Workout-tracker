@@ -35,17 +35,17 @@ const MobileMenu = ({ children }) => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 bottom-0 w-80 bg-white shadow-2xl z-50 md:hidden"
+              className="fixed top-0 right-0 bottom-0 w-80 bg-white dark:bg-gray-900 shadow-2xl z-50 md:hidden"
             >
               <div className="flex flex-col h-full">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-bold text-gray-900">Menu</h2>
+                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Menu</h2>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="p-2 rounded-lg hover:bg-gray-100"
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
-                    <X className="w-6 h-6 text-gray-600" />
+                    <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                   </button>
                 </div>
 
