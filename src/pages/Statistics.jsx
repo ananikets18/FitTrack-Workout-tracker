@@ -169,8 +169,8 @@ const Statistics = () => {
 
       {/* This Week Activity */}
       <Card>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">This Week's Activity</h2>
-        <div className="grid grid-cols-7 gap-2">
+        <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-4 md:mb-6">This Week's Activity</h2>
+        <div className="grid grid-cols-7 gap-1 md:gap-2">
           {thisWeekWorkouts.map((day, index) => {
             const isToday = isSameDay(day.date, now);
             const hasWorkouts = day.count > 0;
@@ -179,10 +179,10 @@ const Statistics = () => {
             
             return (
               <div key={index} className="text-center">
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">{day.day}</div>
+                <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-1 md:mb-2 truncate">{day.day}</div>
                 <div
                   onClick={() => handleDayClick(day)}
-                  className={`h-20 rounded-lg flex flex-col items-center justify-center font-bold text-lg transition-all ${
+                  className={`h-14 md:h-20 rounded-lg flex flex-col items-center justify-center font-bold text-base md:text-lg transition-all ${
                     hasRestDay && !hasWorkouts
                       ? 'bg-purple-100 dark:bg-purple-900/30 border-2 border-purple-400 dark:border-purple-600 text-purple-600 dark:text-purple-400 cursor-pointer hover:bg-purple-200 dark:hover:bg-purple-900/40 active:scale-95'
                       : hasWorkouts
@@ -198,7 +198,7 @@ const Statistics = () => {
                       {hasRestDay && <Hotel className="w-3 h-3 mt-0.5" />}
                     </>
                   ) : hasRestDay ? (
-                    <Hotel className="w-6 h-6" />
+                    <Hotel className="w-5 h-5 md:w-6 md:h-6" />
                   ) : (
                     '-'
                   )}
