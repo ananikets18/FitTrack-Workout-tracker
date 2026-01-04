@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWorkouts } from '../context/WorkoutContext';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { calculateStreak } from '../utils/calculations';
+import { hasLocalData, checkMigrationStatus } from '../utils/supabaseMigration';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import RestDayModal from '../components/common/RestDayModal';
+import MigrationModal from '../components/auth/MigrationModal';
 import SkeletonCard from '../components/common/SkeletonCard';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
 import { TrendingUp, Calendar, Flame, ChevronRight, Dumbbell, Hotel, Plus, RotateCcw, Zap } from 'lucide-react';
@@ -16,8 +19,25 @@ import { motion } from 'framer-motion';
 
 const Home = () => {
   const { workouts, isLoading, addRestDay, cloneWorkout } = useWorkouts();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
+  const [showMigrationModal, setShowMigrationModal] = useState(false);
+
+  // Check if migration is needed on mount
+  useEffect(() => {
+    if (user && !checkMigrationStatus()) {
+      const localData = hasLocalData();
+      if (localData.hasWorkouts || localData.hasTemplates) {
+        setShowMigrationModal(true);
+      }
+    }
+  }, [user]);
+
+  const handleMigrationComplete = () => {
+    setShowMigrationModal(false);
+    window.location.reload(); // Reload to fetch data from Supabase
+  };
 
   const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
   const totalWorkouts = regularWorkouts.length;
@@ -329,6 +349,13 @@ const Home = () => {
         isOpen={isRestDayModalOpen}
         onClose={() => setIsRestDayModalOpen(false)}
         onSave={handleSaveRestDay}
+      />
+
+      {/* Migration Modal */}
+      <MigrationModal
+        isOpen={showMigrationModal}
+        onClose={() => setShowMigrationModal(false)}
+        onComplete={handleMigrationComplete}
       />
     </div>
   );

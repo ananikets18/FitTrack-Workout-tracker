@@ -1,4 +1,6 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
+import { db, transformWorkoutFromDB } from '../lib/supabase';
 import { storage } from '../utils/storage';
 import { migrateData } from '../utils/migration';
 
@@ -87,9 +89,26 @@ const initialState = {
 export const WorkoutProvider = ({ children }) => {
   const [state, dispatch] = useReducer(workoutReducer, initialState);
   const [isInitialized, setIsInitialized] = useReducer(() => true, false);
+  const { user } = useAuth();
+  const [useSupabase, setUseSupabase] = useState(false);
 
-  // Load data from localStorage on mount
+  // Determine if we should use Supabase or localStorage
   useEffect(() => {
+    setUseSupabase(!!user);
+  }, [user]);
+
+  // Load data on mount
+  useEffect(() => {
+    if (!user) {
+      // Use localStorage when not authenticated
+      loadFromLocalStorage();
+    } else {
+      // Use Supabase when authenticated
+      loadFromSupabase();
+    }
+  }, [user]);
+
+  const loadFromLocalStorage = () => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
     
     // Run data migrations first
@@ -108,7 +127,7 @@ export const WorkoutProvider = ({ children }) => {
           dispatch({ type: ACTIONS.SET_LOADING, payload: false });
         }
         
-        // Restore currentWorkout if it exists (for page refresh during workout logging)
+        // Restore currentWorkout if it exists
         if (data.currentWorkout) {
           dispatch({ type: ACTIONS.SET_CURRENT_WORKOUT, payload: data.currentWorkout });
         }
@@ -121,22 +140,37 @@ export const WorkoutProvider = ({ children }) => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, []);
+  };
 
-  // Save to localStorage whenever workouts change (but only after initial load)
+  const loadFromSupabase = async () => {
+    dispatch({ type: ACTIONS.SET_LOADING, payload: true });
+    
+    try {
+      const workouts = await db.getWorkouts(user.id);
+      const transformed = workouts.map(transformWorkoutFromDB);
+      dispatch({ type: ACTIONS.SET_WORKOUTS, payload: transformed });
+      setIsInitialized();
+    } catch (error) {
+      console.error('❌ Error loading from Supabase:', error);
+      dispatch({ type: ACTIONS.SET_LOADING, payload: false });
+      setIsInitialized();
+    }
+  };
+
+  // Save to localStorage whenever workouts change (but only after initial load and if not using Supabase)
   useEffect(() => {
-    if (!isInitialized) return; // Don't save until we've loaded initial data
+    if (!isInitialized || useSupabase) return; // Don't save to localStorage if using Supabase
     
     try {
       storage.set({ workouts: state.workouts });
     } catch (error) {
       console.error('❌ Error saving to localStorage:', error);
     }
-  }, [state.workouts, isInitialized]);
+  }, [state.workouts, isInitialized, useSupabase]);
 
-  // Save currentWorkout to localStorage whenever it changes
+  // Save currentWorkout to localStorage whenever it changes (only if not using Supabase)
   useEffect(() => {
-    if (!isInitialized) return;
+    if (!isInitialized || useSupabase) return;
     
     try {
       const data = storage.get();
@@ -150,20 +184,33 @@ export const WorkoutProvider = ({ children }) => {
     } catch (error) {
       console.error('❌ Error saving currentWorkout to localStorage:', error);
     }
-  }, [state.currentWorkout, isInitialized]);
+  }, [state.currentWorkout, isInitialized, useSupabase]);
 
   // Actions
-  const addWorkout = (workout) => {
+  const addWorkout = async (workout) => {
     const newWorkout = {
       ...workout,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
-    dispatch({ type: ACTIONS.ADD_WORKOUT, payload: newWorkout });
-    return newWorkout;
+
+    if (useSupabase && user) {
+      try {
+        const created = await db.createWorkout(newWorkout, user.id);
+        const transformed = transformWorkoutFromDB(created);
+        dispatch({ type: ACTIONS.ADD_WORKOUT, payload: transformed });
+        return transformed;
+      } catch (error) {
+        console.error('❌ Error adding workout to Supabase:', error);
+        throw error;
+      }
+    } else {
+      dispatch({ type: ACTIONS.ADD_WORKOUT, payload: newWorkout });
+      return newWorkout;
+    }
   };
 
-  const addRestDay = (restDayData) => {
+  const addRestDay = async (restDayData) => {
     // Convert selected date to ISO string at current time
     const selectedDate = new Date(restDayData.date);
     selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
@@ -177,16 +224,49 @@ export const WorkoutProvider = ({ children }) => {
       notes: restDayData.notes || '',
       createdAt: new Date().toISOString(),
     };
-    dispatch({ type: ACTIONS.ADD_WORKOUT, payload: restDay });
-    return restDay;
+
+    if (useSupabase && user) {
+      try {
+        const created = await db.createWorkout(restDay, user.id);
+        const transformed = transformWorkoutFromDB(created);
+        dispatch({ type: ACTIONS.ADD_WORKOUT, payload: transformed });
+        return transformed;
+      } catch (error) {
+        console.error('❌ Error adding rest day to Supabase:', error);
+        throw error;
+      }
+    } else {
+      dispatch({ type: ACTIONS.ADD_WORKOUT, payload: restDay });
+      return restDay;
+    }
   };
 
-  const updateWorkout = (workout) => {
-    dispatch({ type: ACTIONS.UPDATE_WORKOUT, payload: workout });
+  const updateWorkout = async (workout) => {
+    if (useSupabase && user) {
+      try {
+        await db.updateWorkout(workout.id, workout, user.id);
+        dispatch({ type: ACTIONS.UPDATE_WORKOUT, payload: workout });
+      } catch (error) {
+        console.error('❌ Error updating workout in Supabase:', error);
+        throw error;
+      }
+    } else {
+      dispatch({ type: ACTIONS.UPDATE_WORKOUT, payload: workout });
+    }
   };
 
-  const deleteWorkout = (id) => {
-    dispatch({ type: ACTIONS.DELETE_WORKOUT, payload: id });
+  const deleteWorkout = async (id) => {
+    if (useSupabase && user) {
+      try {
+        await db.deleteWorkout(id, user.id);
+        dispatch({ type: ACTIONS.DELETE_WORKOUT, payload: id });
+      } catch (error) {
+        console.error('❌ Error deleting workout from Supabase:', error);
+        throw error;
+      }
+    } else {
+      dispatch({ type: ACTIONS.DELETE_WORKOUT, payload: id });
+    }
   };
 
   const setCurrentWorkout = (workout) => {

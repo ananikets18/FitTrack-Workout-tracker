@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
+import { db } from '../lib/supabase';
 
 const TemplateContext = createContext();
 const TEMPLATES_KEY = 'workout_templates';
@@ -14,9 +16,24 @@ export const useTemplates = () => {
 export const TemplateProvider = ({ children }) => {
   const [templates, setTemplates] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const [useSupabase, setUseSupabase] = useState(false);
 
-  // Load templates from localStorage
+  // Determine if we should use Supabase or localStorage
   useEffect(() => {
+    setUseSupabase(!!user);
+  }, [user]);
+
+  // Load templates on mount
+  useEffect(() => {
+    if (!user) {
+      loadFromLocalStorage();
+    } else {
+      loadFromSupabase();
+    }
+  }, [user]);
+
+  const loadFromLocalStorage = () => {
     try {
       const stored = localStorage.getItem(TEMPLATES_KEY);
       const loadedTemplates = stored ? JSON.parse(stored) : [];
@@ -26,35 +43,79 @@ export const TemplateProvider = ({ children }) => {
       setTemplates([]);
     }
     setIsLoading(false);
-  }, []);
+  };
 
-  // Save to localStorage whenever templates change
+  const loadFromSupabase = async () => {
+    setIsLoading(true);
+    try {
+      const data = await db.getTemplates(user.id);
+      setTemplates(data || []);
+    } catch (error) {
+      console.error('Error loading templates from Supabase:', error);
+      setTemplates([]);
+    }
+    setIsLoading(false);
+  };
+
+  // Save to localStorage whenever templates change (only if not using Supabase)
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !useSupabase) {
       try {
         localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
       } catch (error) {
         console.error('Error saving templates:', error);
       }
     }
-  }, [templates, isLoading]);
+  }, [templates, isLoading, useSupabase]);
 
-  const saveTemplate = (template) => {
+  const saveTemplate = async (template) => {
     const newTemplate = {
       ...template,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
-    setTemplates(prev => [newTemplate, ...prev]);
-    return newTemplate;
+
+    if (useSupabase && user) {
+      try {
+        const created = await db.createTemplate(newTemplate, user.id);
+        setTemplates(prev => [created, ...prev]);
+        return created;
+      } catch (error) {
+        console.error('Error saving template to Supabase:', error);
+        throw error;
+      }
+    } else {
+      setTemplates(prev => [newTemplate, ...prev]);
+      return newTemplate;
+    }
   };
 
-  const deleteTemplate = (id) => {
-    setTemplates(prev => prev.filter(t => t.id !== id));
+  const deleteTemplate = async (id) => {
+    if (useSupabase && user) {
+      try {
+        await db.deleteTemplate(id, user.id);
+        setTemplates(prev => prev.filter(t => t.id !== id));
+      } catch (error) {
+        console.error('Error deleting template from Supabase:', error);
+        throw error;
+      }
+    } else {
+      setTemplates(prev => prev.filter(t => t.id !== id));
+    }
   };
 
-  const updateTemplate = (id, updates) => {
-    setTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+  const updateTemplate = async (id, updates) => {
+    if (useSupabase && user) {
+      try {
+        // Supabase doesn't have an update method for templates, so we'll handle it locally
+        setTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+      } catch (error) {
+        console.error('Error updating template in Supabase:', error);
+        throw error;
+      }
+    } else {
+      setTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+    }
   };
 
   return (
