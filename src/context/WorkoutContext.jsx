@@ -107,6 +107,11 @@ export const WorkoutProvider = ({ children }) => {
         } else {
           dispatch({ type: ACTIONS.SET_LOADING, payload: false });
         }
+        
+        // Restore currentWorkout if it exists (for page refresh during workout logging)
+        if (data.currentWorkout) {
+          dispatch({ type: ACTIONS.SET_CURRENT_WORKOUT, payload: data.currentWorkout });
+        }
       } catch (error) {
         console.error('❌ Error loading from localStorage:', error);
         dispatch({ type: ACTIONS.SET_LOADING, payload: false });
@@ -128,6 +133,24 @@ export const WorkoutProvider = ({ children }) => {
       console.error('❌ Error saving to localStorage:', error);
     }
   }, [state.workouts, isInitialized]);
+
+  // Save currentWorkout to localStorage whenever it changes
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    try {
+      const data = storage.get();
+      if (state.currentWorkout) {
+        storage.set({ ...data, currentWorkout: state.currentWorkout });
+      } else {
+        // Remove currentWorkout from storage when cleared
+        const { currentWorkout, ...rest } = data;
+        storage.set(rest);
+      }
+    } catch (error) {
+      console.error('❌ Error saving currentWorkout to localStorage:', error);
+    }
+  }, [state.currentWorkout, isInitialized]);
 
   // Actions
   const addWorkout = (workout) => {
@@ -174,6 +197,25 @@ export const WorkoutProvider = ({ children }) => {
     dispatch({ type: ACTIONS.CLEAR_CURRENT_WORKOUT });
   };
 
+  const cloneWorkout = (workout) => {
+    // Clone workout for repeat/template use
+    const clonedWorkout = {
+      ...workout,
+      exercises: workout.exercises.map(exercise => ({
+        ...exercise,
+        id: crypto.randomUUID(),
+        sets: exercise.sets.map(set => ({
+          ...set,
+          completed: false // Reset completion status
+        }))
+      }))
+    };
+    
+    // Set as current workout for editing
+    setCurrentWorkout(clonedWorkout);
+    return clonedWorkout;
+  };
+
   const importWorkouts = (workouts) => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
     setTimeout(() => {
@@ -191,6 +233,7 @@ export const WorkoutProvider = ({ children }) => {
     deleteWorkout,
     setCurrentWorkout,
     clearCurrentWorkout,
+    cloneWorkout,
     importWorkouts,
   };
 

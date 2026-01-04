@@ -9,7 +9,8 @@ import Card from '../components/common/Card';
 import NumberPicker from '../components/common/NumberPicker';
 import RestTimer from '../components/workout/RestTimer';
 import Modal from '../components/common/Modal';
-import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar, BookmarkPlus, FileText, ChevronRight } from 'lucide-react';
+import BatchEditModal from '../components/common/BatchEditModal';
+import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar, BookmarkPlus, FileText, ChevronRight, Sliders } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { searchExercises, getExercisesByCategory, getCategoryForExercise } from '../data/exercises';
 
@@ -30,6 +31,7 @@ const WorkoutLogMobile = () => {
   const [notes, setNotes] = useState('');
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isBatchEditModalOpen, setIsBatchEditModalOpen] = useState(false);
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(false);
@@ -328,8 +330,59 @@ const WorkoutLogMobile = () => {
     }
   };
 
+  const handleBatchEdit = ({ type, operation, value }) => {
+    if (type === 'weight' || type === 'reps') {
+      // Adjust weight or reps for all sets
+      setExercises(exercises.map(ex => ({
+        ...ex,
+        sets: ex.sets.map(set => {
+          const currentValue = type === 'weight' ? set.weight : set.reps;
+          const newValue = operation === 'add' 
+            ? currentValue + value 
+            : Math.max(0, currentValue - value); // Prevent negative values
+          
+          return {
+            ...set,
+            [type]: newValue
+          };
+        })
+      })));
+      
+      const action = operation === 'add' ? 'increased' : 'decreased';
+      toast.success(`All ${type}s ${action} by ${value}`, { duration: 2000 });
+    } else if (type === 'sets') {
+      // Add or remove sets from all exercises
+      setExercises(exercises.map(ex => {
+        if (operation === 'add') {
+          // Add new sets based on the last set
+          const lastSet = ex.sets[ex.sets.length - 1];
+          const newSets = Array(value).fill(null).map(() => ({
+            ...lastSet,
+            completed: false
+          }));
+          return {
+            ...ex,
+            sets: [...ex.sets, ...newSets]
+          };
+        } else {
+          // Remove last sets
+          const setsToRemove = Math.min(value, ex.sets.length - 1); // Keep at least 1 set
+          return {
+            ...ex,
+            sets: ex.sets.slice(0, ex.sets.length - setsToRemove)
+          };
+        }
+      }));
+      
+      const action = operation === 'add' ? 'added' : 'removed';
+      toast.success(`${value} set(s) ${action} to all exercises`, { duration: 2000 });
+    }
+    
+    vibrate(50);
+  };
+
   // Swipeable Set Component
-  const SwipeableSet = ({ set, setIndex, onToggle, onDelete }) => {
+  const SwipeableSet = ({ set, setIndex, onToggle, onDelete, exercise }) => {
     const x = useMotionValue(0);
     const backgroundColor = useTransform(
       x,
@@ -343,6 +396,26 @@ const WorkoutLogMobile = () => {
       } else if (info.offset.x < -100) {
         onDelete();
       }
+    };
+    
+    const handleCopyPreviousSet = () => {
+      if (setIndex === 0) return; // Can't copy if first set
+      
+      const previousSet = exercise.sets[setIndex - 1];
+      setExercises(exercises.map(ex => {
+        if (ex.id === exercise.id) {
+          const updatedSets = [...ex.sets];
+          updatedSets[setIndex] = {
+            ...updatedSets[setIndex],
+            reps: previousSet.reps,
+            weight: previousSet.weight
+          };
+          return { ...ex, sets: updatedSets };
+        }
+        return ex;
+      }));
+      toast.success('Copied from previous set', { duration: 1500 });
+      vibrate(30);
     };
 
     return (
@@ -372,6 +445,15 @@ const WorkoutLogMobile = () => {
                   <span className="font-bold text-gray-900">{set.weight}</span>
                   <span className="text-gray-500">kg</span>
                 </div>
+                {setIndex > 0 && (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleCopyPreviousSet}
+                    className="mt-1 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center space-x-1"
+                  >
+                    <span>↑ Copy previous</span>
+                  </motion.button>
+                )}
               </div>
 
               <button
@@ -515,6 +597,18 @@ const WorkoutLogMobile = () => {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Exercises</h2>
           <div className="flex items-center space-x-2">
+            {/* Batch Edit Button - Show when exercises exist */}
+            {exercises.length > 0 && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsBatchEditModalOpen(true)}
+                className="flex items-center space-x-2 px-3 py-3 bg-gray-600 text-white font-semibold rounded-xl shadow-lg"
+                title="Batch Edit All"
+              >
+                <Sliders className="w-5 h-5" />
+                <span className="hidden sm:inline">Batch</span>
+              </motion.button>
+            )}
             {/* Template Button - Always visible when not editing */}
             {!isEditMode && (
               <motion.button
@@ -798,6 +892,13 @@ const WorkoutLogMobile = () => {
           toast.success('Rest complete! Next set! 💪');
           setIsTimerOpen(false);
         }}
+      />
+
+      {/* Batch Edit Modal */}
+      <BatchEditModal
+        isOpen={isBatchEditModalOpen}
+        onClose={() => setIsBatchEditModalOpen(false)}
+        onApply={handleBatchEdit}
       />
 
       {/* Template Selection Modal */}

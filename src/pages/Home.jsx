@@ -1,26 +1,80 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useWorkouts } from '../context/WorkoutContext';
+import { useNavigate } from 'react-router-dom';
 import { calculateStreak } from '../utils/calculations';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import RestDayModal from '../components/common/RestDayModal';
 import SkeletonCard from '../components/common/SkeletonCard';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
-import { TrendingUp, Calendar, Flame, ChevronRight, Dumbbell, Hotel, Plus } from 'lucide-react';
+import { TrendingUp, Calendar, Flame, ChevronRight, Dumbbell, Hotel, Plus, RotateCcw, Zap } from 'lucide-react';
 import { formatDate } from '../utils/calculations';
 import toast from 'react-hot-toast';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 const Home = () => {
-  const { workouts, isLoading, addRestDay } = useWorkouts();
+  const { workouts, isLoading, addRestDay, cloneWorkout } = useWorkouts();
+  const navigate = useNavigate();
   const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
 
-  const totalWorkouts = workouts.filter(w => w.type !== 'rest_day').length;
+  const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
+  const totalWorkouts = regularWorkouts.length;
   const totalRestDays = workouts.filter(w => w.type === 'rest_day').length;
   const currentStreak = calculateStreak(workouts);
   const recentWorkouts = workouts.slice(0, 3);
+  
+  // Get last workout
+  const lastWorkout = regularWorkouts[0];
+  
+  // Predict next workout based on patterns
+  const getPredictedWorkout = () => {
+    if (regularWorkouts.length < 2) return null;
+    
+    // Analyze workout patterns
+    const workoutNames = regularWorkouts.slice(0, 10).map(w => w.name.toLowerCase());
+    const uniqueNames = [...new Set(workoutNames)];
+    
+    // Find the most common rotation pattern
+    if (uniqueNames.length <= 1) return null;
+    
+    // Check if there's a rotation (e.g., Push, Pull, Legs)
+    const lastWorkoutName = regularWorkouts[0].name.toLowerCase();
+    const rotation = uniqueNames.filter(name => name !== lastWorkoutName);
+    
+    if (rotation.length > 0) {
+      // Find the next workout in rotation
+      const nextInRotation = regularWorkouts.find(w => 
+        rotation.includes(w.name.toLowerCase()) && w.id !== regularWorkouts[0].id
+      );
+      
+      return nextInRotation || null;
+    }
+    
+    return null;
+  };
+  
+  const predictedWorkout = getPredictedWorkout();
+
+  const handleRepeatLastWorkout = () => {
+    if (!lastWorkout) {
+      toast.error('No previous workout found');
+      return;
+    }
+    
+    cloneWorkout(lastWorkout);
+    toast.success(`Repeating: ${lastWorkout.name}`, { duration: 2000 });
+    navigate('/log');
+  };
+  
+  const handleStartPredictedWorkout = () => {
+    if (!predictedWorkout) return;
+    
+    cloneWorkout(predictedWorkout);
+    toast.success(`Starting: ${predictedWorkout.name}`, { duration: 2000, icon: '⚡' });
+    navigate('/log');
+  };
 
   const handleSaveRestDay = (restDayData) => {
     addRestDay(restDayData);
@@ -93,6 +147,36 @@ const Home = () => {
             </motion.div>
           ))}
         </div>
+      )}
+
+      {/* Predicted Workout Card - Show when there's a prediction */}
+      {!isLoading && predictedWorkout && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-lifted"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+                <Zap className="w-5 h-5" />
+              </div>
+              <span className="text-sm font-semibold uppercase tracking-wide">Suggested Next</span>
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold mb-2">{predictedWorkout.name}</h3>
+          <p className="text-white/80 text-sm mb-4">
+            {predictedWorkout.exercises?.length || 0} exercises • Last done {formatDate(predictedWorkout.date)}
+          </p>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={handleStartPredictedWorkout}
+            className="w-full bg-white text-blue-600 font-bold py-3 px-4 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center space-x-2"
+          >
+            <Zap className="w-5 h-5" />
+            <span>Start This Workout</span>
+          </motion.button>
+        </motion.div>
       )}
 
       {/* Recent Workouts */}
@@ -210,8 +294,19 @@ const Home = () => {
 
       {/* Quick Action Buttons - When there are workouts */}
       {!isLoading && workouts.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          <Link to="/log" className="flex-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          {lastWorkout && (
+            <Button 
+              variant="outline" 
+              size="lg" 
+              onClick={handleRepeatLastWorkout}
+              className="w-full flex items-center justify-center border-2 border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20"
+            >
+              <RotateCcw className="w-5 h-5 mr-2" />
+              Repeat Last
+            </Button>
+          )}
+          <Link to="/log" className={lastWorkout ? '' : 'sm:col-span-2'}>
             <Button variant="primary" size="lg" className="w-full flex items-center justify-center">
               <Plus className="w-5 h-5 mr-2" />
               Log Workout
@@ -221,10 +316,10 @@ const Home = () => {
             variant="secondary" 
             size="lg" 
             onClick={() => setIsRestDayModalOpen(true)}
-            className="flex-1 flex items-center justify-center"
+            className="w-full flex items-center justify-center"
           >
             <Hotel className="w-5 h-5 mr-2" />
-            Log Rest Day
+            Rest Day
           </Button>
         </div>
       )}
