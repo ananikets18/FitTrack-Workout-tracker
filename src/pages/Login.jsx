@@ -86,7 +86,9 @@ const Login = () => {
       }
       // Record successful attempt
       limiter.recordAttempt(email.toLowerCase(), true);
-      navigate('/', { replace: true });
+      
+      // Don't navigate here - let the useEffect handle it once user state is set
+      // This prevents race condition between auth state propagation and navigation
     } catch (err) {
       // Record failed attempt
       limiter.recordAttempt(email.toLowerCase(), false);

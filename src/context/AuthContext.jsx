@@ -296,23 +296,16 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (error) {
-        console.error('Supabase signIn error:', error);
+        if (import.meta.env.MODE !== 'production') {
+          console.error('[Auth] signIn error:', error);
+        }
         throw error;
       }
 
-      // TEMPORARY: Profile validation removed to allow login without profile
-      // Profile validation is handled by auth state change listener
-      // TODO: Fix missing profiles in database
-      if (data.user) {
-        try {
-          await validateUserProfile(data.user.id);
-          console.log('Profile validation successful');
-        } catch (profileError) {
-          console.warn('Profile validation failed, but allowing login:', profileError);
-          // Don't block login - let the auth state listener handle it
-          // await supabase.auth.signOut();
-          // throw profileError;
-        }
+      // Profile validation is handled by the onAuthStateChange listener
+      // No need to validate here to avoid duplicate validation and delays
+      if (import.meta.env.MODE !== 'production') {
+        console.log('[Auth] signIn successful, waiting for auth state change');
       }
 
       return data;
