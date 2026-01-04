@@ -87,8 +87,10 @@ const Login = () => {
       // Record successful attempt
       limiter.recordAttempt(email.toLowerCase(), true);
       
-      // Don't navigate here - let the useEffect handle it once user state is set
-      // This prevents race condition between auth state propagation and navigation
+      // Don't set loading to false here - keep the loading state until navigation happens
+      // The useEffect will handle navigation when user state is set
+      // Don't call setLoading(false) here to prevent premature button re-enable
+      return; // Exit early, don't run finally block
     } catch (err) {
       // Record failed attempt
       limiter.recordAttempt(email.toLowerCase(), false);

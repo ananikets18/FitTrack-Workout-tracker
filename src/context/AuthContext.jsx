@@ -213,9 +213,8 @@ export const AuthProvider = ({ children }) => {
         setSessionExpiresAt(session?.expires_at ? new Date(session.expires_at * 1000) : null);
       }
 
-      setLoading(false);
-
-      // Show notifications for auth events
+      // Show notifications for auth events BEFORE setting loading false
+      // This ensures user sees feedback immediately
       if (event === 'SIGNED_IN') {
         toast.success('Successfully signed in!');
       } else if (event === 'SIGNED_OUT') {
@@ -231,6 +230,9 @@ export const AuthProvider = ({ children }) => {
       } else if (event === 'USER_UPDATED') {
         toast.success('Profile updated');
       }
+
+      // Set loading false AFTER all state updates and notifications
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
