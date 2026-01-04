@@ -21,18 +21,11 @@ export const AuthProvider = ({ children }) => {
   // Define validateUserProfile BEFORE useEffect
   const validateUserProfile = async (userId) => {
     try {
-      // Add timeout to profile check
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile check timeout')), 5000)
-      );
-      
-      const profilePromise = supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', userId)
         .single();
-
-      const { data, error } = await Promise.race([profilePromise, timeoutPromise]);
 
       if (error || !data) {
         if (import.meta.env.MODE !== 'production') {
@@ -60,28 +53,17 @@ export const AuthProvider = ({ children }) => {
       setSession(null);
       setUser(null);
       setSessionExpiresAt(null);
-    }, 10000); // 10 second timeout
+    }, 15000); // 15 second timeout
 
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       try {
-        // Validate profile exists for existing session
+        // On page refresh, trust the existing session without validation
+        // Profile validation only happens on new sign-ins
         if (session?.user) {
-          try {
-            await validateUserProfile(session.user.id);
-            setSession(session);
-            setUser(session.user);
-            setSessionExpiresAt(session.expires_at ? new Date(session.expires_at * 1000) : null);
-          } catch (error) {
-            // Profile doesn't exist, clear session
-            if (import.meta.env.MODE !== 'production') {
-              console.error('Profile validation failed on session load:', error);
-            }
-            await supabase.auth.signOut();
-            setSession(null);
-            setUser(null);
-            setSessionExpiresAt(null);
-          }
+          setSession(session);
+          setUser(session.user);
+          setSessionExpiresAt(session.expires_at ? new Date(session.expires_at * 1000) : null);
         } else {
           setSession(null);
           setUser(null);
