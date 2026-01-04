@@ -11,14 +11,8 @@ export default defineConfig({
     // Generate source maps for production debugging (can be disabled for smaller bundle)
     sourcemap: false,
     
-    // Optimize bundle size
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console.logs in production
-        drop_debugger: true,
-      },
-    },
+    // Optimize bundle size (using esbuild, faster than terser)
+    minify: 'esbuild',
     
     // Code splitting configuration
     rollupOptions: {
