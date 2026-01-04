@@ -1,8 +1,8 @@
 import { useWorkouts } from '../context/WorkoutContext';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { 
-  calculateStreak, 
+import {
+  calculateStreak,
   calculateTotalVolume,
   kgToTons,
   calculateTotalReps,
@@ -30,22 +30,22 @@ const Statistics = () => {
   const totalWorkouts = regularWorkouts.length;
   const currentStreak = calculateStreak(workouts); // Includes rest days for streak
   const personalRecords = getPersonalRecords(workouts);
-  
-  const totalVolume = regularWorkouts.reduce((sum, workout) => 
+
+  const totalVolume = regularWorkouts.reduce((sum, workout) =>
     sum + calculateTotalVolume(workout), 0
   );
-  
+
   const totalVolumeInTons = kgToTons(totalVolume);
 
   const totalSets = regularWorkouts.reduce((sum, workout) => {
     return sum + (workout.exercises?.reduce((total, ex) => total + ex.sets.length, 0) || 0);
   }, 0);
-  
+
   const totalReps = regularWorkouts.reduce((sum, workout) => {
     return sum + calculateTotalReps(workout);
   }, 0);
-  
-  const averageWeight = regularWorkouts.length > 0 
+
+  const averageWeight = regularWorkouts.length > 0
     ? (regularWorkouts.reduce((sum, workout) => sum + parseFloat(calculateAverageWeight(workout)), 0) / regularWorkouts.length).toFixed(1)
     : 0;
 
@@ -72,7 +72,7 @@ const Statistics = () => {
     const dayWorkouts = workoutsByDate[dateKey] || [];
     const regularWorkouts = dayWorkouts.filter(w => w.type !== 'rest_day');
     const restDays = dayWorkouts.filter(w => w.type === 'rest_day');
-    
+
     return {
       day: format(day, 'EEE'),
       count: regularWorkouts.length,
@@ -175,22 +175,20 @@ const Statistics = () => {
             const isToday = isSameDay(day.date, now);
             const hasWorkouts = day.count > 0;
             const hasRestDay = day.hasRestDay;
-            const hasActivity = hasWorkouts || hasRestDay;
-            
+
             return (
               <div key={index} className="text-center">
                 <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-1 md:mb-2 truncate">{day.day}</div>
                 <div
                   onClick={() => handleDayClick(day)}
-                  className={`h-14 md:h-20 rounded-lg flex flex-col items-center justify-center font-bold text-base md:text-lg transition-all ${
-                    hasRestDay && !hasWorkouts
+                  className={`h-14 md:h-20 rounded-lg flex flex-col items-center justify-center font-bold text-base md:text-lg transition-all ${hasRestDay && !hasWorkouts
                       ? 'bg-purple-100 dark:bg-purple-900/30 border-2 border-purple-400 dark:border-purple-600 text-purple-600 dark:text-purple-400 cursor-pointer hover:bg-purple-200 dark:hover:bg-purple-900/40 active:scale-95'
                       : hasWorkouts
-                      ? 'bg-primary-500 text-white cursor-pointer hover:bg-primary-600 active:scale-95'
-                      : isToday
-                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-2 border-primary-500'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'
-                  }`}
+                        ? 'bg-primary-500 text-white cursor-pointer hover:bg-primary-600 active:scale-95'
+                        : isToday
+                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-2 border-primary-500'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'
+                    }`}
                 >
                   {hasWorkouts ? (
                     <>
@@ -306,11 +304,10 @@ const Statistics = () => {
         {selectedDay && (
           <div className="space-y-4">
             {selectedDay.workouts.map((workout, idx) => (
-              <div key={idx} className={`rounded-xl p-4 space-y-3 ${
-                workout.type === 'rest_day' 
-                  ? 'bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800' 
+              <div key={idx} className={`rounded-xl p-4 space-y-3 ${workout.type === 'rest_day'
+                  ? 'bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800'
                   : 'bg-gray-50 dark:bg-gray-800'
-              }`}>
+                }`}>
                 {workout.type === 'rest_day' ? (
                   <>
                     <div className="flex items-start justify-between">

@@ -8,7 +8,8 @@ import App from './App.jsx'
 // Clean up old error logs from localStorage (deprecated feature)
 try {
   localStorage.removeItem('app-errors');
-} catch (e) {
+  // eslint-disable-next-line no-empty
+} catch {
   // Silently fail if localStorage is not available
 }
 

@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext({});
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -18,8 +19,8 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [sessionExpiresAt, setSessionExpiresAt] = useState(null);
 
-  // Define validateUserProfile BEFORE useEffect
-  const validateUserProfile = async (userId) => {
+  // Define validateUserProfile with useCallback to prevent dependency changes
+  const validateUserProfile = useCallback(async (userId) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -41,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       }
       throw err;
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Add timeout to prevent infinite loading
@@ -99,7 +100,7 @@ export const AuthProvider = ({ children }) => {
       if (import.meta.env.MODE !== 'production') {
         console.log('Auth state changed:', event);
       }
-      
+
       // Validate profile on sign in events
       if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
         try {
@@ -123,7 +124,7 @@ export const AuthProvider = ({ children }) => {
         setUser(session?.user ?? null);
         setSessionExpiresAt(session?.expires_at ? new Date(session.expires_at * 1000) : null);
       }
-      
+
       setLoading(false);
 
       // Show notifications for auth events
@@ -184,7 +185,7 @@ export const AuthProvider = ({ children }) => {
 
     // Note: Profile is automatically created by database trigger (handle_new_user)
     // No need to manually insert here as it would violate RLS policies
-    
+
     return data;
   };
 
@@ -229,30 +230,30 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      
+
       // If error is "session missing", that's okay - clear local state anyway
       if (error && !error.message?.includes('session missing')) {
         throw error;
       }
-      
+
       // Clear local state regardless
       setUser(null);
       setSession(null);
       setSessionExpiresAt(null);
-      
+
       // Clear any cached data
       localStorage.removeItem('supabase.auth.token');
-      
+
     } catch (error) {
       // Even if logout fails, clear local state
       setUser(null);
       setSession(null);
       setSessionExpiresAt(null);
-      
+
       if (import.meta.env.MODE !== 'production') {
         console.error('Logout error:', error);
       }
-      
+
       // Don't throw - allow logout to complete
     }
   };
@@ -298,12 +299,12 @@ export const AuthProvider = ({ children }) => {
 
   const getSessionInfo = () => {
     if (!session || !sessionExpiresAt) return null;
-    
+
     const now = new Date();
     const timeUntilExpiry = sessionExpiresAt.getTime() - now.getTime();
     const minutesUntilExpiry = Math.floor(timeUntilExpiry / 1000 / 60);
     const hoursUntilExpiry = Math.floor(minutesUntilExpiry / 60);
-    
+
     return {
       expiresAt: sessionExpiresAt,
       minutesRemaining: minutesUntilExpiry,

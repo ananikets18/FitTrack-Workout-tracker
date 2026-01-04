@@ -3,8 +3,8 @@ import { Component } from 'react';
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { 
-      hasError: false, 
+    this.state = {
+      hasError: false,
       error: null,
       errorInfo: null,
       errorCount: 0
@@ -16,35 +16,26 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    const errorDetails = {
-      message: error.toString(),
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href
-    };
-    
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.MODE === 'development') {
       console.error('Error caught by boundary:', error, errorInfo);
     }
-    
+
     // Store error info for display
     this.setState(prevState => ({
       errorInfo,
       errorCount: prevState.errorCount + 1
     }));
-    
+
     // In production, you would send this to an error tracking service
     // Example: Sentry.captureException(error, { extra: errorDetails });
   }
 
   handleReset = () => {
-    this.setState({ 
-      hasError: false, 
-      error: null, 
-      errorInfo: null 
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null
     });
   };
 
@@ -64,15 +55,15 @@ class ErrorBoundary extends Component {
             <p className="text-gray-600 mb-6 text-center">
               We encountered an unexpected error. Your data is safe.
             </p>
-            
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+
+            {import.meta.env.MODE === 'development' && this.state.error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm font-mono text-red-800 break-all">
                   {this.state.error.toString()}
                 </p>
               </div>
             )}
-            
+
             <div className="flex gap-3">
               <button
                 onClick={this.handleReset}
@@ -87,7 +78,7 @@ class ErrorBoundary extends Component {
                 Refresh Page
               </button>
             </div>
-            
+
             <p className="text-xs text-gray-500 text-center mt-4">
               If this persists, try clearing your browser cache
             </p>

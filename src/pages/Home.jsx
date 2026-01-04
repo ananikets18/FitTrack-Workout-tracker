@@ -29,7 +29,10 @@ const Home = () => {
     if (user && !checkMigrationStatus()) {
       const localData = hasLocalData();
       if (localData.hasWorkouts || localData.hasTemplates) {
-        setShowMigrationModal(true);
+        // Use setTimeout to avoid synchronous setState in effect
+        setTimeout(() => {
+          setShowMigrationModal(true);
+        }, 0);
       }
     }
   }, [user]);
@@ -44,37 +47,37 @@ const Home = () => {
   const totalRestDays = workouts.filter(w => w.type === 'rest_day').length;
   const currentStreak = calculateStreak(workouts);
   const recentWorkouts = workouts.slice(0, 3);
-  
+
   // Get last workout
   const lastWorkout = regularWorkouts[0];
-  
+
   // Predict next workout based on patterns
   const getPredictedWorkout = () => {
     if (regularWorkouts.length < 2) return null;
-    
+
     // Analyze workout patterns
     const workoutNames = regularWorkouts.slice(0, 10).map(w => w.name.toLowerCase());
     const uniqueNames = [...new Set(workoutNames)];
-    
+
     // Find the most common rotation pattern
     if (uniqueNames.length <= 1) return null;
-    
+
     // Check if there's a rotation (e.g., Push, Pull, Legs)
     const lastWorkoutName = regularWorkouts[0].name.toLowerCase();
     const rotation = uniqueNames.filter(name => name !== lastWorkoutName);
-    
+
     if (rotation.length > 0) {
       // Find the next workout in rotation
-      const nextInRotation = regularWorkouts.find(w => 
+      const nextInRotation = regularWorkouts.find(w =>
         rotation.includes(w.name.toLowerCase()) && w.id !== regularWorkouts[0].id
       );
-      
+
       return nextInRotation || null;
     }
-    
+
     return null;
   };
-  
+
   const predictedWorkout = getPredictedWorkout();
 
   const handleRepeatLastWorkout = () => {
@@ -82,15 +85,15 @@ const Home = () => {
       toast.error('No previous workout found');
       return;
     }
-    
+
     cloneWorkout(lastWorkout);
     toast.success(`Repeating: ${lastWorkout.name}`, { duration: 2000 });
     navigate('/log');
   };
-  
+
   const handleStartPredictedWorkout = () => {
     if (!predictedWorkout) return;
-    
+
     cloneWorkout(predictedWorkout);
     toast.success(`Starting: ${predictedWorkout.name}`, { duration: 2000, icon: '⚡' });
     navigate('/log');
@@ -297,9 +300,9 @@ const Home = () => {
                     Log Workout
                   </Button>
                 </Link>
-                <Button 
-                  variant="secondary" 
-                  size="lg" 
+                <Button
+                  variant="secondary"
+                  size="lg"
                   onClick={() => setIsRestDayModalOpen(true)}
                   className="w-full sm:w-auto"
                 >
@@ -316,9 +319,9 @@ const Home = () => {
       {!isLoading && workouts.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
           {lastWorkout && (
-            <Button 
-              variant="outline" 
-              size="lg" 
+            <Button
+              variant="outline"
+              size="lg"
               onClick={handleRepeatLastWorkout}
               className="w-full flex items-center justify-center border-2 border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20"
             >
@@ -332,9 +335,9 @@ const Home = () => {
               Log Workout
             </Button>
           </Link>
-          <Button 
-            variant="secondary" 
-            size="lg" 
+          <Button
+            variant="secondary"
+            size="lg"
             onClick={() => setIsRestDayModalOpen(true)}
             className="w-full flex items-center justify-center"
           >

@@ -1,10 +1,11 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { db } from '../lib/supabase';
 
 const TemplateContext = createContext();
 const TEMPLATES_KEY = 'workout_templates';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTemplates = () => {
   const context = useContext(TemplateContext);
   if (!context) {
@@ -24,16 +25,7 @@ export const TemplateProvider = ({ children }) => {
     setUseSupabase(!!user);
   }, [user]);
 
-  // Load templates on mount
-  useEffect(() => {
-    if (!user) {
-      loadFromLocalStorage();
-    } else {
-      loadFromSupabase();
-    }
-  }, [user]);
-
-  const loadFromLocalStorage = () => {
+  const loadFromLocalStorage = useCallback(() => {
     try {
       const stored = localStorage.getItem(TEMPLATES_KEY);
       const loadedTemplates = stored ? JSON.parse(stored) : [];
@@ -47,9 +39,9 @@ export const TemplateProvider = ({ children }) => {
       // Always set loading to false
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const loadFromSupabase = async () => {
+  const loadFromSupabase = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await db.getTemplates(user.id);
@@ -63,7 +55,16 @@ export const TemplateProvider = ({ children }) => {
       // Always set loading to false
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  // Load templates on mount
+  useEffect(() => {
+    if (!user) {
+      loadFromLocalStorage();
+    } else {
+      loadFromSupabase();
+    }
+  }, [user, loadFromLocalStorage, loadFromSupabase]);
 
   // Save to localStorage whenever templates change (only if not using Supabase)
   useEffect(() => {
