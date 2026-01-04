@@ -12,6 +12,7 @@ const Home = lazy(() => import('./pages/Home'));
 const WorkoutLogMobile = lazy(() => import('./pages/WorkoutLogMobile'));
 const History = lazy(() => import('./pages/History'));
 const Statistics = lazy(() => import('./pages/Statistics'));
+const Calendar = lazy(() => import('./pages/Calendar'));
 
 // Loading component
 const PageLoader = () => (
@@ -86,6 +87,14 @@ function App() {
                   element={
                     <Suspense fallback={<PageLoader />}>
                       <Statistics />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="calendar"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Calendar />
                     </Suspense>
                   }
                 />

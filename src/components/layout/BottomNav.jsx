@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Plus, History, BarChart3 } from 'lucide-react';
+import { Home, Plus, History, BarChart3, CalendarDays } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { lightHaptic, mediumHaptic } from '../../utils/haptics';
@@ -9,6 +9,7 @@ const BottomNav = () => {
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
+    { path: '/calendar', label: 'Calendar', icon: CalendarDays },
     { path: '/log', label: 'Log', icon: Plus, primary: true },
     { path: '/history', label: 'History', icon: History },
     { path: '/stats', label: 'Stats', icon: BarChart3 },
@@ -46,10 +47,9 @@ const BottomNav = () => {
                   whileTap={{ scale: 0.9 }}
                   className="flex flex-col items-center justify-center"
                 >
-                  <div className="bg-gradient-primary rounded-full p-3 shadow-lifted mb-1">
+                  <div className="bg-gradient-primary rounded-full p-3 shadow-lifted">
                     <NavIcon className="w-5 h-5 text-white" strokeWidth={2.5} />
                   </div>
-                  <span className="text-xs font-semibold text-blue-600">Log</span>
                 </motion.div>
               ) : (
                 <>
