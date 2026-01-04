@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { db, transformWorkoutFromDB } from '../lib/supabase';
 import { storage } from '../utils/storage';
@@ -27,53 +27,53 @@ const workoutReducer = (state, action) => {
         ...state,
         isLoading: action.payload,
       };
-    
+
     case ACTIONS.SET_WORKOUTS:
       return {
         ...state,
         workouts: action.payload,
         isLoading: false,
       };
-    
+
     case ACTIONS.IMPORT_WORKOUTS:
       return {
         ...state,
         workouts: [...action.payload, ...state.workouts],
         isLoading: false,
       };
-    
+
     case ACTIONS.ADD_WORKOUT:
       return {
         ...state,
         workouts: [action.payload, ...state.workouts],
       };
-    
+
     case ACTIONS.UPDATE_WORKOUT:
       return {
         ...state,
-        workouts: state.workouts.map(w => 
+        workouts: state.workouts.map(w =>
           w.id === action.payload.id ? action.payload : w
         ),
       };
-    
+
     case ACTIONS.DELETE_WORKOUT:
       return {
         ...state,
         workouts: state.workouts.filter(w => w.id !== action.payload),
       };
-    
+
     case ACTIONS.SET_CURRENT_WORKOUT:
       return {
         ...state,
         currentWorkout: action.payload,
       };
-    
+
     case ACTIONS.CLEAR_CURRENT_WORKOUT:
       return {
         ...state,
         currentWorkout: null,
       };
-    
+
     default:
       return state;
   }
@@ -107,18 +107,18 @@ export const WorkoutProvider = ({ children }) => {
       // Use Supabase when authenticated
       loadFromSupabase();
     }
-  }, [user]);
+  }, [user, loadFromLocalStorage, loadFromSupabase]);
 
-  const loadFromLocalStorage = () => {
+  const loadFromLocalStorage = useCallback(() => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
-    
+
     try {
       // Run data migrations first
       const migrationResult = migrateData();
       if (migrationResult.migrated && import.meta.env.MODE !== 'production') {
         console.info(`Data migrated from ${migrationResult.fromVersion} to ${migrationResult.toVersion}`);
       }
-      
+
       // Simulate brief loading to show skeleton
       const timer = setTimeout(() => {
         try {
@@ -128,7 +128,7 @@ export const WorkoutProvider = ({ children }) => {
           } else {
             dispatch({ type: ACTIONS.SET_LOADING, payload: false });
           }
-          
+
           // Restore currentWorkout if it exists
           if (data.currentWorkout) {
             dispatch({ type: ACTIONS.SET_CURRENT_WORKOUT, payload: data.currentWorkout });
@@ -152,11 +152,11 @@ export const WorkoutProvider = ({ children }) => {
       dispatch({ type: ACTIONS.SET_LOADING, payload: false });
       setIsInitialized();
     }
-  };
+  }, []);
 
-  const loadFromSupabase = async () => {
+  const loadFromSupabase = useCallback(async () => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
-    
+
     try {
       const workouts = await db.getWorkouts(user.id);
       const transformed = workouts.map(transformWorkoutFromDB);
@@ -170,12 +170,12 @@ export const WorkoutProvider = ({ children }) => {
       // Always mark as initialized
       setIsInitialized();
     }
-  };
+  }, [user]);
 
   // Save to localStorage whenever workouts change (but only after initial load and if not using Supabase)
   useEffect(() => {
     if (!isInitialized || useSupabase) return; // Don't save to localStorage if using Supabase
-    
+
     try {
       storage.set({ workouts: state.workouts });
     } catch (error) {
@@ -186,7 +186,7 @@ export const WorkoutProvider = ({ children }) => {
   // Save currentWorkout to localStorage whenever it changes (only if not using Supabase)
   useEffect(() => {
     if (!isInitialized || useSupabase) return;
-    
+
     try {
       const data = storage.get();
       if (state.currentWorkout) {
@@ -205,7 +205,7 @@ export const WorkoutProvider = ({ children }) => {
   const addWorkout = async (workout) => {
     // Sanitize workout data before saving
     const sanitized = sanitizeWorkout(workout);
-    
+
     const newWorkout = {
       ...sanitized,
       id: crypto.randomUUID(),
@@ -234,7 +234,7 @@ export const WorkoutProvider = ({ children }) => {
     // Convert selected date to ISO string at current time
     const selectedDate = new Date(restDayData.date);
     selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
-    
+
     const restDay = {
       id: crypto.randomUUID(),
       type: 'rest_day',
@@ -266,7 +266,7 @@ export const WorkoutProvider = ({ children }) => {
   const updateWorkout = async (workout) => {
     // Sanitize before updating
     const sanitized = sanitizeWorkout(workout);
-    
+
     if (useSupabase && user) {
       try {
         await db.updateWorkout(sanitized.id, sanitized, user.id);
@@ -317,7 +317,7 @@ export const WorkoutProvider = ({ children }) => {
         }))
       }))
     };
-    
+
     // Set as current workout for editing
     setCurrentWorkout(clonedWorkout);
     return clonedWorkout;

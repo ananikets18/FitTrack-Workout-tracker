@@ -140,7 +140,7 @@ export const AuthProvider = ({ children }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [validateUserProfile]);
 
   // Session expiry warning
   useEffect(() => {
