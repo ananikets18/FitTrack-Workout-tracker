@@ -21,13 +21,16 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 // Volume Over Time Chart (Last 30 Days)
 export const VolumeChart = ({ workouts }) => {
+  // Filter out rest days
+  const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
+  
   const last30Days = eachDayOfInterval({
     start: subDays(new Date(), 29),
     end: new Date(),
   });
 
   const data = last30Days.map((day) => {
-    const dayWorkouts = workouts.filter((w) => {
+    const dayWorkouts = regularWorkouts.filter((w) => {
       const workoutDate = new Date(w.date);
       return format(workoutDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
     });
@@ -70,13 +73,16 @@ export const VolumeChart = ({ workouts }) => {
 
 // Workout Frequency Chart (Last 7 Days)
 export const FrequencyChart = ({ workouts }) => {
+  // Filter out rest days
+  const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
+  
   const last7Days = eachDayOfInterval({
     start: subDays(new Date(), 6),
     end: new Date(),
   });
 
   const data = last7Days.map((day) => {
-    const count = workouts.filter((w) => {
+    const count = regularWorkouts.filter((w) => {
       const workoutDate = new Date(w.date);
       return format(workoutDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
     }).length;
@@ -111,10 +117,13 @@ export const FrequencyChart = ({ workouts }) => {
 
 // PR Progression Chart (Top 5 Exercises)
 export const PRProgressionChart = ({ workouts }) => {
+  // Filter out rest days
+  const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
+  
   // Get all exercises with their max weights over time
   const exercisePRs = {};
 
-  workouts.forEach((workout) => {
+  regularWorkouts.forEach((workout) => {
     const date = format(new Date(workout.date), 'MMM d');
     workout.exercises?.forEach((exercise) => {
       const maxWeight = Math.max(...exercise.sets.map((set) => set.weight), 0);

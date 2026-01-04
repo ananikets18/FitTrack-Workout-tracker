@@ -38,16 +38,6 @@ class ErrorBoundary extends Component {
     
     // In production, you would send this to an error tracking service
     // Example: Sentry.captureException(error, { extra: errorDetails });
-    
-    // Store in localStorage for debugging
-    try {
-      const errors = JSON.parse(localStorage.getItem('app-errors') || '[]');
-      errors.push(errorDetails);
-      // Keep only last 10 errors
-      localStorage.setItem('app-errors', JSON.stringify(errors.slice(-10)));
-    } catch (e) {
-      // Silently fail if localStorage is not available
-    }
   }
 
   handleReset = () => {

@@ -5,6 +5,13 @@ import './utils/errorHandler' // Initialize global error handling
 import './index.css'
 import App from './App.jsx'
 
+// Clean up old error logs from localStorage (deprecated feature)
+try {
+  localStorage.removeItem('app-errors');
+} catch (e) {
+  // Silently fail if localStorage is not available
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />

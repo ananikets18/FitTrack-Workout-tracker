@@ -59,7 +59,10 @@ export const getVolumeComparison = (currentWorkout, previousWorkouts) => {
   }
   
   const currentVolume = calculateTotalVolume(currentWorkout);
-  const lastWorkout = previousWorkouts[0];
+  // Filter out rest days
+  const regularWorkouts = previousWorkouts.filter(w => w.type !== 'rest_day');
+  if (regularWorkouts.length === 0) return { percentage: 0, trend: 'neutral' };
+  const lastWorkout = regularWorkouts[0];
   const lastVolume = calculateTotalVolume(lastWorkout);
   
   if (lastVolume === 0) return { percentage: 0, trend: 'neutral' };
@@ -75,10 +78,10 @@ export const getProgressiveOverload = (exerciseName, currentWorkout, workoutHist
   const currentExercise = currentWorkout?.exercises?.find(ex => ex.name === exerciseName);
   if (!currentExercise) return null;
   
-  // Find the same exercise in previous workouts
+  // Find the same exercise in previous workouts (filter out rest days)
   let previousExercise = null;
   for (const workout of workoutHistory) {
-    if (workout.id === currentWorkout.id) continue;
+    if (workout.id === currentWorkout.id || workout.type === 'rest_day') continue;
     const found = workout.exercises?.find(ex => ex.name === exerciseName);
     if (found) {
       previousExercise = found;
@@ -115,7 +118,10 @@ export const calculateTotalSets = (workout) => {
 export const getPersonalRecords = (workouts) => {
   const records = {};
   
-  workouts.forEach(workout => {
+  // Filter out rest days
+  const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
+  
+  regularWorkouts.forEach(workout => {
     workout.exercises?.forEach(exercise => {
       const maxWeight = Math.max(...exercise.sets.map(set => set.weight || 0));
       

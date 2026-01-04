@@ -513,22 +513,47 @@ const WorkoutLogMobile = () => {
       {/* Exercises */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Exercises</h2>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setIsExerciseModalOpen(true)}
-            className="flex items-center space-x-2 px-4 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-lg"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Add</span>
-          </motion.button>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Exercises</h2>
+          <div className="flex items-center space-x-2">
+            {/* Template Button - Always visible when not editing */}
+            {!isEditMode && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsTemplateModalOpen(true)}
+                className="flex items-center space-x-2 px-4 py-3 bg-purple-600 text-white font-semibold rounded-xl shadow-lg"
+              >
+                <FileText className="w-5 h-5" />
+                <span className="hidden sm:inline">Templates</span>
+              </motion.button>
+            )}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsExerciseModalOpen(true)}
+              className="flex items-center space-x-2 px-4 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-lg"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Add</span>
+            </motion.button>
+          </div>
         </div>
 
         {exercises.length === 0 ? (
           <Card className="text-center py-12">
             <div className="text-6xl mb-4">🏋️</div>
-            <p className="text-gray-600 text-lg mb-4">No exercises added yet</p>
-            <p className="text-gray-500 text-sm">Tap "Add" to get started</p>
+            <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">No exercises added yet</p>
+            <p className="text-gray-500 dark:text-gray-500 text-sm mb-6">Tap "Add" to get started</p>
+            
+            {/* Load Template shortcut */}
+            {!isEditMode && templates.length > 0 && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsTemplateModalOpen(true)}
+                className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl shadow-lg"
+              >
+                <FileText className="w-5 h-5" />
+                <span>Load from Template</span>
+              </motion.button>
+            )}
           </Card>
         ) : (
           <div className="space-y-6">
@@ -779,41 +804,69 @@ const WorkoutLogMobile = () => {
       <Modal
         isOpen={isTemplateModalOpen}
         onClose={() => setIsTemplateModalOpen(false)}
-        title="Load Template"
+        title="Workout Templates"
       >
-        <div className="space-y-3">
-          {templates.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-600">No templates saved yet</p>
-              <p className="text-sm text-gray-500 mt-1">Create a workout and save it as a template!</p>
-            </div>
-          ) : (
-            templates.map((template) => (
-              <motion.div
-                key={template.id}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleLoadTemplate(template)}
-                className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{template.name}</h3>
-                    <div className="flex items-center space-x-3 text-sm text-gray-600 dark:text-gray-400">
-                      <span>{template.exercises?.length || 0} exercises</span>
-                      {template.duration > 0 && (
-                        <>
-                          <span>•</span>
-                          <span>{template.duration} min</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+        <div className="space-y-4">
+          {/* Save Current Workout as Template */}
+          {exercises.length > 0 && !isEditMode && (
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSaveAsTemplate}
+              className="w-full p-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl border-2 border-purple-500 shadow-lg"
+            >
+              <div className="flex items-center space-x-3">
+                <BookmarkPlus className="w-6 h-6 flex-shrink-0" />
+                <div className="text-left flex-1">
+                  <h3 className="font-bold text-lg">Save Current Workout</h3>
+                  <p className="text-sm text-purple-100">Save this workout as a reusable template</p>
                 </div>
-              </motion.div>
-            ))
+              </div>
+            </motion.button>
           )}
+
+          {/* Templates List Header */}
+          {templates.length > 0 && (
+            <div className="flex items-center justify-between pt-2">
+              <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Your Templates</h3>
+              <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full">{templates.length}</span>
+            </div>
+          )}
+
+          {/* Templates List */}
+          <div className="space-y-3">
+            {templates.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-600 dark:text-gray-400 mb-2">No templates saved yet</p>
+                <p className="text-sm text-gray-500 dark:text-gray-500">Create a workout with exercises, then save it as a template!</p>
+              </div>
+            ) : (
+              templates.map((template) => (
+                <motion.div
+                  key={template.id}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleLoadTemplate(template)}
+                  className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{template.name}</h3>
+                      <div className="flex items-center space-x-3 text-sm text-gray-600 dark:text-gray-400">
+                        <span>{template.exercises?.length || 0} exercises</span>
+                        {template.duration > 0 && (
+                          <>
+                            <span>•</span>
+                            <span>{template.duration} min</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
         </div>
       </Modal>
 

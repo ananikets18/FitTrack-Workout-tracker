@@ -140,6 +140,24 @@ export const WorkoutProvider = ({ children }) => {
     return newWorkout;
   };
 
+  const addRestDay = (restDayData) => {
+    // Convert selected date to ISO string at current time
+    const selectedDate = new Date(restDayData.date);
+    selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
+    
+    const restDay = {
+      id: crypto.randomUUID(),
+      type: 'rest_day',
+      date: selectedDate.toISOString(),
+      recoveryQuality: restDayData.recoveryQuality,
+      activities: restDayData.activities || [],
+      notes: restDayData.notes || '',
+      createdAt: new Date().toISOString(),
+    };
+    dispatch({ type: ACTIONS.ADD_WORKOUT, payload: restDay });
+    return restDay;
+  };
+
   const updateWorkout = (workout) => {
     dispatch({ type: ACTIONS.UPDATE_WORKOUT, payload: workout });
   };
@@ -168,6 +186,7 @@ export const WorkoutProvider = ({ children }) => {
     currentWorkout: state.currentWorkout,
     isLoading: state.isLoading,
     addWorkout,
+    addRestDay,
     updateWorkout,
     deleteWorkout,
     setCurrentWorkout,

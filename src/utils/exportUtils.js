@@ -6,27 +6,50 @@ import { validateImportedData } from './validation';
 export const exportToCSV = (workouts) => {
   try {
     // Create CSV header
-    const headers = ['Date', 'Workout Name', 'Exercise', 'Category', 'Set', 'Reps', 'Weight (kg)', 'Volume (kg)', 'Duration (min)', 'Notes'];
+    const headers = ['Date', 'Type', 'Workout Name', 'Exercise', 'Category', 'Set', 'Reps', 'Weight (kg)', 'Volume (kg)', 'Duration (min)', 'Recovery Quality', 'Activities', 'Notes'];
     
     // Create CSV rows
     const rows = [];
     workouts.forEach(workout => {
-      workout.exercises?.forEach(exercise => {
-        exercise.sets.forEach((set, index) => {
-          rows.push([
-            formatDate(workout.date),
-            workout.name,
-            exercise.name,
-            exercise.category,
-            index + 1,
-            set.reps,
-            set.weight,
-            (set.reps * set.weight).toFixed(2),
-            workout.duration || '',
-            (workout.notes || exercise.notes || '').replace(/,/g, ';') // Replace commas to avoid CSV issues
-          ]);
+      if (workout.type === 'rest_day') {
+        // Rest day row
+        rows.push([
+          formatDate(workout.date),
+          'Rest Day',
+          'Rest Day',
+          '-',
+          '-',
+          '-',
+          '-',
+          '-',
+          '-',
+          '-',
+          workout.recoveryQuality || '-',
+          (workout.activities || []).join('; '),
+          (workout.notes || '').replace(/,/g, ';')
+        ]);
+      } else {
+        // Regular workout rows
+        workout.exercises?.forEach(exercise => {
+          exercise.sets.forEach((set, index) => {
+            rows.push([
+              formatDate(workout.date),
+              'Workout',
+              workout.name,
+              exercise.name,
+              exercise.category,
+              index + 1,
+              set.reps,
+              set.weight,
+              (set.reps * set.weight).toFixed(2),
+              workout.duration || '',
+              '-',
+              '-',
+              (workout.notes || exercise.notes || '').replace(/,/g, ';')
+            ]);
+          });
         });
-      });
+      }
     });
     
     // Convert to CSV string
@@ -76,35 +99,76 @@ export const exportToJSON = (workouts) => {
 export const exportToExcel = (workouts) => {
   try {
     // Create workouts summary sheet
-    const summaryData = workouts.map(workout => ({
-      'Date': formatDate(workout.date),
-      'Workout Name': workout.name,
-      'Duration (min)': workout.duration || 0,
-      'Total Exercises': workout.exercises?.length || 0,
-      'Total Sets': calculateTotalSets(workout),
-      'Total Volume (kg)': calculateTotalVolume(workout),
-      'Notes': workout.notes || ''
-    }));
+    const summaryData = workouts.map(workout => {
+      if (workout.type === 'rest_day') {
+        return {
+          'Date': formatDate(workout.date),
+          'Type': 'Rest Day',
+          'Workout Name': 'Rest Day',
+          'Duration (min)': '-',
+          'Total Exercises': '-',
+          'Total Sets': '-',
+          'Total Volume (kg)': '-',
+          'Recovery Quality': workout.recoveryQuality || '-',
+          'Activities': (workout.activities || []).join(', '),
+          'Notes': workout.notes || ''
+        };
+      } else {
+        return {
+          'Date': formatDate(workout.date),
+          'Type': 'Workout',
+          'Workout Name': workout.name,
+          'Duration (min)': workout.duration || 0,
+          'Total Exercises': workout.exercises?.length || 0,
+          'Total Sets': calculateTotalSets(workout),
+          'Total Volume (kg)': calculateTotalVolume(workout),
+          'Recovery Quality': '-',
+          'Activities': '-',
+          'Notes': workout.notes || ''
+        };
+      }
+    });
 
     // Create detailed exercises sheet
     const exercisesData = [];
     workouts.forEach(workout => {
-      workout.exercises?.forEach(exercise => {
-        exercise.sets.forEach((set, index) => {
-          exercisesData.push({
-            'Date': formatDate(workout.date),
-            'Workout': workout.name,
-            'Exercise': exercise.name,
-            'Category': exercise.category,
-            'Set Number': index + 1,
-            'Reps': set.reps,
-            'Weight (kg)': set.weight,
-            'Volume (kg)': set.reps * set.weight,
-            'Completed': set.completed ? 'Yes' : 'No',
-            'Notes': exercise.notes || ''
+      if (workout.type === 'rest_day') {
+        exercisesData.push({
+          'Date': formatDate(workout.date),
+          'Type': 'Rest Day',
+          'Workout': 'Rest Day',
+          'Exercise': '-',
+          'Category': '-',
+          'Set Number': '-',
+          'Reps': '-',
+          'Weight (kg)': '-',
+          'Volume (kg)': '-',
+          'Completed': '-',
+          'Recovery Quality': workout.recoveryQuality || '-',
+          'Activities': (workout.activities || []).join(', '),
+          'Notes': workout.notes || ''
+        });
+      } else {
+        workout.exercises?.forEach(exercise => {
+          exercise.sets.forEach((set, index) => {
+            exercisesData.push({
+              'Date': formatDate(workout.date),
+              'Type': 'Workout',
+              'Workout': workout.name,
+              'Exercise': exercise.name,
+              'Category': exercise.category,
+              'Set Number': index + 1,
+              'Reps': set.reps,
+              'Weight (kg)': set.weight,
+              'Volume (kg)': set.reps * set.weight,
+              'Completed': set.completed ? 'Yes' : 'No',
+              'Recovery Quality': '-',
+              'Activities': '-',
+              'Notes': exercise.notes || ''
+            });
           });
         });
-      });
+      }
     });
 
     // Create workbook

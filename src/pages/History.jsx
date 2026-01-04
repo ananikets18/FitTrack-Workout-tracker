@@ -7,7 +7,7 @@ import Modal from '../components/common/Modal';
 import SkeletonCard from '../components/common/SkeletonCard';
 import { formatDate, calculateTotalSets, calculateExerciseVolume, kgToTons, getProgressiveOverload } from '../utils/calculations';
 import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExcel } from '../utils/exportUtils';
-import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet } from 'lucide-react';
+import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const History = () => {
@@ -17,12 +17,16 @@ const History = () => {
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const filteredWorkouts = workouts.filter(workout =>
-    workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    workout.exercises?.some(ex =>
-      ex.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  const filteredWorkouts = workouts.filter(workout => {
+    if (workout.type === 'rest_day') {
+      return workout.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             workout.activities?.some(activity => activity.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+    return workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           workout.exercises?.some(ex =>
+             ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+           );
+  });
 
   const handleViewDetails = (workout) => {
     setSelectedWorkout(workout);
@@ -199,41 +203,83 @@ const History = () => {
               hover
               onClick={() => handleViewDetails(workout)}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900">{workout.name}</h3>
-                  <div className="flex items-center space-x-2 mt-2 text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    <span className="text-sm">{formatDate(workout.date)}</span>
-                  </div>
-                  <div className="flex items-center space-x-4 mt-3 text-sm text-gray-600">
-                    <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
-                    <span>•</span>
-                    <span>{calculateTotalSets(workout)} sets</span>
-                    {workout.duration > 0 && (
-                      <>
-                        <span>•</span>
-                        <span>{workout.duration} min</span>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {workout.exercises?.slice(0, 3).map((ex, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full"
-                      >
-                        {ex.name}
-                      </span>
-                    ))}
-                    {workout.exercises?.length > 3 && (
-                      <span className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full">
-                        +{workout.exercises.length - 3} more
-                      </span>
-                    )}
+              {workout.type === 'rest_day' ? (
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-3 flex-1">
+                    <div className="bg-purple-100 dark:bg-purple-900/30 rounded-xl p-3 flex-shrink-0">
+                      <Hotel className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Rest Day</h3>
+                      <div className="flex items-center space-x-2 mt-2 text-gray-600 dark:text-gray-400">
+                        <Calendar className="w-4 h-4" />
+                        <span className="text-sm">{formatDate(workout.date)}</span>
+                      </div>
+                      <div className="flex items-center space-x-3 mt-3">
+                        <div className="flex items-center space-x-1">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Recovery:</span>
+                          <div className="flex items-center">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      {workout.activities?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {workout.activities.map((activity, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 text-xs font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full"
+                            >
+                              {activity.replace('_', ' ')}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{workout.name}</h3>
+                    <div className="flex items-center space-x-2 mt-2 text-gray-600 dark:text-gray-400">
+                      <Calendar className="w-4 h-4" />
+                      <span className="text-sm">{formatDate(workout.date)}</span>
+                    </div>
+                    <div className="flex items-center space-x-4 mt-3 text-sm text-gray-600 dark:text-gray-400">
+                      <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
+                      <span>•</span>
+                      <span>{calculateTotalSets(workout)} sets</span>
+                      {workout.duration > 0 && (
+                        <>
+                          <span>•</span>
+                          <span>{workout.duration} min</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {workout.exercises?.slice(0, 3).map((ex, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full"
+                        >
+                          {ex.name}
+                        </span>
+                      ))}
+                      {workout.exercises?.length > 3 && (
+                        <span className="px-2 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full">
+                          +{workout.exercises.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </Card>
           ))}
         </div>
@@ -244,45 +290,105 @@ const History = () => {
         <Modal
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
-          title={selectedWorkout.name}
+          title={selectedWorkout.type === 'rest_day' ? 'Rest Day' : selectedWorkout.name}
           size="lg"
         >
-          <div className="space-y-6">
-            {/* Workout Info */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600">Date</p>
-                <p className="font-semibold">{formatDate(selectedWorkout.date)}</p>
+          {selectedWorkout.type === 'rest_day' ? (
+            <div className="space-y-6">
+              {/* Rest Day Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Date</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{formatDate(selectedWorkout.date)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Recovery Quality</p>
+                  <div className="flex items-center space-x-1 mt-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-5 h-5 ${i < selectedWorkout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Duration</p>
-                <p className="font-semibold">
-                  {selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Total Exercises</p>
-                <p className="font-semibold">{selectedWorkout.exercises?.length || 0}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Total Sets</p>
-                <p className="font-semibold">{calculateTotalSets(selectedWorkout)}</p>
+
+              {/* Active Recovery Activities */}
+              {selectedWorkout.activities && selectedWorkout.activities.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Active Recovery Activities</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedWorkout.activities.map((activity, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-2 text-sm font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg"
+                      >
+                        {activity.replace('_', ' ')}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
+              {selectedWorkout.notes && (
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Notes</p>
+                  <p className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-900 dark:text-white">{selectedWorkout.notes}</p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3 pt-4">
+                <Button
+                  variant="danger"
+                  size="lg"
+                  onClick={() => handleDeleteWorkout(selectedWorkout.id)}
+                  className="flex-1"
+                >
+                  <Trash2 className="w-5 h-5 mr-2" />
+                  Delete
+                </Button>
               </div>
             </div>
-
-            {/* Notes */}
-            {selectedWorkout.notes && (
-              <div>
-                <p className="text-sm text-gray-600 mb-2">Notes</p>
-                <p className="p-3 bg-gray-50 rounded-lg">{selectedWorkout.notes}</p>
+          ) : (
+            <div className="space-y-6">
+              {/* Workout Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Date</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{formatDate(selectedWorkout.date)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Duration</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Exercises</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{selectedWorkout.exercises?.length || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Sets</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{calculateTotalSets(selectedWorkout)}</p>
+                </div>
               </div>
-            )}
 
-            {/* Exercises */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Exercises</h3>
-              <div className="space-y-4">
-                {selectedWorkout.exercises?.map((exercise) => {
+              {/* Notes */}
+              {selectedWorkout.notes && (
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Notes</p>
+                  <p className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-900 dark:text-white">{selectedWorkout.notes}</p>
+                </div>
+              )}
+
+              {/* Exercises */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Exercises</h3>
+                <div className="space-y-4">
+                  {selectedWorkout.exercises?.map((exercise) => {
                   const exerciseVolume = calculateExerciseVolume(exercise);
                   const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
                   const progressData = getProgressiveOverload(exercise.name, selectedWorkout, workouts);
@@ -398,26 +504,27 @@ const History = () => {
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex space-x-2 pt-4 border-t">
-              <Button
-                variant="primary"
-                onClick={() => handleEditWorkout(selectedWorkout)}
-                className="flex-1"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Workout
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => handleDeleteWorkout(selectedWorkout.id)}
-                className="flex-1"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </Button>
+              {/* Actions */}
+              <div className="flex space-x-2 pt-4 border-t dark:border-gray-700">
+                <Button
+                  variant="primary"
+                  onClick={() => handleEditWorkout(selectedWorkout)}
+                  className="flex-1"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Workout
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={() => handleDeleteWorkout(selectedWorkout.id)}
+                  className="flex-1"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </Modal>
       )}
     </div>
