@@ -158,6 +158,31 @@ export const AuthProvider = ({ children }) => {
     });
 
     if (error) throw error;
+
+    // Create profile in profiles table
+    if (data.user) {
+      try {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            name: metadata.name || '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+        if (profileError) {
+          // If profile already exists, that's okay (user may have signed up before)
+          if (!profileError.message?.includes('duplicate key')) {
+            console.error('Profile creation error:', profileError);
+          }
+        }
+      } catch (profileError) {
+        console.error('Failed to create profile:', profileError);
+        // Don't throw - user is signed up, profile can be created later
+      }
+    }
+
     return data;
   };
 
@@ -165,9 +190,6 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
     });
 
     if (error) throw error;
