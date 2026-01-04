@@ -187,25 +187,41 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-
-    // Validate user profile exists
-    if (data.user) {
-      try {
-        await validateUserProfile(data.user.id);
-      } catch (profileError) {
-        // If profile doesn't exist, sign out and throw error
-        await supabase.auth.signOut();
-        throw profileError;
-      }
+    // Validate inputs before sending to Supabase
+    if (!email || !password) {
+      throw new Error('Email and password are required');
     }
 
-    return data;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('Supabase signIn error:', error);
+        throw error;
+      }
+
+      // Validate user profile exists
+      if (data.user) {
+        try {
+          await validateUserProfile(data.user.id);
+        } catch (profileError) {
+          // If profile doesn't exist, sign out and throw error
+          await supabase.auth.signOut();
+          throw profileError;
+        }
+      }
+
+      return data;
+    } catch (error) {
+      // Log the full error for debugging
+      if (import.meta.env.MODE !== 'production') {
+        console.error('Full signIn error:', error);
+      }
+      throw error;
+    }
   };
 
   const signOut = async () => {
