@@ -1,4 +1,6 @@
 import { useWorkouts } from '../context/WorkoutContext';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { 
   calculateStreak, 
   calculateTotalVolume,
@@ -6,14 +8,19 @@ import {
   calculateTotalReps,
   calculateAverageWeight,
   getPersonalRecords,
-  groupWorkoutsByDate 
+  groupWorkoutsByDate
 } from '../utils/calculations';
 import Card from '../components/common/Card';
-import { TrendingUp, Award, Flame, Dumbbell, Calendar, Target, Weight, Activity } from 'lucide-react';
+import Button from '../components/common/Button';
+import BottomSheet from '../components/common/BottomSheet';
+import { TrendingUp, Award, Flame, Dumbbell, Calendar, Target, Weight, Activity, Clock, ChevronRight } from 'lucide-react';
 import { startOfWeek, endOfWeek, eachDayOfInterval, format, isSameDay } from 'date-fns';
 
 const Statistics = () => {
   const { workouts } = useWorkouts();
+  const navigate = useNavigate();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(null);
 
   // Calculate statistics
   const totalWorkouts = workouts.length;
@@ -62,8 +69,22 @@ const Statistics = () => {
       day: format(day, 'EEE'),
       count: workoutsByDate[dateKey]?.length || 0,
       date: day,
+      dateKey,
+      workouts: workoutsByDate[dateKey] || [],
     };
   });
+
+  const handleDayClick = (day) => {
+    if (day.count > 0) {
+      setSelectedDay(day);
+      setIsSheetOpen(true);
+    }
+  };
+
+  const handleViewDetails = () => {
+    setIsSheetOpen(false);
+    navigate('/history');
+  };
 
   const stats = [
     {
@@ -141,13 +162,15 @@ const Statistics = () => {
         <div className="grid grid-cols-7 gap-2">
           {thisWeekWorkouts.map((day, index) => {
             const isToday = isSameDay(day.date, now);
+            const hasWorkouts = day.count > 0;
             return (
               <div key={index} className="text-center">
                 <div className="text-sm text-gray-600 mb-2">{day.day}</div>
                 <div
+                  onClick={() => handleDayClick(day)}
                   className={`h-20 rounded-lg flex items-center justify-center font-bold text-lg transition-all ${
-                    day.count > 0
-                      ? 'bg-primary-500 text-white'
+                    hasWorkouts
+                      ? 'bg-primary-500 text-white cursor-pointer hover:bg-primary-600 active:scale-95'
                       : isToday
                       ? 'bg-gray-200 text-gray-600 border-2 border-primary-500'
                       : 'bg-gray-100 text-gray-400'
@@ -225,6 +248,68 @@ const Statistics = () => {
           <p className="text-gray-600">Start logging workouts to see your progress and stats!</p>
         </Card>
       )}
+
+      {/* Bottom Sheet for Day Details */}
+      <BottomSheet
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        title={selectedDay ? format(selectedDay.date, 'EEEE, MMM d') : ''}
+      >
+        {selectedDay && (
+          <div className="space-y-4">
+            {selectedDay.workouts.map((workout, idx) => (
+              <div key={idx} className="bg-gray-50 rounded-xl p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="font-bold text-lg text-gray-900">{workout.name}</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {new Date(workout.date).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </p>
+                  </div>
+                  <div className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-sm font-semibold">
+                    {workout.exercises?.length || 0} exercises
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200">
+                  {workout.duration > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <Clock className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-600">{workout.duration} min</span>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-2">
+                    <Weight className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-600">
+                      {kgToTons(calculateTotalVolume(workout))}T moved
+                    </span>
+                  </div>
+                </div>
+
+                {workout.notes && (
+                  <p className="text-sm text-gray-600 italic pt-2 border-t border-gray-200">
+                    {workout.notes}
+                  </p>
+                )}
+              </div>
+            ))}
+
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handleViewDetails}
+              className="w-full flex items-center justify-center space-x-2 mt-4"
+            >
+              <span>View Full Details</span>
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
+        )}
+      </BottomSheet>
     </div>
   );
 };
