@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }) => {
       password,
       options: {
         data: metadata,
+        emailRedirectTo: window.location.origin,
       },
     });
 
@@ -53,6 +54,9 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
     });
 
     if (error) throw error;
