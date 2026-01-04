@@ -221,14 +221,18 @@ export const AuthProvider = ({ children }) => {
         throw error;
       }
 
-      // Validate user profile exists
+      // TEMPORARY: Profile validation removed to allow login without profile
+      // Profile validation is handled by auth state change listener
+      // TODO: Fix missing profiles in database
       if (data.user) {
         try {
           await validateUserProfile(data.user.id);
+          console.log('Profile validation successful');
         } catch (profileError) {
-          // If profile doesn't exist, sign out and throw error
-          await supabase.auth.signOut();
-          throw profileError;
+          console.warn('Profile validation failed, but allowing login:', profileError);
+          // Don't block login - let the auth state listener handle it
+          // await supabase.auth.signOut();
+          // throw profileError;
         }
       }
 
