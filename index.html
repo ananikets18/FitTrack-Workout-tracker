@@ -5,15 +5,65 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Theme & PWA -->
     <meta name="theme-color" content="#4287f5" />
-    <meta name="description" content="Track your workouts, monitor progress, and achieve your fitness goals" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="FitTrack" />
+    
+    <!-- Primary Meta Tags -->
+    <title>FitTrack - Workout Tracker & Fitness Progress Monitor</title>
+    <meta name="title" content="FitTrack - Workout Tracker & Fitness Progress Monitor" />
+    <meta name="description" content="Track your workouts, monitor progress, and achieve your fitness goals with FitTrack. Free workout tracker with offline support, progressive overload tracking, and comprehensive fitness metrics." />
+    <meta name="keywords" content="workout tracker, fitness app, exercise log, progressive overload, strength training, workout planner, fitness tracker, gym tracker" />
+    <meta name="author" content="FitTrack" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://yourdomain.com/" />
+    <meta property="og:title" content="FitTrack - Workout Tracker & Fitness Progress Monitor" />
+    <meta property="og:description" content="Track your workouts, monitor progress, and achieve your fitness goals with FitTrack. Free workout tracker with offline support." />
+    <meta property="og:image" content="https://yourdomain.com/og-image.png" />
+    <meta property="og:site_name" content="FitTrack" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://yourdomain.com/" />
+    <meta property="twitter:title" content="FitTrack - Workout Tracker & Fitness Progress Monitor" />
+    <meta property="twitter:description" content="Track your workouts, monitor progress, and achieve your fitness goals with FitTrack." />
+    <meta property="twitter:image" content="https://yourdomain.com/og-image.png" />
+    
+    <!-- Structured Data - Schema.org -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "FitTrack",
+      "applicationCategory": "HealthApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "operatingSystem": "Any",
+      "description": "Track your workouts, monitor progress, and achieve your fitness goals",
+      "featureList": [
+        "Workout Logging",
+        "Exercise Autocomplete",
+        "Data Import/Export",
+        "Progressive Overload Tracking",
+        "Rest Timer",
+        "Offline Support"
+      ],
+      "screenshot": "https://yourdomain.com/screenshot.png"
+    }
+    </script>
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <title>FitTrack - Workout Tracker</title>
   </head>
   <body>
     <div id="root"></div>
@@ -23,7 +73,20 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => console.log('SW registered:', registration))
+            .then(registration => {
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New update available
+                    if (confirm('New version available! Reload to update?')) {
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
+            })
             .catch(err => console.log('SW registration failed:', err));
         });
       }

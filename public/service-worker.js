@@ -1,57 +1,103 @@
-const CACHE_NAME = 'fittrack-v1';
-const urlsToCache = [
+const CACHE_VERSION = '1.0.0';
+const CACHE_NAME = `fittrack-v${CACHE_VERSION}`;
+const RUNTIME_CACHE = `fittrack-runtime-v${CACHE_VERSION}`;
+
+// Static assets to cache immediately
+const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
+  '/manifest.json',
 ];
 
-// Install event
+// Install event - cache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache');
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting())
+      .catch((error) => {
+        console.error('Cache installation failed:', error);
+      })
   );
-  self.skipWaiting();
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch event - Network first strategy with runtime caching
 self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip cross-origin requests
+  if (url.origin !== location.origin) {
+    return;
+  }
+
+  // Skip chrome-extension and other protocols
+  if (!request.url.startsWith('http')) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request)
+    fetch(request)
       .then((response) => {
+        // Only cache successful responses
+        if (!response || response.status !== 200 || response.type === 'error') {
+          return response;
+        }
+
         // Clone the response
-        const responseClone = response.clone();
-        
-        // Cache the fetched response
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
-        
+        const responseToCache = response.clone();
+
+        // Cache successful GET requests
+        if (request.method === 'GET') {
+          caches.open(RUNTIME_CACHE).then((cache) => {
+            cache.put(request, responseToCache);
+          });
+        }
+
         return response;
       })
       .catch(() => {
-        // If fetch fails, try cache
-        return caches.match(event.request);
+        // Network failed, try cache
+        return caches.match(request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+
+          // Return offline page for navigation requests
+          if (request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+
+          return new Response('Network error occurred', {
+            status: 408,
+            headers: { 'Content-Type': 'text/plain' },
+          });
+        });
       })
   );
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+  const currentCaches = [CACHE_NAME, RUNTIME_CACHE];
+  
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((cacheName) => !currentCaches.includes(cacheName))
+            .map((cacheName) => caches.delete(cacheName))
+        );
+      })
+      .then(() => self.clients.claim())
   );
-  return self.clients.claim();
+});
+
+// Handle messages from clients
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

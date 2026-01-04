@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
 import { storage } from '../utils/storage';
+import { migrateData } from '../utils/migration';
 
 const WorkoutContext = createContext();
 
@@ -91,11 +92,16 @@ export const WorkoutProvider = ({ children }) => {
   useEffect(() => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
     
+    // Run data migrations first
+    const migrationResult = migrateData();
+    if (migrationResult.migrated) {
+      console.info(`Data migrated from ${migrationResult.fromVersion} to ${migrationResult.toVersion}`);
+    }
+    
     // Simulate brief loading to show skeleton
     const timer = setTimeout(() => {
       try {
         const data = storage.get();
-        console.log('📦 Loading workouts from localStorage:', data.workouts?.length || 0, 'workouts');
         if (data.workouts && Array.isArray(data.workouts)) {
           dispatch({ type: ACTIONS.SET_WORKOUTS, payload: data.workouts });
         } else {
@@ -118,12 +124,6 @@ export const WorkoutProvider = ({ children }) => {
     
     try {
       storage.set({ workouts: state.workouts });
-      console.log('💾 Saved to localStorage:', state.workouts.length, 'workouts');
-      console.log('💾 Full workout data:', JSON.stringify(state.workouts, null, 2));
-      
-      // Verify save
-      const verification = storage.get();
-      console.log('✅ Verification - localStorage now has:', verification.workouts?.length || 0, 'workouts');
     } catch (error) {
       console.error('❌ Error saving to localStorage:', error);
     }
@@ -136,7 +136,6 @@ export const WorkoutProvider = ({ children }) => {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     };
-    console.log('➕ Adding new workout:', newWorkout.name, 'with', newWorkout.exercises?.length || 0, 'exercises');
     dispatch({ type: ACTIONS.ADD_WORKOUT, payload: newWorkout });
     return newWorkout;
   };

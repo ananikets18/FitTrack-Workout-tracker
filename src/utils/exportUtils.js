@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { formatDate, calculateTotalVolume, calculateTotalSets } from './calculations';
+import { validateImportedData } from './validation';
 
 // Export workouts as JSON
 export const exportToJSON = (workouts) => {
@@ -83,33 +84,32 @@ export const importFromJSON = (file) => {
     
     reader.onload = (e) => {
       try {
-        const workouts = JSON.parse(e.target.result);
+        const rawData = JSON.parse(e.target.result);
         
-        // Validate structure
-        if (!Array.isArray(workouts)) {
-          reject(new Error('Invalid JSON format: Expected an array'));
-          return;
-        }
+        // Validate and sanitize imported data
+        const validation = validateImportedData(Array.isArray(rawData) ? rawData : [rawData]);
         
-        // Validate each workout
-        const validWorkouts = workouts.filter(w => {
-          return w.name && w.date && Array.isArray(w.exercises);
-        });
-        
-        if (validWorkouts.length === 0) {
-          reject(new Error('No valid workouts found in file'));
+        if (!validation.isValid || validation.validWorkouts.length === 0) {
+          reject(new Error(validation.errors.join('; ') || 'No valid workouts found in file'));
           return;
         }
         
         // Assign new IDs to avoid conflicts
-        const importedWorkouts = validWorkouts.map(w => ({
+        const importedWorkouts = validation.validWorkouts.map(w => ({
           ...w,
           id: crypto.randomUUID(),
           createdAt: w.createdAt || new Date().toISOString(),
           imported: true,
         }));
         
-        resolve(importedWorkouts);
+        resolve({
+          workouts: importedWorkouts,
+          summary: {
+            total: validation.totalProcessed,
+            valid: validation.validCount,
+            invalid: validation.invalidCount
+          }
+        });
       } catch (error) {
         reject(new Error(`Error parsing JSON: ${error.message}`));
       }

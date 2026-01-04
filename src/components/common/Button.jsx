@@ -6,6 +6,7 @@ const Button = ({
   disabled = false,
   onClick,
   type = 'button',
+  'aria-label': ariaLabel,
   ...props 
 }) => {
   const baseStyles = 'font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center';
@@ -30,6 +31,7 @@ const Button = ({
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
       disabled={disabled}
       onClick={onClick}
+      aria-label={ariaLabel}
       {...props}
     >
       {children}
