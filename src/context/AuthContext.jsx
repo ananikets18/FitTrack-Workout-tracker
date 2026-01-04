@@ -20,21 +20,61 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setSessionExpiresAt(session?.expires_at ? new Date(session.expires_at * 1000) : null);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      // Validate profile exists for existing session
+      if (session?.user) {
+        try {
+          await validateUserProfile(session.user.id);
+          setSession(session);
+          setUser(session.user);
+          setSessionExpiresAt(session.expires_at ? new Date(session.expires_at * 1000) : null);
+        } catch (error) {
+          // Profile doesn't exist, clear session
+          console.error('Profile validation failed on session load:', error);
+          await supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+          setSessionExpiresAt(null);
+          toast.error('Your account is no longer active. Please contact support.');
+        }
+      } else {
+        setSession(null);
+        setUser(null);
+        setSessionExpiresAt(null);
+      }
       setLoading(false);
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setSessionExpiresAt(session?.expires_at ? new Date(session.expires_at * 1000) : null);
+      
+      // Validate profile on sign in events
+      if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+        try {
+          await validateUserProfile(session.user.id);
+          setSession(session);
+          setUser(session.user);
+          setSessionExpiresAt(session.expires_at ? new Date(session.expires_at * 1000) : null);
+        } catch (error) {
+          console.error('Profile validation failed:', error);
+          await supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+          setSessionExpiresAt(null);
+          if (event === 'TOKEN_REFRESHED') {
+            toast.error('Your account is no longer active.');
+          }
+          return;
+        }
+      } else {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setSessionExpiresAt(session?.expires_at ? new Date(session.expires_at * 1000) : null);
+      }
+      
       setLoading(false);
 
       // Show notifications for auth events
@@ -81,6 +121,29 @@ export const AuthProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [sessionExpiresAt]);
 
+  // Validate that user profile exists in the database
+  const validateUserProfile = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+      if (error || !data) {
+        console.error('User profile not found:', error);
+        // Sign out user if profile doesn't exist
+        await supabase.auth.signOut();
+        throw new Error('User profile not found. Please contact support.');
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Profile validation error:', err);
+      throw err;
+    }
+  };
+
   const signUp = async (email, password, metadata = {}) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -105,6 +168,18 @@ export const AuthProvider = ({ children }) => {
     });
 
     if (error) throw error;
+
+    // Validate user profile exists
+    if (data.user) {
+      try {
+        await validateUserProfile(data.user.id);
+      } catch (profileError) {
+        // If profile doesn't exist, sign out and throw error
+        await supabase.auth.signOut();
+        throw profileError;
+      }
+    }
+
     return data;
   };
 
