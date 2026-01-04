@@ -48,12 +48,11 @@ export const AuthProvider = ({ children }) => {
     // Add timeout to prevent infinite loading
     const loadingTimeout = setTimeout(() => {
       if (import.meta.env.MODE !== 'production') {
-        console.warn('Session load timeout - setting loading to false');
+        console.warn('Session load timeout - setting loading to false WITHOUT clearing session');
       }
+      // Only set loading to false, DON'T clear the session
+      // The session will be managed by onAuthStateChange
       setLoading(false);
-      setSession(null);
-      setUser(null);
-      setSessionExpiresAt(null);
     }, 15000); // 15 second timeout
 
     // Get initial session
@@ -101,8 +100,9 @@ export const AuthProvider = ({ children }) => {
         console.log('Auth state changed:', event);
       }
 
-      // Validate profile on sign in events
-      if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+      // Validate profile ONLY on initial sign in, NOT on token refresh
+      // Token refresh should be seamless and not trigger validation
+      if (session?.user && event === 'SIGNED_IN') {
         try {
           await validateUserProfile(session.user.id);
           setSession(session);
@@ -117,12 +117,10 @@ export const AuthProvider = ({ children }) => {
           setSessionExpiresAt(session.expires_at ? new Date(session.expires_at * 1000) : null);
 
           // Show warning instead of logging out
-          if (event === 'SIGNED_IN') {
-            toast('Profile setup incomplete. Some features may be limited.', {
-              icon: '⚠️',
-              duration: 5000,
-            });
-          }
+          toast('Profile setup incomplete. Some features may be limited.', {
+            icon: '⚠️',
+            duration: 5000,
+          });
 
           // Commented out automatic logout
           // await supabase.auth.signOut();
@@ -148,7 +146,13 @@ export const AuthProvider = ({ children }) => {
       } else if (event === 'SIGNED_OUT') {
         toast.success('Successfully signed out');
       } else if (event === 'TOKEN_REFRESHED') {
-        console.log('Token refreshed automatically');
+        if (import.meta.env.MODE !== 'production') {
+          console.log('Token refreshed automatically', {
+            hasSession: !!session,
+            hasUser: !!session?.user,
+            expiresAt: session?.expires_at
+          });
+        }
       } else if (event === 'USER_UPDATED') {
         toast.success('Profile updated');
       }
