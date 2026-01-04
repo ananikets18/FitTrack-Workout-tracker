@@ -48,6 +48,19 @@ const Home = () => {
 
   return (
     <div className="space-y-6 pb-safe">
+      {/* Mobile Logo Header */}
+      <div className="md:hidden flex items-center justify-between pt-safe mb-2">
+        <div className="flex items-center space-x-3">
+          <div className="bg-gradient-primary rounded-xl p-2.5 shadow-soft">
+            <Dumbbell className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">FitTrack</h1>
+            <p className="text-xs text-gray-500">Your Workout Companion</p>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Grid */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -64,11 +77,11 @@ const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="text-center border border-gray-100">
-                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl ${stat.bgColor} mb-3`}>
-                  <stat.icon className={`w-7 h-7 ${stat.color}`} />
+              <Card elevated className="text-center">
+                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${stat.bgColor} mb-3 shadow-soft`}>
+                  <stat.icon className={`w-8 h-8 ${stat.color}`} />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">{stat.value}</div>
                 <div className="text-gray-500 text-sm font-medium">{stat.label}</div>
               </Card>
             </motion.div>
@@ -86,7 +99,7 @@ const Home = () => {
       ) : recentWorkouts.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Recent Workouts</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Recent Workouts</h2>
             <Link to="/history">
               <Button variant="outline" size="sm" className="flex items-center space-x-1 text-sm">
                 <span>View All</span>
@@ -104,7 +117,7 @@ const Home = () => {
                 transition={{ delay: index * 0.1 }}
               >
                 <Link to="/history">
-                  <Card hover className="active:scale-98 border border-gray-100">
+                  <Card hover elevated className="active:scale-98">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-semibold text-gray-900 truncate">{workout.name}</h3>
@@ -130,10 +143,10 @@ const Home = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <Card className="text-center py-12 border border-gray-100">
+          <Card elevated className="text-center py-12">
             <div className="max-w-md mx-auto space-y-4">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 mb-2">
-                <Dumbbell className="w-10 h-10 text-blue-600" />
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-primary shadow-lifted mb-2">
+                <Dumbbell className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900">No workouts yet</h3>
               <p className="text-gray-600">Start your fitness journey by tracking your progress</p>

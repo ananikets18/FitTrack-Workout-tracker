@@ -4,11 +4,17 @@ import BottomNav from './BottomNav';
 
 const Layout = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-24 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* Hide header on mobile, show on desktop */}
+      <div className="hidden md:block">
+        <Header />
+      </div>
+      
+      {/* Edge-to-edge on mobile, contained on desktop */}
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pt-4 md:pt-5 pb-20 md:pb-8">
         <Outlet />
       </main>
+      
       <BottomNav />
     </div>
   );

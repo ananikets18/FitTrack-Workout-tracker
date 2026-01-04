@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Plus, History, BarChart3 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
+import { lightHaptic, mediumHaptic } from '../../utils/haptics';
 
 const BottomNav = () => {
   const location = useLocation();
@@ -18,8 +19,16 @@ const BottomNav = () => {
     return location.pathname.startsWith(path);
   };
 
+  const handleNavClick = (isPrimary = false) => {
+    if (isPrimary) {
+      mediumHaptic();
+    } else {
+      lightHaptic();
+    }
+  };
+
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50 shadow-lifted">
       <div className="flex items-center justify-around px-2 h-16">
         {/* eslint-disable-next-line no-unused-vars */}
         {navItems.map(({ path, label, icon: NavIcon, primary }) => {
@@ -29,14 +38,15 @@ const BottomNav = () => {
             <Link
               key={path}
               to={path}
-              className="relative flex flex-col items-center justify-center flex-1 h-full"
+              onClick={() => handleNavClick(primary)}
+              className="relative flex flex-col items-center justify-center flex-1 h-full min-w-[64px]"
             >
               {primary ? (
                 <motion.div
                   whileTap={{ scale: 0.9 }}
                   className="flex flex-col items-center justify-center"
                 >
-                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-full p-2.5 shadow-lg shadow-blue-500/30 mb-1">
+                  <div className="bg-gradient-primary rounded-full p-3 shadow-lifted mb-1">
                     <NavIcon className="w-5 h-5 text-white" strokeWidth={2.5} />
                   </div>
                   <span className="text-xs font-semibold text-blue-600">Log</span>
@@ -45,7 +55,7 @@ const BottomNav = () => {
                 <>
                   <motion.div
                     whileTap={{ scale: 0.85 }}
-                    className={`flex flex-col items-center justify-center transition-colors ${active ? 'text-primary-600' : 'text-gray-500'
+                    className={`flex flex-col items-center justify-center transition-colors min-h-[48px] ${active ? 'text-primary-600' : 'text-gray-500'
                       }`}
                   >
                     <NavIcon className="w-6 h-6 mb-1" strokeWidth={active ? 2.5 : 2} />
