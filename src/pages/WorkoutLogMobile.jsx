@@ -782,10 +782,10 @@ const WorkoutLogMobile = () => {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={handleAddSet}
-                className="flex items-center space-x-1 px-3 py-2 bg-blue-100 text-blue-700 font-semibold rounded-lg active:bg-blue-200"
+                className="flex items-center space-x-1 px-2.5 py-1.5 bg-blue-100 text-blue-700 font-semibold rounded-lg active:bg-blue-200"
               >
                 <Plus className="w-4 h-4" />
-                <span className="text-sm">Add Set</span>
+                <span className="text-xs">Add Set</span>
               </motion.button>
             </div>
 
@@ -868,14 +868,14 @@ const WorkoutLogMobile = () => {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsExerciseModalOpen(false)}
-              className="flex-1 px-4 py-3.5 md:py-4 bg-gray-200 active:bg-gray-300 rounded-xl font-semibold text-gray-700 text-base md:text-lg"
+              className="flex-1 px-4 py-2.5 md:py-3 bg-gray-200 active:bg-gray-300 rounded-xl font-semibold text-gray-700 text-sm md:text-base"
             >
               Cancel
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleAddExercise}
-              className="flex-1 px-4 py-3.5 md:py-4 bg-gradient-to-r from-blue-600 to-blue-700 active:from-blue-700 active:to-blue-800 rounded-xl font-semibold text-white text-base md:text-lg shadow-lg"
+              className="flex-1 px-4 py-2.5 md:py-3 bg-gradient-to-r from-blue-600 to-blue-700 active:from-blue-700 active:to-blue-800 rounded-xl font-semibold text-white text-sm md:text-base shadow-lg"
             >
               Add Exercise
             </motion.button>

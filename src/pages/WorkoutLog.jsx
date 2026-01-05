@@ -273,8 +273,8 @@ const WorkoutLog = () => {
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-semibold text-gray-700">Sets</label>
               <Button size="sm" onClick={handleAddSet}>
-                <Plus className="w-4 h-4 mr-1" />
-                Add Set
+                <Plus className="w-3.5 h-3.5 mr-1" />
+                Add
               </Button>
             </div>
 
@@ -322,10 +322,10 @@ const WorkoutLog = () => {
           </div>
 
           <div className="flex space-x-2 pt-4">
-            <Button variant="secondary" onClick={() => setIsExerciseModalOpen(false)} className="flex-1">
+            <Button variant="secondary" size="sm" onClick={() => setIsExerciseModalOpen(false)} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleAddExercise} className="flex-1">
+            <Button size="sm" onClick={handleAddExercise} className="flex-1">
               Add Exercise
             </Button>
           </div>

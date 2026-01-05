@@ -391,11 +391,11 @@ const History = () => {
               <div className="flex space-x-3 pt-4">
                 <Button
                   variant="danger"
-                  size="lg"
+                  size="md"
                   onClick={() => handleDeleteWorkout(selectedWorkout.id)}
                   className="flex-1"
                 >
-                  <Trash2 className="w-5 h-5 mr-2" />
+                  <Trash2 className="w-4 h-4 mr-2" />
                   Delete
                 </Button>
               </div>
@@ -556,18 +556,20 @@ const History = () => {
               <div className="flex space-x-2 pt-4 border-t dark:border-gray-700">
                 <Button
                   variant="primary"
+                  size="sm"
                   onClick={() => handleEditWorkout(selectedWorkout)}
                   className="flex-1"
                 >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Workout
+                  <Edit className="w-4 h-4 mr-1" />
+                  Edit
                 </Button>
                 <Button
                   variant="danger"
+                  size="sm"
                   onClick={() => handleDeleteWorkout(selectedWorkout.id)}
                   className="flex-1"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash2 className="w-4 h-4 mr-1" />
                   Delete
                 </Button>
               </div>
