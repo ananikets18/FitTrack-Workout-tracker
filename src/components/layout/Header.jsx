@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { lightHaptic } from '../../utils/haptics';
 import toast from 'react-hot-toast';
 import MobileMenu from './MobileMenu';
+import SyncStatusIndicator from '../common/SyncStatusIndicator';
+
 
 const Header = () => {
   const location = useLocation();
@@ -40,7 +42,7 @@ const Header = () => {
       // Even if logout fails, redirect to login
       localStorage.clear();
       navigate('/login', { replace: true });
-      
+
       if (import.meta.env.MODE !== 'production') {
         console.error('Logout error:', error);
       }
@@ -65,19 +67,24 @@ const Header = () => {
                 <Link
                   key={path}
                   to={path}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    isActive(path)
-                      ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-semibold'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${isActive(path)
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-semibold'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
                 >
                   <NavIcon className="w-5 h-5" />
                   <span>{label}</span>
                 </Link>
               ))}
             </nav>
-            
+
+            {/* Sync Status Indicator */}
+            <div className="ml-2">
+              <SyncStatusIndicator />
+            </div>
+
             {/* Theme Toggle Button */}
+
             <button
               onClick={handleThemeToggle}
               className="ml-2 p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -132,11 +139,10 @@ const Header = () => {
                   <Link
                     key={path}
                     to={path}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors text-lg ${
-                      isActive(path)
-                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-semibold'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors text-lg ${isActive(path)
+                      ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-semibold'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
                   >
                     <NavIcon className="w-6 h-6" />
                     <span>{label}</span>
@@ -153,7 +159,13 @@ const Header = () => {
                 <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
 
+              {/* Sync Status Indicator */}
+              <div className="px-4">
+                <SyncStatusIndicator compact />
+              </div>
+
               {/* Logout Button */}
+
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-lg font-medium"
