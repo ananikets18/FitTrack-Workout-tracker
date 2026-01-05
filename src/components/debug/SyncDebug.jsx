@@ -1,9 +1,9 @@
-import { syncManager } from '../lib/syncManager';
-import { indexedDB } from '../lib/indexedDB';
-import { useAuth } from '../context/AuthContext';
+import { syncManager } from '../../lib/syncManager';
+import { indexedDB } from '../../lib/indexedDB';
+import { useAuth } from '../../context/AuthContext';
 import { useState } from 'react';
-import Button from '../components/common/Button';
-import Card from '../components/common/Card';
+import Button from '../common/Button';
+import Card from '../common/Card';
 import { RefreshCw, Database, Cloud, AlertCircle, CheckCircle } from 'lucide-react';
 
 /**
