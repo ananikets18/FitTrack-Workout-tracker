@@ -16,12 +16,10 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Redirect if logged in
+  // Redirect if already logged in (page refresh / direct access)
   useEffect(() => {
     if (user) {
       navigate('/', { replace: true });
-    } else {
-      setLoading(false); // prevents loading lock
     }
   }, [user, navigate]);
 
@@ -107,12 +105,14 @@ const Login = () => {
         setName('');
         setLoading(false);
       } else {
+        // 🔥 SIGN-IN FIX: redirect immediately
         await signIn(normalizedEmail, password);
 
         limiter.recordAttempt(normalizedEmail, true);
 
         toast.success('Welcome back!', { duration: 2000 });
-        return; // let useEffect handle redirect
+
+        navigate('/', { replace: true }); // ✅ FIXED
       }
     } catch (err) {
       limiter.recordAttempt(normalizedEmail, false);
@@ -158,10 +158,11 @@ const Login = () => {
                     setView(type);
                     setError('');
                   }}
-                  className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${view === type
+                  className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                    view === type
                       ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                    }`}
+                  }`}
                 >
                   {type === 'sign_in' ? 'Sign In' : 'Sign Up'}
                 </button>
