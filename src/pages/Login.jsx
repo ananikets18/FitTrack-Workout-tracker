@@ -81,16 +81,24 @@ const Login = () => {
 
     try {
       if (view === 'sign_up') {
-        await signUp(email.trim().toLowerCase(), password, { name: name.trim() });
+        const { data, error } = await signUp(email.trim().toLowerCase(), password, { name: name.trim() });
 
         // Record successful attempt
         limiter.recordAttempt(email.toLowerCase(), true);
 
-        // Show success message
-        toast.success('Check your email to verify your account!', {
-          duration: 6000,
-          icon: '📧'
-        });
+        // Check if email confirmation is required
+        if (data?.user && !data?.session) {
+          // Email confirmation required
+          toast.success('Check your email to verify your account!', {
+            duration: 6000,
+            icon: '📧'
+          });
+        } else if (data?.session) {
+          // Auto-signed in (email confirmation disabled)
+          toast.success('Account created successfully!', {
+            duration: 3000
+          });
+        }
 
         // Switch to sign-in view and clear form
         setView('sign_in');
@@ -101,13 +109,24 @@ const Login = () => {
 
       } else {
         // Sign in
-        await signIn(email.trim().toLowerCase(), password);
+        const { data, error } = await signIn(email.trim().toLowerCase(), password);
+
+        if (error) {
+          throw error;
+        }
 
         // Record successful attempt
         limiter.recordAttempt(email.toLowerCase(), true);
 
-        // Keep loading state - navigation will happen via useEffect
-        // when user state is updated
+        // Show success toast
+        toast.success('Welcome back!', {
+          duration: 2000
+        });
+
+        // Explicitly navigate after a short delay to ensure auth state is set
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 100);
       }
     } catch (err) {
       // Record failed attempt
@@ -152,8 +171,8 @@ const Login = () => {
                   setError(null);
                 }}
                 className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${view === 'sign_in'
-                    ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
               >
                 Sign In
@@ -164,8 +183,8 @@ const Login = () => {
                   setError(null);
                 }}
                 className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${view === 'sign_up'
-                    ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
               >
                 Sign Up
