@@ -8,56 +8,58 @@ import toast from 'react-hot-toast';
 const Login = () => {
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
+
   const [view, setView] = useState('sign_in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
 
-  // Redirect if already logged in
+  // Redirect if logged in
   useEffect(() => {
     if (user) {
       navigate('/', { replace: true });
+    } else {
+      setLoading(false); // prevents loading lock
     }
   }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setError('');
 
-    // Check rate limiting
+    const normalizedEmail = email.trim().toLowerCase();
     const limiter = view === 'sign_up' ? signupRateLimiter : loginRateLimiter;
-    const rateLimitCheck = limiter.isAllowed(email.toLowerCase());
 
+    // Rate limit check (UX only)
+    const rateLimitCheck = limiter.isAllowed(normalizedEmail);
     if (!rateLimitCheck.allowed) {
       setError(rateLimitCheck.reason);
       setLoading(false);
       return;
     }
 
-    // Client-side validation
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       setError('Please enter a valid email address');
       setLoading(false);
       return;
     }
 
-    // Password validation - stricter for signup, lenient for signin
+    // Password validation
     if (view === 'sign_up') {
-      // Strict validation for new signups
       if (password.length < 8) {
         setError('Password must be at least 8 characters long');
         setLoading(false);
         return;
       }
 
-      // Additional password strength check for signup
       const hasUpperCase = /[A-Z]/.test(password);
       const hasLowerCase = /[a-z]/.test(password);
-      const hasNumber = /[0-9]/.test(password);
+      const hasNumber = /\d/.test(password);
 
       if (!hasUpperCase || !hasLowerCase || !hasNumber) {
         setError('Password must contain uppercase, lowercase, and numbers');
@@ -71,8 +73,7 @@ const Login = () => {
         return;
       }
     } else {
-      // For sign in, just check it's not empty (allow legacy passwords)
-      if (!password || password.length === 0) {
+      if (!password) {
         setError('Password is required');
         setLoading(false);
         return;
@@ -81,63 +82,48 @@ const Login = () => {
 
     try {
       if (view === 'sign_up') {
-        const { data, error } = await signUp(email.trim().toLowerCase(), password, { name: name.trim() });
+        const { data, error: signupError } = await signUp(
+          normalizedEmail,
+          password,
+          { name: name.trim() }
+        );
 
-        // Record successful attempt
-        limiter.recordAttempt(email.toLowerCase(), true);
+        if (signupError) throw signupError;
 
-        // Check if email confirmation is required
+        limiter.recordAttempt(normalizedEmail, true);
+
         if (data?.user && !data?.session) {
-          // Email confirmation required
           toast.success('Check your email to verify your account!', {
             duration: 6000,
             icon: '📧'
           });
         } else if (data?.session) {
-          // Auto-signed in (email confirmation disabled)
-          toast.success('Account created successfully!', {
-            duration: 3000
-          });
+          toast.success('Account created successfully!', { duration: 3000 });
         }
 
-        // Switch to sign-in view and clear form
         setView('sign_in');
         setEmail('');
         setPassword('');
         setName('');
         setLoading(false);
-
       } else {
-        // Sign in
-        const { data, error } = await signIn(email.trim().toLowerCase(), password);
+        await signIn(normalizedEmail, password);
 
-        if (error) {
-          throw error;
-        }
+        limiter.recordAttempt(normalizedEmail, true);
 
-        // Record successful attempt
-        limiter.recordAttempt(email.toLowerCase(), true);
-
-        // Show success toast
-        toast.success('Welcome back!', {
-          duration: 2000
-        });
-
-        // Explicitly navigate after a short delay to ensure auth state is set
-        setTimeout(() => {
-          navigate('/', { replace: true });
-        }, 100);
+        toast.success('Welcome back!', { duration: 2000 });
+        return; // let useEffect handle redirect
       }
     } catch (err) {
-      // Record failed attempt
-      limiter.recordAttempt(email.toLowerCase(), false);
+      limiter.recordAttempt(normalizedEmail, false);
 
-      const remaining = limiter.getRemainingAttempts(email.toLowerCase());
-      if (remaining > 0 && remaining <= 3) {
-        setError(`${err.message} (${remaining} attempts remaining)`);
-      } else {
-        setError(err.message);
-      }
+      const remaining = limiter.getRemainingAttempts(normalizedEmail);
+      setError(
+        remaining > 0 && remaining <= 3
+          ? `Invalid credentials. (${remaining} attempts remaining)`
+          : 'Invalid credentials.'
+      );
+
       setLoading(false);
     }
   };
@@ -165,87 +151,62 @@ const Login = () => {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <div className="mb-6">
             <div className="flex space-x-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-              <button
-                onClick={() => {
-                  setView('sign_in');
-                  setError(null);
-                }}
-                className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${view === 'sign_in'
-                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                  }`}
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => {
-                  setView('sign_up');
-                  setError(null);
-                }}
-                className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${view === 'sign_up'
-                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                  }`}
-              >
-                Sign Up
-              </button>
+              {['sign_in', 'sign_up'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => {
+                    setView(type);
+                    setError('');
+                  }}
+                  className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${view === type
+                      ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                >
+                  {type === 'sign_in' ? 'Sign In' : 'Sign Up'}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Custom Auth Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {view === 'sign_up' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                  placeholder="Your name"
-                />
-              </div>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                required
+                className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+              />
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                placeholder="your@email.com"
-              />
-            </div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              required
+              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                placeholder="••••••••"
-              />
-              {view === 'sign_up' && (
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Min 8 chars with uppercase, lowercase, and numbers
-                </p>
-              )}
-            </div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              minLength={view === 'sign_up' ? 8 : undefined}
+              pattern={
+                view === 'sign_up'
+                  ? '(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*'
+                  : undefined
+              }
+              className="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:text-white"
+            />
 
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
@@ -253,17 +214,12 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg disabled:opacity-50"
             >
               {loading ? 'Loading...' : view === 'sign_in' ? 'Sign In' : 'Sign Up'}
             </button>
           </form>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-          By continuing, you agree to our Terms of Service and Privacy Policy
-        </p>
       </div>
     </div>
   );
