@@ -185,27 +185,18 @@ export const AuthProvider = ({ children }) => {
           setSessionExpiresAt(session.expires_at ? new Date(session.expires_at * 1000) : null);
         } catch (error) {
           console.error('Profile validation failed:', error);
-          // TEMPORARY: Allow login even if profile validation fails
-          // TODO: Fix missing profiles in database
-          setSession(session);
-          setUser(session.user);
-          setSessionExpiresAt(session.expires_at ? new Date(session.expires_at * 1000) : null);
 
-          // Show warning instead of logging out
-          toast('Profile setup incomplete. Some features may be limited.', {
-            icon: '⚠️',
+          // PRODUCTION: Block login if profile is missing or deleted
+          await supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+          setSessionExpiresAt(null);
+
+          toast.error('Your account is no longer active. Please contact support.', {
             duration: 5000,
           });
 
-          // Commented out automatic logout
-          // await supabase.auth.signOut();
-          // setSession(null);
-          // setUser(null);
-          // setSessionExpiresAt(null);
-          // if (event === 'TOKEN_REFRESHED') {
-          //   toast.error('Your account is no longer active.');
-          // }
-          // return;
+          return;
         }
       } else {
         setSession(session);
