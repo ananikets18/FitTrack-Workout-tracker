@@ -5,6 +5,8 @@ import { syncManager } from '../lib/syncManager';
 import { offlineQueue } from '../lib/offlineQueue';
 import { networkDetector } from '../utils/networkDetector';
 import { sanitizeWorkout } from '../utils/validation';
+import { db as supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 const WorkoutContext = createContext();
 
@@ -166,13 +168,35 @@ export const WorkoutProvider = ({ children }) => {
         updatedAt: new Date().toISOString(),
       };
 
-      // Save to IndexedDB (optimistic update)
+      // HYBRID MODE: Save to IndexedDB first (optimistic update)
       const created = await indexedDBStorage.addWorkout(newWorkout, user?.id);
       dispatch({ type: ACTIONS.ADD_WORKOUT, payload: created });
 
-      // If online and authenticated, queue for debounced sync
+      // HYBRID MODE: If online and authenticated, save to Supabase immediately
       if (user && isOnline) {
-        syncManager.debouncedSync(user.id);
+        try {
+          // Save directly to Supabase (no debounce)
+          await supabase.createWorkout(created, user.id);
+
+          // Mark as synced in IndexedDB
+          await indexedDBStorage.updateWorkout(created.id, {
+            ...created,
+            syncStatus: 'synced'
+          });
+
+          console.log('✅ Workout saved to cloud immediately');
+        } catch (supabaseError) {
+          console.error('⚠️ Failed to save to cloud, will retry later:', supabaseError);
+
+          // Mark as pending for later sync
+          await indexedDBStorage.updateWorkout(created.id, {
+            ...created,
+            syncStatus: 'pending'
+          });
+
+          // Queue for retry
+          syncManager.debouncedSync(user.id);
+        }
       } else if (user) {
         // If offline, add to offline queue
         await offlineQueue.add({
@@ -206,13 +230,27 @@ export const WorkoutProvider = ({ children }) => {
         updatedAt: new Date().toISOString(),
       };
 
-      // Save to IndexedDB
+      // HYBRID MODE: Save to IndexedDB first
       const created = await indexedDBStorage.addWorkout(restDay, user?.id);
       dispatch({ type: ACTIONS.ADD_WORKOUT, payload: created });
 
-      // Sync if online
+      // HYBRID MODE: Save to Supabase immediately if online
       if (user && isOnline) {
-        syncManager.debouncedSync(user.id);
+        try {
+          await supabase.createWorkout(created, user.id);
+          await indexedDBStorage.updateWorkout(created.id, {
+            ...created,
+            syncStatus: 'synced'
+          });
+          console.log('✅ Rest day saved to cloud immediately');
+        } catch (supabaseError) {
+          console.error('⚠️ Failed to save rest day to cloud:', supabaseError);
+          await indexedDBStorage.updateWorkout(created.id, {
+            ...created,
+            syncStatus: 'pending'
+          });
+          syncManager.debouncedSync(user.id);
+        }
       } else if (user) {
         await offlineQueue.add({
           type: 'CREATE_WORKOUT',
@@ -238,13 +276,27 @@ export const WorkoutProvider = ({ children }) => {
         updatedAt: new Date().toISOString(),
       };
 
-      // Update in IndexedDB
+      // HYBRID MODE: Update in IndexedDB first
       await indexedDBStorage.updateWorkout(updated.id, updated);
       dispatch({ type: ACTIONS.UPDATE_WORKOUT, payload: updated });
 
-      // Sync if online
+      // HYBRID MODE: Update in Supabase immediately if online
       if (user && isOnline) {
-        syncManager.debouncedSync(user.id);
+        try {
+          await supabase.updateWorkout(updated.id, updated, user.id);
+          await indexedDBStorage.updateWorkout(updated.id, {
+            ...updated,
+            syncStatus: 'synced'
+          });
+          console.log('✅ Workout updated in cloud immediately');
+        } catch (supabaseError) {
+          console.error('⚠️ Failed to update in cloud:', supabaseError);
+          await indexedDBStorage.updateWorkout(updated.id, {
+            ...updated,
+            syncStatus: 'pending'
+          });
+          syncManager.debouncedSync(user.id);
+        }
       } else if (user) {
         await offlineQueue.add({
           type: 'UPDATE_WORKOUT',
@@ -260,13 +312,24 @@ export const WorkoutProvider = ({ children }) => {
 
   const deleteWorkout = async (id) => {
     try {
-      // Delete from IndexedDB
+      // HYBRID MODE: Delete from IndexedDB first
       await indexedDBStorage.deleteWorkout(id);
       dispatch({ type: ACTIONS.DELETE_WORKOUT, payload: id });
 
-      // Sync if online
+      // HYBRID MODE: Delete from Supabase immediately if online
       if (user && isOnline) {
-        syncManager.debouncedSync(user.id);
+        try {
+          await supabase.deleteWorkout(id, user.id);
+          console.log('✅ Workout deleted from cloud immediately');
+        } catch (supabaseError) {
+          console.error('⚠️ Failed to delete from cloud:', supabaseError);
+          // Queue for retry
+          await offlineQueue.add({
+            type: 'DELETE_WORKOUT',
+            data: { id },
+            userId: user.id
+          });
+        }
       } else if (user) {
         await offlineQueue.add({
           type: 'DELETE_WORKOUT',
