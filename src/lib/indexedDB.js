@@ -216,16 +216,32 @@ class FitTrackDatabase extends Dexie {
 
                             // Add sets for this exercise
                             if (exercise.sets?.length > 0) {
-                                await this.sets.bulkAdd(
-                                    exercise.sets.map((set, setIndex) => ({
-                                        id: crypto.randomUUID(),
-                                        exerciseId: exerciseId,
-                                        reps: set.reps,
-                                        weight: set.weight,
-                                        completed: set.completed || false,
-                                        order: setIndex
-                                    }))
-                                );
+                                // Check for existing sets to prevent duplicates
+                                const existingSets = await this.sets
+                                    .where('exerciseId').equals(exerciseId)
+                                    .toArray();
+
+                                const newSets = exercise.sets.filter((set, setIndex) => {
+                                    // Check if this exact set already exists
+                                    return !existingSets.some(existing => 
+                                        existing.reps === set.reps &&
+                                        existing.weight === set.weight &&
+                                        existing.order === setIndex
+                                    );
+                                });
+
+                                if (newSets.length > 0) {
+                                    await this.sets.bulkAdd(
+                                        newSets.map((set, setIndex) => ({
+                                            id: crypto.randomUUID(),
+                                            exerciseId: exerciseId,
+                                            reps: set.reps,
+                                            weight: set.weight,
+                                            completed: set.completed || false,
+                                            order: setIndex
+                                        }))
+                                    );
+                                }
                             }
                         }
                     }
@@ -260,10 +276,19 @@ class FitTrackDatabase extends Dexie {
                         updatedAt: new Date().toISOString()
                     });
 
+                    // Get existing exercises to delete their sets first
+                    const existingExercises = await this.exercises
+                        .where('workoutId').equals(workoutId)
+                        .toArray();
+
+                    // Delete all sets for existing exercises (prevents orphaned sets)
+                    for (const exercise of existingExercises) {
+                        await this.sets.where('exerciseId').equals(exercise.id).delete();
+                    }
+
                     // Delete existing related data
                     await this.exercises.where('workoutId').equals(workoutId).delete();
                     await this.restDayActivities.where('workoutId').equals(workoutId).delete();
-                    // Sets will be deleted via cascade (when exercises are deleted)
 
                     // Add new related data
                     if (workout.type === 'rest_day' && workout.activities?.length > 0) {

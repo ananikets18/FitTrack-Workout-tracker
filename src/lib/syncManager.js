@@ -21,14 +21,34 @@ class SyncManager {
         this.autoSyncIntervalMs = 5 * 60 * 1000; // 5 minutes
         this.conflictStrategy = ConflictStrategy.LAST_WRITE_WINS; // Default strategy
         this.conflictHistory = []; // Track resolved conflicts
+        this.syncQueue = []; // Queue for pending sync requests
+        this.syncDebounceTimer = null; // Debounce timer
+        this.lastSyncAttempt = null; // Last sync attempt timestamp
+        this.minSyncInterval = 10000; // Minimum 10 seconds between syncs
 
         // Subscribe to network changes for automatic sync
         this.unsubscribe = networkDetector.subscribe((isOnline) => {
             if (isOnline && this.autoSyncEnabled) {
-                console.log('🔄 Network restored, triggering sync...');
-                this.syncAll();
+                console.log('🔄 Network restored, triggering debounced sync...');
+                this.debouncedSync();
             }
         });
+    }
+
+    /**
+     * Debounced sync - waits 2 seconds before syncing
+     * Prevents rapid concurrent sync calls
+     */
+    debouncedSync(userId = null) {
+        // Clear existing debounce timer
+        if (this.syncDebounceTimer) {
+            clearTimeout(this.syncDebounceTimer);
+        }
+
+        // Set new debounce timer
+        this.syncDebounceTimer = setTimeout(() => {
+            this.syncAll(userId);
+        }, 2000); // 2 second debounce
     }
 
     /**
@@ -79,6 +99,15 @@ class SyncManager {
             return { alreadySyncing: true };
         }
 
+        // Enforce minimum sync interval
+        if (this.lastSyncAttempt) {
+            const timeSinceLastSync = Date.now() - this.lastSyncAttempt;
+            if (timeSinceLastSync < this.minSyncInterval) {
+                console.log(`⏱️ Sync rate limited (${timeSinceLastSync}ms since last sync)`);
+                return { rateLimited: true };
+            }
+        }
+
         if (!networkDetector.getStatus()) {
             console.log('📴 Offline - sync skipped');
             return { offline: true };
@@ -90,6 +119,7 @@ class SyncManager {
         }
 
         this.isSyncing = true;
+        this.lastSyncAttempt = Date.now();
         const results = {
             pushed: 0,
             pulled: 0,
@@ -232,6 +262,14 @@ class SyncManager {
                     const localWorkout = await indexedDB.workouts.get(remoteWorkout.id);
 
                     if (!localWorkout) {
+                        // Check for duplicate by date/name/exercises (in case of ID mismatch)
+                        const duplicateCheck = await this.findDuplicateWorkout(remoteWorkout);
+                        
+                        if (duplicateCheck) {
+                            console.log(`⚠️ Duplicate workout detected, skipping: ${remoteWorkout.name}`);
+                            continue;
+                        }
+
                         // New remote workout - add to local
                         await indexedDB.addWorkoutWithRelations({
                             ...remoteWorkout,
@@ -456,6 +494,50 @@ class SyncManager {
     }
 
     /**
+     * Find duplicate workout by date, name, and exercises
+     * @param {Object} workout - Workout to check
+     * @returns {Promise<Object|null>} - Duplicate workout or null
+     */
+    async findDuplicateWorkout(workout) {
+        try {
+            // Find workouts with same date (within 1 minute)
+            const workoutDate = new Date(workout.date).getTime();
+            const allWorkouts = await indexedDB.workouts
+                .filter(w => {
+                    const wDate = new Date(w.date).getTime();
+                    return Math.abs(wDate - workoutDate) < 60000; // Within 1 minute
+                })
+                .toArray();
+
+            // Check each potential duplicate
+            for (const existing of allWorkouts) {
+                // Same name?
+                if (existing.name?.trim().toLowerCase() !== workout.name?.trim().toLowerCase()) {
+                    continue;
+                }
+
+                // Same number of exercises?
+                const existingExercises = await indexedDB.exercises
+                    .where('workoutId').equals(existing.id)
+                    .toArray();
+
+                if (existingExercises.length !== (workout.exercises?.length || 0)) {
+                    continue;
+                }
+
+                // If we got here, it's likely a duplicate
+                console.log(`Found potential duplicate: ${existing.id}`);
+                return existing;
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error checking for duplicates:', error);
+            return null;
+        }
+    }
+
+    /**
      * Cleanup - unsubscribe and clear intervals
      */
     destroy() {
@@ -466,6 +548,11 @@ class SyncManager {
         if (this.syncInterval) {
             clearInterval(this.syncInterval);
             this.syncInterval = null;
+        }
+
+        if (this.syncDebounceTimer) {
+            clearTimeout(this.syncDebounceTimer);
+            this.syncDebounceTimer = null;
         }
     }
 }

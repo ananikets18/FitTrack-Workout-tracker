@@ -99,10 +99,10 @@ export const WorkoutProvider = ({ children }) => {
     const unsubscribe = networkDetector.subscribe((online) => {
       setIsOnline(online);
 
-      // Trigger sync when coming back online
+      // Trigger debounced sync when coming back online
       if (online && user) {
-        console.log('🔄 Network restored, syncing...');
-        syncManager.syncAll(user.id).catch(console.error);
+        console.log('🔄 Network restored, triggering debounced sync...');
+        syncManager.debouncedSync(user.id);
       }
     });
 
@@ -124,9 +124,9 @@ export const WorkoutProvider = ({ children }) => {
         dispatch({ type: ACTIONS.SET_CURRENT_WORKOUT, payload: currentWorkout });
       }
 
-      // If user is logged in and online, trigger sync
+      // If user is logged in and online, trigger debounced sync
       if (user && isOnline) {
-        syncManager.syncAll(user.id).catch(console.error);
+        syncManager.debouncedSync(user.id);
       }
     } catch (error) {
       if (import.meta.env.MODE !== 'production') {
@@ -170,18 +170,16 @@ export const WorkoutProvider = ({ children }) => {
       const created = await indexedDBStorage.addWorkout(newWorkout, user?.id);
       dispatch({ type: ACTIONS.ADD_WORKOUT, payload: created });
 
-      // If online and authenticated, queue for sync
+      // If online and authenticated, queue for debounced sync
       if (user && isOnline) {
-        try {
-          await syncManager.syncAll(user.id);
-        } catch (error) {
-          // If sync fails, add to offline queue
-          await offlineQueue.add({
-            type: 'CREATE_WORKOUT',
-            data: created,
-            userId: user.id
-          });
-        }
+        syncManager.debouncedSync(user.id);
+      } else if (user) {
+        // If offline, add to offline queue
+        await offlineQueue.add({
+          type: 'CREATE_WORKOUT',
+          data: created,
+          userId: user.id
+        });
       }
 
       return created;
@@ -214,15 +212,13 @@ export const WorkoutProvider = ({ children }) => {
 
       // Sync if online
       if (user && isOnline) {
-        try {
-          await syncManager.syncAll(user.id);
-        } catch (error) {
-          await offlineQueue.add({
-            type: 'CREATE_WORKOUT',
-            data: created,
-            userId: user.id
-          });
-        }
+        syncManager.debouncedSync(user.id);
+      } else if (user) {
+        await offlineQueue.add({
+          type: 'CREATE_WORKOUT',
+          data: created,
+          userId: user.id
+        });
       }
 
       return created;
@@ -248,15 +244,13 @@ export const WorkoutProvider = ({ children }) => {
 
       // Sync if online
       if (user && isOnline) {
-        try {
-          await syncManager.syncAll(user.id);
-        } catch (error) {
-          await offlineQueue.add({
-            type: 'UPDATE_WORKOUT',
-            data: updated,
-            userId: user.id
-          });
-        }
+        syncManager.debouncedSync(user.id);
+      } else if (user) {
+        await offlineQueue.add({
+          type: 'UPDATE_WORKOUT',
+          data: updated,
+          userId: user.id
+        });
       }
     } catch (error) {
       console.error('❌ Error updating workout:', error);
@@ -272,15 +266,13 @@ export const WorkoutProvider = ({ children }) => {
 
       // Sync if online
       if (user && isOnline) {
-        try {
-          await syncManager.syncAll(user.id);
-        } catch (error) {
-          await offlineQueue.add({
-            type: 'DELETE_WORKOUT',
-            data: { id },
-            userId: user.id
-          });
-        }
+        syncManager.debouncedSync(user.id);
+      } else if (user) {
+        await offlineQueue.add({
+          type: 'DELETE_WORKOUT',
+          data: { id },
+          userId: user.id
+        });
       }
     } catch (error) {
       console.error('❌ Error deleting workout:', error);
@@ -337,7 +329,7 @@ export const WorkoutProvider = ({ children }) => {
 
       // Sync if online
       if (user && isOnline) {
-        syncManager.syncAll(user.id).catch(console.error);
+        syncManager.debouncedSync(user.id);
       }
     } catch (error) {
       console.error('❌ Error importing workouts:', error);
