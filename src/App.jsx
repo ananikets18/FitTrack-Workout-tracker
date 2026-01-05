@@ -16,6 +16,7 @@ const History = lazy(() => import('./pages/History'));
 const Statistics = lazy(() => import('./pages/Statistics'));
 const Calendar = lazy(() => import('./pages/Calendar'));
 const Login = lazy(() => import('./pages/Login'));
+const SyncDebug = lazy(() => import('./components/debug/SyncDebug'));
 
 // Loading component
 const PageLoader = () => (
@@ -32,98 +33,106 @@ function App() {
           <TemplateProvider>
             <WorkoutProvider>
               <Router>
-              <Toaster
-                position="top-center"
-                toastOptions={{
-                  duration: 3000,
-                  style: {
-                    background: '#363636',
-                    color: '#fff',
-                    fontSize: '16px',
-                    padding: '16px',
-                    borderRadius: '12px',
-                  },
-                  success: {
-                    duration: 2000,
-                    iconTheme: {
-                      primary: '#10b981',
-                      secondary: '#fff',
-                    },
-                  },
-                  error: {
+                <Toaster
+                  position="top-center"
+                  toastOptions={{
                     duration: 3000,
-                    iconTheme: {
-                      primary: '#ef4444',
-                      secondary: '#fff',
+                    style: {
+                      background: '#363636',
+                      color: '#fff',
+                      fontSize: '16px',
+                      padding: '16px',
+                      borderRadius: '12px',
                     },
-                  },
-                }}
-              />
-
-              <Routes>
-                {/* Public Routes */}
-                <Route
-                  path="/login"
-                  element={
-                    <Suspense fallback={<PageLoader />}>
-                      <Login />
-                    </Suspense>
-                  }
+                    success: {
+                      duration: 2000,
+                      iconTheme: {
+                        primary: '#10b981',
+                        secondary: '#fff',
+                      },
+                    },
+                    error: {
+                      duration: 3000,
+                      iconTheme: {
+                        primary: '#ef4444',
+                        secondary: '#fff',
+                      },
+                    },
+                  }}
                 />
 
-                {/* Protected Routes */}
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Layout />
-                    </ProtectedRoute>
-                  }
-                >
+                <Routes>
+                  {/* Public Routes */}
                   <Route
-                    index
+                    path="/login"
                     element={
                       <Suspense fallback={<PageLoader />}>
-                        <Home />
+                        <Login />
                       </Suspense>
                     }
                   />
+
+                  {/* Protected Routes */}
                   <Route
-                    path="log"
+                    path="/"
                     element={
-                      <Suspense fallback={<PageLoader />}>
-                        <WorkoutLogMobile />
-                      </Suspense>
+                      <ProtectedRoute>
+                        <Layout />
+                      </ProtectedRoute>
                     }
-                  />
-                  <Route
-                    path="history"
-                    element={
-                      <Suspense fallback={<PageLoader />}>
-                        <History />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="stats"
-                    element={
-                      <Suspense fallback={<PageLoader />}>
-                        <Statistics />
-                      </Suspense>
-                    }
-                  />
-                  <Route
-                    path="calendar"
-                    element={
-                      <Suspense fallback={<PageLoader />}>
-                        <Calendar />
-                      </Suspense>
-                    }
-                  />
-                </Route>
-              </Routes>
-            </Router>
-          </WorkoutProvider>
+                  >
+                    <Route
+                      index
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <Home />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="log"
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <WorkoutLogMobile />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="history"
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <History />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="stats"
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <Statistics />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="calendar"
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <Calendar />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="debug/sync"
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <SyncDebug />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+                </Routes>
+              </Router>
+            </WorkoutProvider>
           </TemplateProvider>
         </AuthProvider>
       </ThemeProvider>
