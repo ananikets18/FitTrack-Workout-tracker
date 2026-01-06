@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { DumbbellIcon, SparklesIcon } from 'lucide-react';
-import { loginRateLimiter, signupRateLimiter } from '../utils/rateLimiter';
 import toast from 'react-hot-toast';
 
 const Login = () => {
@@ -29,15 +28,6 @@ const Login = () => {
     setError('');
 
     const normalizedEmail = email.trim().toLowerCase();
-    const limiter = view === 'sign_up' ? signupRateLimiter : loginRateLimiter;
-
-    // Rate limit check (UX only)
-    const rateLimitCheck = limiter.isAllowed(normalizedEmail);
-    if (!rateLimitCheck.allowed) {
-      setError(rateLimitCheck.reason);
-      setLoading(false);
-      return;
-    }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -88,8 +78,6 @@ const Login = () => {
 
         if (signupError) throw signupError;
 
-        limiter.recordAttempt(normalizedEmail, true);
-
         if (data?.user && !data?.session) {
           toast.success('Check your email to verify your account!', {
             duration: 6000,
@@ -105,25 +93,12 @@ const Login = () => {
         setName('');
         setLoading(false);
       } else {
-        // 🔥 SIGN-IN FIX: redirect immediately
         await signIn(normalizedEmail, password);
-
-        limiter.recordAttempt(normalizedEmail, true);
-
         toast.success('Welcome back!', { duration: 2000 });
-
-        navigate('/', { replace: true }); // ✅ FIXED
+        navigate('/', { replace: true });
       }
     } catch (err) {
-      limiter.recordAttempt(normalizedEmail, false);
-
-      const remaining = limiter.getRemainingAttempts(normalizedEmail);
-      setError(
-        remaining > 0 && remaining <= 3
-          ? `Invalid credentials. (${remaining} attempts remaining)`
-          : 'Invalid credentials.'
-      );
-
+      setError('Invalid credentials. Please try again.');
       setLoading(false);
     }
   };
@@ -158,11 +133,10 @@ const Login = () => {
                     setView(type);
                     setError('');
                   }}
-                  className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-                    view === type
+                  className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${view === type
                       ? 'bg-white text-blue-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900 '
-                  }`}
+                    }`}
                 >
                   {type === 'sign_in' ? 'Sign In' : 'Sign Up'}
                 </button>
