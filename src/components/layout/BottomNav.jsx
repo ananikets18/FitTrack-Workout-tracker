@@ -1,22 +1,19 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Plus, History, BarChart3, LogOut } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, Plus, History, BarChart3, CalendarDays } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { lightHaptic, mediumHaptic } from '../../utils/haptics';
-import { useAuth } from '../../context/AuthContext';
-import toast from 'react-hot-toast';
 
 
 
 const BottomNav = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
-    { path: '/history', label: 'History', icon: History },
+    { path: '/calendar', label: 'Calendar', icon: CalendarDays },
     { path: '/log', label: 'Log', icon: Plus, primary: true },
+    { path: '/history', label: 'History', icon: History },
     { path: '/stats', label: 'Stats', icon: BarChart3 },
   ];
 
@@ -33,19 +30,6 @@ const BottomNav = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      lightHaptic();
-      await signOut();
-      localStorage.clear();
-      toast.success('Logged out successfully');
-      navigate('/login', { replace: true });
-    } catch (error) {
-      localStorage.clear();
-      navigate('/login', { replace: true });
-    }
-  };
-
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50 shadow-lifted">
@@ -59,7 +43,7 @@ const BottomNav = () => {
               key={path}
               to={path}
               onClick={() => handleNavClick(primary)}
-              className="relative flex flex-col items-center justify-center flex-1 h-full"
+              className="relative flex flex-col items-center justify-center flex-1 h-full min-w-[64px]"
             >
               {primary ? (
                 <motion.div
@@ -94,21 +78,6 @@ const BottomNav = () => {
             </Link>
           );
         })}
-
-        {/* Logout Button - Compact */}
-        <button
-          onClick={handleLogout}
-          className="relative flex flex-col items-center justify-center flex-1 h-full"
-          title="Logout"
-        >
-          <motion.div
-            whileTap={{ scale: 0.85 }}
-            className="flex flex-col items-center justify-center transition-colors min-h-[48px] text-red-600"
-          >
-            <LogOut className="w-5 h-5 mb-1" strokeWidth={2} />
-            <span className="text-xs font-medium">Logout</span>
-          </motion.div>
-        </button>
       </div>
     </nav>
 
