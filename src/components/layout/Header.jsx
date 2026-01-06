@@ -87,54 +87,68 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Mobile Menu */}
-          <MobileMenu>
-            <div className="space-y-4">
-              {/* User Info */}
-              <div className="px-4 py-3 bg-gray-50 rounded-xl">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                    <User className="w-6 h-6 text-primary-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {user?.user_metadata?.name || 'User'}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {user?.email}
-                    </p>
+          {/* Mobile: Logout Button (Right Side) */}
+          <div className="md:hidden">
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors active:scale-95"
+              aria-label="Logout"
+              title="Logout"
+            >
+              <LogOut className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Mobile Menu - Hidden, keeping for future use if needed */}
+          <div className="hidden">
+            <MobileMenu>
+              <div className="space-y-4">
+                {/* User Info */}
+                <div className="px-4 py-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                      <User className="w-6 h-6 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {user?.user_metadata?.name || 'User'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {user?.email}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Navigation */}
-              <div className="space-y-2">
-                {/* eslint-disable-next-line no-unused-vars */}
-                {navItems.map(({ path, label, icon: NavIcon }) => (
-                  <Link
-                    key={path}
-                    to={path}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors text-lg ${isActive(path)
-                      ? 'bg-primary-50 text-primary-600 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                  >
-                    <NavIcon className="w-6 h-6" />
-                    <span>{label}</span>
-                  </Link>
-                ))}
-              </div>
+                {/* Navigation */}
+                <div className="space-y-2">
+                  {/* eslint-disable-next-line no-unused-vars */}
+                  {navItems.map(({ path, label, icon: NavIcon }) => (
+                    <Link
+                      key={path}
+                      to={path}
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors text-lg ${isActive(path)
+                        ? 'bg-primary-50 text-primary-600 font-semibold'
+                        : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                    >
+                      <NavIcon className="w-6 h-6" />
+                      <span>{label}</span>
+                    </Link>
+                  ))}
+                </div>
 
-              {/* Logout Button */}
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors text-lg font-medium"
-              >
-                <LogOut className="w-6 h-6" />
-                <span>Logout</span>
-              </button>
-            </div>
-          </MobileMenu>
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors text-lg font-medium"
+                >
+                  <LogOut className="w-6 h-6" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </MobileMenu>
+          </div>
         </div>
       </div>
     </header>
@@ -142,4 +156,3 @@ const Header = () => {
 };
 
 export default Header;
-
