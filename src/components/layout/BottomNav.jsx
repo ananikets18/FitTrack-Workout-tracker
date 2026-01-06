@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Plus, History, BarChart3, CalendarDays, LogOut } from 'lucide-react';
+import { Home, Plus, History, BarChart3, LogOut } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { lightHaptic, mediumHaptic } from '../../utils/haptics';
@@ -15,9 +15,8 @@ const BottomNav = () => {
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
-    { path: '/calendar', label: 'Calendar', icon: CalendarDays },
-    { path: '/log', label: 'Log', icon: Plus, primary: true },
     { path: '/history', label: 'History', icon: History },
+    { path: '/log', label: 'Log', icon: Plus, primary: true },
     { path: '/stats', label: 'Stats', icon: BarChart3 },
   ];
 
@@ -60,7 +59,7 @@ const BottomNav = () => {
               key={path}
               to={path}
               onClick={() => handleNavClick(primary)}
-              className="relative flex flex-col items-center justify-center flex-1 h-full min-w-[64px]"
+              className="relative flex flex-col items-center justify-center flex-1 h-full"
             >
               {primary ? (
                 <motion.div
@@ -96,16 +95,17 @@ const BottomNav = () => {
           );
         })}
 
-        {/* Logout Button */}
+        {/* Logout Button - Compact */}
         <button
           onClick={handleLogout}
-          className="relative flex flex-col items-center justify-center flex-1 h-full min-w-[64px]"
+          className="relative flex flex-col items-center justify-center flex-1 h-full"
+          title="Logout"
         >
           <motion.div
             whileTap={{ scale: 0.85 }}
             className="flex flex-col items-center justify-center transition-colors min-h-[48px] text-red-600"
           >
-            <LogOut className="w-6 h-6 mb-1" strokeWidth={2} />
+            <LogOut className="w-5 h-5 mb-1" strokeWidth={2} />
             <span className="text-xs font-medium">Logout</span>
           </motion.div>
         </button>
@@ -116,4 +116,3 @@ const BottomNav = () => {
 };
 
 export default BottomNav;
-
