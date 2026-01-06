@@ -1,11 +1,7 @@
-import { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { indexedDBStorage } from '../utils/indexedDBStorage';
-import { syncManager } from '../lib/syncManager';
-import { offlineQueue } from '../lib/offlineQueue';
-import { networkDetector } from '../utils/networkDetector';
-import { sanitizeWorkout } from '../utils/validation';
 import { db as supabase } from '../lib/supabase';
+import { sanitizeWorkout } from '../utils/validation';
 import toast from 'react-hot-toast';
 
 const WorkoutContext = createContext();
@@ -19,38 +15,17 @@ const ACTIONS = {
   SET_CURRENT_WORKOUT: 'SET_CURRENT_WORKOUT',
   CLEAR_CURRENT_WORKOUT: 'CLEAR_CURRENT_WORKOUT',
   SET_LOADING: 'SET_LOADING',
-  IMPORT_WORKOUTS: 'IMPORT_WORKOUTS',
 };
 
 // Reducer
 const workoutReducer = (state, action) => {
   switch (action.type) {
     case ACTIONS.SET_LOADING:
-      return {
-        ...state,
-        isLoading: action.payload,
-      };
-
+      return { ...state, isLoading: action.payload };
     case ACTIONS.SET_WORKOUTS:
-      return {
-        ...state,
-        workouts: action.payload,
-        isLoading: false,
-      };
-
-    case ACTIONS.IMPORT_WORKOUTS:
-      return {
-        ...state,
-        workouts: [...action.payload, ...state.workouts],
-        isLoading: false,
-      };
-
+      return { ...state, workouts: action.payload, isLoading: false };
     case ACTIONS.ADD_WORKOUT:
-      return {
-        ...state,
-        workouts: [action.payload, ...state.workouts],
-      };
-
+      return { ...state, workouts: [action.payload, ...state.workouts] };
     case ACTIONS.UPDATE_WORKOUT:
       return {
         ...state,
@@ -58,25 +33,15 @@ const workoutReducer = (state, action) => {
           w.id === action.payload.id ? action.payload : w
         ),
       };
-
     case ACTIONS.DELETE_WORKOUT:
       return {
         ...state,
         workouts: state.workouts.filter(w => w.id !== action.payload),
       };
-
     case ACTIONS.SET_CURRENT_WORKOUT:
-      return {
-        ...state,
-        currentWorkout: action.payload,
-      };
-
+      return { ...state, currentWorkout: action.payload };
     case ACTIONS.CLEAR_CURRENT_WORKOUT:
-      return {
-        ...state,
-        currentWorkout: null,
-      };
-
+      return { ...state, currentWorkout: null };
     default:
       return state;
   }
@@ -92,273 +57,159 @@ const initialState = {
 // Provider component
 export const WorkoutProvider = ({ children }) => {
   const [state, dispatch] = useReducer(workoutReducer, initialState);
-  const [isInitialized, setIsInitialized] = useReducer(() => true, false);
   const { user } = useAuth();
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // Subscribe to network changes
-  useEffect(() => {
-    const unsubscribe = networkDetector.subscribe((online) => {
-      setIsOnline(online);
-
-      // Trigger debounced sync when coming back online
-      if (online && user) {
-        console.log('🔄 Network restored, triggering debounced sync...');
-        syncManager.debouncedSync(user.id);
-      }
-    });
-
-    return unsubscribe;
-  }, [user]);
-
-  // Load workouts from IndexedDB
+  // Load workouts from Supabase
   const loadWorkouts = useCallback(async () => {
+    if (!user) {
+      dispatch({ type: ACTIONS.SET_WORKOUTS, payload: [] });
+      return;
+    }
+
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
 
     try {
-      // Always load from IndexedDB (offline-first)
-      const { workouts } = await indexedDBStorage.get(user?.id);
+      const workouts = await supabase.getWorkouts(user.id);
       dispatch({ type: ACTIONS.SET_WORKOUTS, payload: workouts });
-
-      // Load current workout if exists
-      const currentWorkout = await indexedDBStorage.getCurrentWorkout();
-      if (currentWorkout) {
-        dispatch({ type: ACTIONS.SET_CURRENT_WORKOUT, payload: currentWorkout });
-      }
-
-      // If user is logged in and online, trigger debounced sync
-      if (user && isOnline) {
-        syncManager.debouncedSync(user.id);
-      }
     } catch (error) {
-      if (import.meta.env.MODE !== 'production') {
-        console.error('❌ Error loading workouts:', error);
-      }
+      console.error('Error loading workouts:', error);
+      toast.error('Failed to load workouts');
       dispatch({ type: ACTIONS.SET_LOADING, payload: false });
-    } finally {
-      setIsInitialized();
     }
-  }, [user, isOnline]);
+  }, [user]);
 
   // Load data on mount and when user changes
   useEffect(() => {
     loadWorkouts();
   }, [loadWorkouts]);
 
-  // Enable auto-sync when user is logged in
-  useEffect(() => {
-    if (user) {
-      syncManager.enableAutoSync();
-    } else {
-      syncManager.disableAutoSync();
-    }
-  }, [user]);
-
-  // Actions
+  // Add workout - Direct to Supabase
   const addWorkout = async (workout) => {
-    try {
-      // Sanitize workout data
-      const sanitized = sanitizeWorkout(workout);
+    if (!user) {
+      toast.error('Please log in to save workouts');
+      return;
+    }
 
+    try {
+      const sanitized = sanitizeWorkout(workout);
       const newWorkout = {
         ...sanitized,
-        id: user ? crypto.randomUUID() : `local-${Date.now()}`,
-        userId: user?.id,
+        id: crypto.randomUUID(),
+        userId: user.id,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
-      // HYBRID MODE: Save to IndexedDB first (optimistic update)
-      const created = await indexedDBStorage.addWorkout(newWorkout, user?.id);
-      dispatch({ type: ACTIONS.ADD_WORKOUT, payload: created });
+      // Save directly to Supabase
+      await supabase.createWorkout(newWorkout, user.id);
 
-      // HYBRID MODE: If online and authenticated, save to Supabase immediately
-      if (user && isOnline) {
-        try {
-          // Save directly to Supabase (no debounce)
-          await supabase.createWorkout(created, user.id);
+      // Update local state
+      dispatch({ type: ACTIONS.ADD_WORKOUT, payload: newWorkout });
 
-          // Mark as synced in IndexedDB
-          await indexedDBStorage.updateWorkout(created.id, {
-            ...created,
-            syncStatus: 'synced'
-          });
-
-          console.log('✅ Workout saved to cloud immediately');
-        } catch (supabaseError) {
-          console.error('⚠️ Failed to save to cloud, will retry later:', supabaseError);
-
-          // Mark as pending for later sync
-          await indexedDBStorage.updateWorkout(created.id, {
-            ...created,
-            syncStatus: 'pending'
-          });
-
-          // Queue for retry
-          syncManager.debouncedSync(user.id);
-        }
-      } else if (user) {
-        // If offline, add to offline queue
-        await offlineQueue.add({
-          type: 'CREATE_WORKOUT',
-          data: created,
-          userId: user.id
-        });
-      }
-
-      return created;
+      toast.success('Workout saved!');
+      return newWorkout;
     } catch (error) {
-      console.error('❌ Error adding workout:', error);
+      console.error('Error adding workout:', error);
+      toast.error('Failed to save workout');
       throw error;
     }
   };
 
+  // Add rest day - Direct to Supabase
   const addRestDay = async (restDayData) => {
+    if (!user) {
+      toast.error('Please log in to save rest days');
+      return;
+    }
+
     try {
       const selectedDate = new Date(restDayData.date);
       selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
 
       const restDay = {
-        id: user ? crypto.randomUUID() : `local-${Date.now()}`,
+        id: crypto.randomUUID(),
         type: 'rest_day',
         date: selectedDate.toISOString(),
         recoveryQuality: Math.max(1, Math.min(5, parseInt(restDayData.recoveryQuality) || 3)),
         activities: Array.isArray(restDayData.activities) ? restDayData.activities : [],
         notes: (restDayData.notes || '').trim().slice(0, 1000),
-        userId: user?.id,
+        userId: user.id,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
-      // HYBRID MODE: Save to IndexedDB first
-      const created = await indexedDBStorage.addWorkout(restDay, user?.id);
-      dispatch({ type: ACTIONS.ADD_WORKOUT, payload: created });
+      // Save directly to Supabase
+      await supabase.createWorkout(restDay, user.id);
 
-      // HYBRID MODE: Save to Supabase immediately if online
-      if (user && isOnline) {
-        try {
-          await supabase.createWorkout(created, user.id);
-          await indexedDBStorage.updateWorkout(created.id, {
-            ...created,
-            syncStatus: 'synced'
-          });
-          console.log('✅ Rest day saved to cloud immediately');
-        } catch (supabaseError) {
-          console.error('⚠️ Failed to save rest day to cloud:', supabaseError);
-          await indexedDBStorage.updateWorkout(created.id, {
-            ...created,
-            syncStatus: 'pending'
-          });
-          syncManager.debouncedSync(user.id);
-        }
-      } else if (user) {
-        await offlineQueue.add({
-          type: 'CREATE_WORKOUT',
-          data: created,
-          userId: user.id
-        });
-      }
+      // Update local state
+      dispatch({ type: ACTIONS.ADD_WORKOUT, payload: restDay });
 
-      return created;
+      toast.success('Rest day logged!');
+      return restDay;
     } catch (error) {
-      console.error('❌ Error adding rest day:', error);
+      console.error('Error adding rest day:', error);
+      toast.error('Failed to log rest day');
       throw error;
     }
   };
 
+  // Update workout - Direct to Supabase
   const updateWorkout = async (workout) => {
-    try {
-      // Sanitize before updating
-      const sanitized = sanitizeWorkout(workout);
+    if (!user) {
+      toast.error('Please log in to update workouts');
+      return;
+    }
 
+    try {
+      const sanitized = sanitizeWorkout(workout);
       const updated = {
         ...sanitized,
         updatedAt: new Date().toISOString(),
       };
 
-      // HYBRID MODE: Update in IndexedDB first
-      await indexedDBStorage.updateWorkout(updated.id, updated);
+      // Update in Supabase
+      await supabase.updateWorkout(updated.id, updated, user.id);
+
+      // Update local state
       dispatch({ type: ACTIONS.UPDATE_WORKOUT, payload: updated });
 
-      // HYBRID MODE: Update in Supabase immediately if online
-      if (user && isOnline) {
-        try {
-          await supabase.updateWorkout(updated.id, updated, user.id);
-          await indexedDBStorage.updateWorkout(updated.id, {
-            ...updated,
-            syncStatus: 'synced'
-          });
-          console.log('✅ Workout updated in cloud immediately');
-        } catch (supabaseError) {
-          console.error('⚠️ Failed to update in cloud:', supabaseError);
-          await indexedDBStorage.updateWorkout(updated.id, {
-            ...updated,
-            syncStatus: 'pending'
-          });
-          syncManager.debouncedSync(user.id);
-        }
-      } else if (user) {
-        await offlineQueue.add({
-          type: 'UPDATE_WORKOUT',
-          data: updated,
-          userId: user.id
-        });
-      }
+      toast.success('Workout updated!');
     } catch (error) {
-      console.error('❌ Error updating workout:', error);
+      console.error('Error updating workout:', error);
+      toast.error('Failed to update workout');
       throw error;
     }
   };
 
+  // Delete workout - Direct to Supabase
   const deleteWorkout = async (id) => {
+    if (!user) {
+      toast.error('Please log in to delete workouts');
+      return;
+    }
+
     try {
-      // HYBRID MODE: Delete from IndexedDB first
-      await indexedDBStorage.deleteWorkout(id);
+      // Delete from Supabase
+      await supabase.deleteWorkout(id, user.id);
+
+      // Update local state
       dispatch({ type: ACTIONS.DELETE_WORKOUT, payload: id });
 
-      // HYBRID MODE: Delete from Supabase immediately if online
-      if (user && isOnline) {
-        try {
-          await supabase.deleteWorkout(id, user.id);
-          console.log('✅ Workout deleted from cloud immediately');
-        } catch (supabaseError) {
-          console.error('⚠️ Failed to delete from cloud:', supabaseError);
-          // Queue for retry
-          await offlineQueue.add({
-            type: 'DELETE_WORKOUT',
-            data: { id },
-            userId: user.id
-          });
-        }
-      } else if (user) {
-        await offlineQueue.add({
-          type: 'DELETE_WORKOUT',
-          data: { id },
-          userId: user.id
-        });
-      }
+      toast.success('Workout deleted!');
     } catch (error) {
-      console.error('❌ Error deleting workout:', error);
+      console.error('Error deleting workout:', error);
+      toast.error('Failed to delete workout');
       throw error;
     }
   };
 
-  const setCurrentWorkout = async (workout) => {
-    try {
-      dispatch({ type: ACTIONS.SET_CURRENT_WORKOUT, payload: workout });
-      await indexedDBStorage.setCurrentWorkout(workout);
-    } catch (error) {
-      console.error('❌ Error setting current workout:', error);
-    }
+  // Current workout (in-memory only, for logging)
+  const setCurrentWorkout = (workout) => {
+    dispatch({ type: ACTIONS.SET_CURRENT_WORKOUT, payload: workout });
   };
 
-  const clearCurrentWorkout = async () => {
-    try {
-      dispatch({ type: ACTIONS.CLEAR_CURRENT_WORKOUT });
-      await indexedDBStorage.setCurrentWorkout(null);
-    } catch (error) {
-      console.error('❌ Error clearing current workout:', error);
-    }
+  const clearCurrentWorkout = () => {
+    dispatch({ type: ACTIONS.CLEAR_CURRENT_WORKOUT });
   };
 
   const cloneWorkout = (workout) => {
@@ -378,53 +229,11 @@ export const WorkoutProvider = ({ children }) => {
     return clonedWorkout;
   };
 
-  const importWorkouts = async (workouts) => {
-    try {
-      dispatch({ type: ACTIONS.SET_LOADING, payload: true });
-
-      // Add each workout to IndexedDB
-      for (const workout of workouts) {
-        await indexedDBStorage.addWorkout(workout, user?.id);
-      }
-
-      // Reload workouts
-      await loadWorkouts();
-
-      // Sync if online
-      if (user && isOnline) {
-        syncManager.debouncedSync(user.id);
-      }
-    } catch (error) {
-      console.error('❌ Error importing workouts:', error);
-      throw error;
-    }
-  };
-
-  // Force sync (for manual trigger)
-  const forceSync = async () => {
-    if (!user) {
-      console.warn('Cannot sync without user');
-      return null;
-    }
-
-    try {
-      const result = await syncManager.forceSyncNow(user.id);
-
-      // Reload workouts after sync
-      await loadWorkouts();
-
-      return result;
-    } catch (error) {
-      console.error('❌ Force sync failed:', error);
-      return null;
-    }
-  };
-
   const value = {
     workouts: state.workouts,
     currentWorkout: state.currentWorkout,
     isLoading: state.isLoading,
-    isOnline,
+    isOnline: navigator.onLine, // Simple online check
     addWorkout,
     addRestDay,
     updateWorkout,
@@ -432,9 +241,8 @@ export const WorkoutProvider = ({ children }) => {
     setCurrentWorkout,
     clearCurrentWorkout,
     cloneWorkout,
-    importWorkouts,
-    forceSync,
     refreshWorkouts: loadWorkouts,
+    forceSync: loadWorkouts, // Just reload from Supabase
   };
 
   return (
