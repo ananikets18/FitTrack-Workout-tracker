@@ -8,12 +8,14 @@ import {
   calculateTotalReps,
   calculateAverageWeight,
   getPersonalRecords,
+  generateInsights,
 } from '../utils/calculations';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import BottomSheet from '../components/common/BottomSheet';
+import ExerciseHistoryModal from '../components/common/ExerciseHistoryModal';
 import { VolumeChart, FrequencyChart, PRProgressionChart } from '../components/charts/WorkoutCharts';
-import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, Clock, ChevronRight, Hotel, Star } from 'lucide-react';
+import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, Clock, ChevronRight, Hotel, Star, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Statistics = () => {
@@ -21,6 +23,8 @@ const Statistics = () => {
   const navigate = useNavigate();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState(null);
+  const [isExerciseHistoryOpen, setIsExerciseHistoryOpen] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState(null);
 
   // Filter out rest days for workout statistics
   const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
@@ -59,9 +63,17 @@ const Statistics = () => {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
+  // Generate insights
+  const insights = generateInsights(workouts);
+
   const handleViewDetails = () => {
     setIsSheetOpen(false);
     navigate('/history');
+  };
+
+  const handleExerciseClick = (exerciseName) => {
+    setSelectedExercise(exerciseName);
+    setIsExerciseHistoryOpen(true);
   };
 
   const stats = [
@@ -134,6 +146,39 @@ const Statistics = () => {
         ))}
       </div>
 
+      {/* Insights Dashboard */}
+      {insights.length > 0 && (
+        <Card elevated>
+          <div className="flex items-center space-x-2 mb-4">
+            <Sparkles className="w-6 h-6 text-purple-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Your Insights</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {insights.map((insight, index) => {
+              const colorClasses = {
+                orange: 'bg-orange-50 border-orange-200 text-orange-900',
+                blue: 'bg-blue-50 border-blue-200 text-blue-900',
+                green: 'bg-green-50 border-green-200 text-green-900',
+                purple: 'bg-purple-50 border-purple-200 text-purple-900',
+                indigo: 'bg-indigo-50 border-indigo-200 text-indigo-900',
+                teal: 'bg-teal-50 border-teal-200 text-teal-900',
+                cyan: 'bg-cyan-50 border-cyan-200 text-cyan-900',
+              };
+
+              return (
+                <div
+                  key={index}
+                  className={`border-2 rounded-xl p-4 ${colorClasses[insight.color] || colorClasses.blue}`}
+                >
+                  <div className="text-3xl mb-2">{insight.icon}</div>
+                  <h3 className="font-bold text-sm mb-1">{insight.title}</h3>
+                  <p className="text-xs opacity-80">{insight.message}</p>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {/* Progress Charts */}
       {workouts.length >= 3 && (
@@ -176,10 +221,14 @@ const Statistics = () => {
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 8)
                 .map(([exercise, weight]) => (
-                  <div key={exercise} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <button
+                    key={exercise}
+                    onClick={() => handleExerciseClick(exercise)}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
+                  >
                     <span className="font-medium text-gray-900">{exercise}</span>
                     <span className="text-lg font-bold text-primary-600">{weight} kg</span>
-                  </div>
+                  </button>
                 ))}
             </div>
           )}
@@ -347,6 +396,14 @@ const Statistics = () => {
           </div>
         )}
       </BottomSheet>
+
+      {/* Exercise History Modal */}
+      <ExerciseHistoryModal
+        isOpen={isExerciseHistoryOpen}
+        onClose={() => setIsExerciseHistoryOpen(false)}
+        exerciseName={selectedExercise}
+        workouts={workouts}
+      />
     </div>
   );
 };
