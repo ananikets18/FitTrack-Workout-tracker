@@ -5,6 +5,7 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import SkeletonCard from '../components/common/SkeletonCard';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { formatDate, calculateTotalSets, calculateExerciseVolume, kgToTons, getProgressiveOverload } from '../utils/calculations';
 import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExcel } from '../utils/exportUtils';
 import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star } from 'lucide-react';
@@ -16,16 +17,18 @@ const History = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [workoutToDelete, setWorkoutToDelete] = useState(null);
 
   const filteredWorkouts = workouts.filter(workout => {
     if (workout.type === 'rest_day') {
       return workout.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             workout.activities?.some(activity => activity.toLowerCase().includes(searchTerm.toLowerCase()));
+        workout.activities?.some(activity => activity.toLowerCase().includes(searchTerm.toLowerCase()));
     }
     return workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           workout.exercises?.some(ex =>
-             ex.name.toLowerCase().includes(searchTerm.toLowerCase())
-           );
+      workout.exercises?.some(ex =>
+        ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
   });
 
   const handleViewDetails = (workout) => {
@@ -38,10 +41,17 @@ const History = () => {
     navigate('/log');
   };
 
-  const handleDeleteWorkout = (id) => {
-    if (window.confirm('Are you sure you want to delete this workout?')) {
-      deleteWorkout(id);
+  const handleDeleteWorkout = (workout) => {
+    setWorkoutToDelete(workout);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (workoutToDelete) {
+      deleteWorkout(workoutToDelete.id);
       setIsDetailModalOpen(false);
+      setWorkoutToDelete(null);
+      toast.success('Workout deleted successfully');
     }
   };
 
@@ -78,10 +88,10 @@ const History = () => {
     if (!file) return;
 
     const fileExtension = file.name.split('.').pop().toLowerCase();
-    
+
     try {
       let importedWorkouts;
-      
+
       if (fileExtension === 'json') {
         importedWorkouts = await importFromJSON(file);
       } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
@@ -90,14 +100,14 @@ const History = () => {
         toast.error('Unsupported file format. Use JSON or Excel files.');
         return;
       }
-      
+
       importWorkouts(importedWorkouts);
       toast.success(`Successfully imported ${importedWorkouts.length} workout(s)!`);
     } catch (error) {
       console.error('Import error:', error);
       toast.error(error.message || 'Failed to import workouts');
     }
-    
+
     // Reset file input
     e.target.value = '';
   };
@@ -111,7 +121,7 @@ const History = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 ">Workout History</h1>
             <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">View and manage your past workouts</p>
           </div>
-          
+
           {/* Import/Export Buttons - Desktop */}
           <div className="hidden md:flex items-center gap-2 flex-shrink-0">
             {/* Import Button */}
@@ -130,7 +140,7 @@ const History = () => {
               onChange={handleImport}
               className="hidden"
             />
-            
+
             {/* Export Buttons */}
             {workouts.length > 0 && (
               <>
@@ -162,7 +172,7 @@ const History = () => {
             )}
           </div>
         </div>
-        
+
         {/* Import/Export Buttons - Mobile */}
         <div className="flex md:hidden items-center gap-2">
           {/* Import Button */}
@@ -180,7 +190,7 @@ const History = () => {
             onChange={handleImport}
             className="hidden"
           />
-          
+
           {/* Export Buttons */}
           {workouts.length > 0 && (
             <>
@@ -392,7 +402,7 @@ const History = () => {
                 <Button
                   variant="danger"
                   size="md"
-                  onClick={() => handleDeleteWorkout(selectedWorkout.id)}
+                  onClick={() => handleDeleteWorkout(selectedWorkout)}
                   className="flex-1"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -437,120 +447,117 @@ const History = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Exercises</h3>
                 <div className="space-y-4">
                   {selectedWorkout.exercises?.map((exercise) => {
-                  const exerciseVolume = calculateExerciseVolume(exercise);
-                  const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
-                  const progressData = getProgressiveOverload(exercise.name, selectedWorkout, workouts);
-                  const isCardioOrBodyweight = exercise.category === 'cardio' || maxWeight === 0;
-                  
-                  return (
-                    <div key={exercise.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900">{exercise.name}</h4>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <span className="inline-block px-2 py-1 text-xs font-semibold text-primary-600 bg-primary-50 rounded-full">
-                              {exercise.category}
-                            </span>
-                            {!isCardioOrBodyweight && (
-                              <>
-                                <span className="text-xs text-gray-600">
-                                  Volume: {kgToTons(exerciseVolume)}T ({exerciseVolume}kg)
-                                </span>
-                                <span className="text-xs text-gray-600">
-                                  Max: {maxWeight}kg
-                                </span>
-                              </>
-                            )}
-                            {isCardioOrBodyweight && (
-                              <span className="text-xs text-gray-600">
-                                Duration/Bodyweight
+                    const exerciseVolume = calculateExerciseVolume(exercise);
+                    const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+                    const progressData = getProgressiveOverload(exercise.name, selectedWorkout, workouts);
+                    const isCardioOrBodyweight = exercise.category === 'cardio' || maxWeight === 0;
+
+                    return (
+                      <div key={exercise.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900">{exercise.name}</h4>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              <span className="inline-block px-2 py-1 text-xs font-semibold text-primary-600 bg-primary-50 rounded-full">
+                                {exercise.category}
                               </span>
+                              {!isCardioOrBodyweight && (
+                                <>
+                                  <span className="text-xs text-gray-600">
+                                    Volume: {kgToTons(exerciseVolume)}T ({exerciseVolume}kg)
+                                  </span>
+                                  <span className="text-xs text-gray-600">
+                                    Max: {maxWeight}kg
+                                  </span>
+                                </>
+                              )}
+                              {isCardioOrBodyweight && (
+                                <span className="text-xs text-gray-600">
+                                  Duration/Bodyweight
+                                </span>
+                              )}
+                            </div>
+                            {progressData && progressData.status !== 'new' && (
+                              <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${progressData.status === 'improved' ? 'text-green-600' :
+                                progressData.status === 'declined' ? 'text-red-600' : 'text-gray-600'
+                                }`}>
+                                {progressData.status === 'improved' && <TrendingUp className="w-3 h-3" />}
+                                {progressData.status === 'declined' && <TrendingDown className="w-3 h-3" />}
+                                {progressData.status === 'maintained' && <Minus className="w-3 h-3" />}
+                                {progressData.message}
+                              </div>
+                            )}
+                            {progressData && progressData.status === 'new' && (
+                              <div className="text-xs text-blue-600 font-medium mt-2">
+                                🎉 {progressData.message}
+                              </div>
                             )}
                           </div>
-                          {progressData && progressData.status !== 'new' && (
-                            <div className={`flex items-center gap-1 mt-2 text-xs font-medium ${
-                              progressData.status === 'improved' ? 'text-green-600' :
-                              progressData.status === 'declined' ? 'text-red-600' : 'text-gray-600'
-                            }`}>
-                              {progressData.status === 'improved' && <TrendingUp className="w-3 h-3" />}
-                              {progressData.status === 'declined' && <TrendingDown className="w-3 h-3" />}
-                              {progressData.status === 'maintained' && <Minus className="w-3 h-3" />}
-                              {progressData.message}
-                            </div>
-                          )}
-                          {progressData && progressData.status === 'new' && (
-                            <div className="text-xs text-blue-600 font-medium mt-2">
-                              🎉 {progressData.message}
-                            </div>
-                          )}
                         </div>
-                      </div>
 
-                      <div className="space-y-2">
-                        {isCardioOrBodyweight ? (
-                          // Cardio/Bodyweight display
-                          <>
-                            <div className="grid grid-cols-3 gap-2 text-sm font-semibold text-gray-700">
-                              <div>Set</div>
-                              <div>Duration/Reps</div>
-                              <div className="text-right">Status</div>
-                            </div>
-                            {exercise.sets.map((set, index) => (
-                              <div
-                                key={index}
-                                className={`grid grid-cols-3 gap-2 text-sm ${
-                                  set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
-                                } py-2 px-2 rounded`}
-                              >
-                                <div className="font-medium">{index + 1}</div>
-                                <div className="font-semibold">{set.reps} mins</div>
-                                <div className="text-right text-xs">
-                                  {set.completed ? '✓ Done' : '-'}
-                                </div>
+                        <div className="space-y-2">
+                          {isCardioOrBodyweight ? (
+                            // Cardio/Bodyweight display
+                            <>
+                              <div className="grid grid-cols-3 gap-2 text-sm font-semibold text-gray-700">
+                                <div>Set</div>
+                                <div>Duration/Reps</div>
+                                <div className="text-right">Status</div>
                               </div>
-                            ))}
-                          </>
-                        ) : (
-                          // Weight training display
-                          <>
-                            <div className="grid grid-cols-4 gap-2 text-sm font-semibold text-gray-700">
-                              <div>Set</div>
-                              <div>Weight × Reps</div>
-                              <div className="text-right">Volume</div>
-                              <div className="text-right">Status</div>
-                            </div>
-                            {exercise.sets.map((set, index) => {
-                              const setVolume = set.reps * set.weight;
-                              return (
+                              {exercise.sets.map((set, index) => (
                                 <div
                                   key={index}
-                                  className={`grid grid-cols-4 gap-2 text-sm ${
-                                    set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
-                                  } py-2 px-2 rounded`}
+                                  className={`grid grid-cols-3 gap-2 text-sm ${set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
+                                    } py-2 px-2 rounded`}
                                 >
                                   <div className="font-medium">{index + 1}</div>
-                                  <div className="font-semibold">{set.weight}kg × {set.reps}</div>
-                                  <div className="text-right font-medium">{setVolume}kg</div>
+                                  <div className="font-semibold">{set.reps} mins</div>
                                   <div className="text-right text-xs">
                                     {set.completed ? '✓ Done' : '-'}
                                   </div>
                                 </div>
-                              );
-                            })}
-                          </>
+                              ))}
+                            </>
+                          ) : (
+                            // Weight training display
+                            <>
+                              <div className="grid grid-cols-4 gap-2 text-sm font-semibold text-gray-700">
+                                <div>Set</div>
+                                <div>Weight × Reps</div>
+                                <div className="text-right">Volume</div>
+                                <div className="text-right">Status</div>
+                              </div>
+                              {exercise.sets.map((set, index) => {
+                                const setVolume = set.reps * set.weight;
+                                return (
+                                  <div
+                                    key={index}
+                                    className={`grid grid-cols-4 gap-2 text-sm ${set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
+                                      } py-2 px-2 rounded`}
+                                  >
+                                    <div className="font-medium">{index + 1}</div>
+                                    <div className="font-semibold">{set.weight}kg × {set.reps}</div>
+                                    <div className="text-right font-medium">{setVolume}kg</div>
+                                    <div className="text-right text-xs">
+                                      {set.completed ? '✓ Done' : '-'}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </>
+                          )}
+                        </div>
+
+                        {exercise.notes && (
+                          <p className="text-sm text-gray-600 mt-3 p-2 bg-amber-50 border border-amber-200 rounded">
+                            📝 {exercise.notes}
+                          </p>
                         )}
                       </div>
-
-                      {exercise.notes && (
-                        <p className="text-sm text-gray-600 mt-3 p-2 bg-amber-50 border border-amber-200 rounded">
-                          📝 {exercise.notes}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
 
               {/* Actions */}
               <div className="flex space-x-2 pt-4 border-t ">
@@ -566,7 +573,7 @@ const History = () => {
                 <Button
                   variant="danger"
                   size="sm"
-                  onClick={() => handleDeleteWorkout(selectedWorkout.id)}
+                  onClick={() => handleDeleteWorkout(selectedWorkout)}
                   className="flex-1"
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
@@ -577,6 +584,18 @@ const History = () => {
           )}
         </Modal>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Workout"
+        message={`Are you sure you want to delete "${workoutToDelete?.type === 'rest_day' ? 'Rest Day' : workoutToDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </div>
   );
 };
