@@ -88,14 +88,14 @@ const Header = () => {
           </div>
 
           {/* Mobile: Logout Button (Right Side) */}
-          <div className="md:hidden">
+          <div className="flex md:hidden">
             <button
               onClick={handleLogout}
-              className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors active:scale-95"
+              className="flex items-center justify-center p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors active:scale-95"
               aria-label="Logout"
               title="Logout"
             >
-              <LogOut className="w-6 h-6" />
+              <LogOut className="w-5 h-5" strokeWidth={2} />
             </button>
           </div>
 
