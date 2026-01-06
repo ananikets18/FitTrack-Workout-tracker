@@ -87,11 +87,16 @@ const Home = () => {
     toast.success('Rest day logged! 🛌');
   };
 
+  // Calculate this week's workouts
+  const thisWeekStart = new Date();
+  thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay()); // Start of week (Sunday)
+  const thisWeekWorkouts = regularWorkouts.filter(w => new Date(w.date) >= thisWeekStart).length;
+
   const stats = [
     {
-      label: 'Total Workouts',
-      value: totalWorkouts,
-      icon: TrendingUp,
+      label: 'This Week',
+      value: thisWeekWorkouts,
+      icon: Calendar,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50 ',
     },
