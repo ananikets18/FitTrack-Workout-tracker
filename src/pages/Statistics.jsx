@@ -8,14 +8,13 @@ import {
   calculateTotalReps,
   calculateAverageWeight,
   getPersonalRecords,
-  groupWorkoutsByDate
 } from '../utils/calculations';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import BottomSheet from '../components/common/BottomSheet';
 import { VolumeChart, FrequencyChart, PRProgressionChart } from '../components/charts/WorkoutCharts';
-import { TrendingUp, Award, Flame, Dumbbell, Calendar, Target, Weight, Activity, Clock, ChevronRight, Hotel, Star } from 'lucide-react';
-import { startOfWeek, endOfWeek, eachDayOfInterval, format, isSameDay } from 'date-fns';
+import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, Clock, ChevronRight, Hotel, Star } from 'lucide-react';
+import { format } from 'date-fns';
 
 const Statistics = () => {
   const { workouts } = useWorkouts();
@@ -59,38 +58,6 @@ const Statistics = () => {
   const topExercises = Object.entries(exerciseFrequency)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
-
-  // Get this week's data
-  const now = new Date();
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-  const daysOfWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
-
-  const workoutsByDate = groupWorkoutsByDate(workouts);
-  const thisWeekWorkouts = daysOfWeek.map(day => {
-    const dateKey = format(day, 'yyyy-MM-dd');
-    const dayWorkouts = workoutsByDate[dateKey] || [];
-    const regularWorkouts = dayWorkouts.filter(w => w.type !== 'rest_day');
-    const restDays = dayWorkouts.filter(w => w.type === 'rest_day');
-
-    return {
-      day: format(day, 'EEE'),
-      count: regularWorkouts.length,
-      hasRestDay: restDays.length > 0,
-      date: day,
-      dateKey,
-      workouts: dayWorkouts,
-      regularWorkouts,
-      restDays,
-    };
-  });
-
-  const handleDayClick = (day) => {
-    if (day.count > 0 || day.hasRestDay) {
-      setSelectedDay(day);
-      setIsSheetOpen(true);
-    }
-  };
 
   const handleViewDetails = () => {
     setIsSheetOpen(false);
@@ -167,45 +134,6 @@ const Statistics = () => {
         ))}
       </div>
 
-      {/* This Week Activity */}
-      <Card>
-        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4 md:mb-6">This Week's Activity</h2>
-        <div className="grid grid-cols-7 gap-1 md:gap-2">
-          {thisWeekWorkouts.map((day, index) => {
-            const isToday = isSameDay(day.date, now);
-            const hasWorkouts = day.count > 0;
-            const hasRestDay = day.hasRestDay;
-
-            return (
-              <div key={index} className="text-center">
-                <div className="text-xs md:text-sm text-gray-600 mb-1 md:mb-2 truncate">{day.day}</div>
-                <div
-                  onClick={() => handleDayClick(day)}
-                  className={`h-14 md:h-20 rounded-lg flex flex-col items-center justify-center font-bold text-base md:text-lg transition-all ${hasRestDay && !hasWorkouts
-                      ? 'bg-purple-100 border-2 border-purple-400 text-purple-600 cursor-pointer hover:bg-purple-200 active:scale-95'
-                      : hasWorkouts
-                        ? 'bg-primary-500 text-white cursor-pointer hover:bg-primary-600 active:scale-95'
-                        : isToday
-                          ? 'bg-gray-200 text-gray-600 border-2 border-primary-500'
-                          : 'bg-gray-100 text-gray-400 '
-                    }`}
-                >
-                  {hasWorkouts ? (
-                    <>
-                      <span>{day.count}</span>
-                      {hasRestDay && <Hotel className="w-3 h-3 mt-0.5" />}
-                    </>
-                  ) : hasRestDay ? (
-                    <Hotel className="w-5 h-5 md:w-6 md:h-6" />
-                  ) : (
-                    '-'
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
 
       {/* Progress Charts */}
       {workouts.length >= 3 && (
@@ -305,8 +233,8 @@ const Statistics = () => {
           <div className="space-y-4">
             {selectedDay.workouts.map((workout, idx) => (
               <div key={idx} className={`rounded-xl p-4 space-y-3 ${workout.type === 'rest_day'
-                  ? 'bg-purple-50 border-2 border-purple-200 '
-                  : 'bg-gray-50 '
+                ? 'bg-purple-50 border-2 border-purple-200 '
+                : 'bg-gray-50 '
                 }`}>
                 {workout.type === 'rest_day' ? (
                   <>
