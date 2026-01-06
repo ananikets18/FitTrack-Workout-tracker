@@ -16,7 +16,6 @@ const History = lazy(() => import('./pages/History'));
 const Statistics = lazy(() => import('./pages/Statistics'));
 const Calendar = lazy(() => import('./pages/Calendar'));
 const Login = lazy(() => import('./pages/Login'));
-const SyncDebug = lazy(() => import('./components/debug/SyncDebug'));
 
 // Loading component
 const PageLoader = () => (
@@ -118,14 +117,6 @@ function App() {
                       element={
                         <Suspense fallback={<PageLoader />}>
                           <Calendar />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="debug/sync"
-                      element={
-                        <Suspense fallback={<PageLoader />}>
-                          <SyncDebug />
                         </Suspense>
                       }
                     />

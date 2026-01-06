@@ -1,18 +1,13 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Plus, History, BarChart3, CalendarDays, LogOut } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, Plus, History, BarChart3, CalendarDays } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { lightHaptic, mediumHaptic } from '../../utils/haptics';
-import { useAuth } from '../../context/AuthContext';
-import SyncStatusIndicator from '../common/SyncStatusIndicator';
-import toast from 'react-hot-toast';
 
 
 
 const BottomNav = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
@@ -32,19 +27,6 @@ const BottomNav = () => {
       mediumHaptic();
     } else {
       lightHaptic();
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      lightHaptic();
-      await signOut();
-      localStorage.clear();
-      toast.success('Logged out successfully');
-      navigate('/login', { replace: true });
-    } catch (error) {
-      localStorage.clear();
-      navigate('/login', { replace: true });
     }
   };
 
@@ -96,21 +78,6 @@ const BottomNav = () => {
             </Link>
           );
         })}
-      </div>
-
-      {/* Sync & Logout Bar (Mobile Only) */}
-      <div className="absolute -top-12 left-0 right-0 px-4 pb-2">
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-2 flex items-center justify-between">
-          <SyncStatusIndicator compact />
-          <button
-            onClick={handleLogout}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all active:scale-95"
-            title="Logout"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="text-xs font-medium">Logout</span>
-          </button>
-        </div>
       </div>
     </nav>
 

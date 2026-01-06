@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext';
 import { lightHaptic } from '../../utils/haptics';
 import toast from 'react-hot-toast';
 import MobileMenu from './MobileMenu';
-import SyncStatusIndicator from '../common/SyncStatusIndicator';
 
 
 const Header = () => {
@@ -78,10 +77,6 @@ const Header = () => {
               ))}
             </nav>
 
-            {/* Sync Status Indicator */}
-            <div className="ml-2">
-              <SyncStatusIndicator />
-            </div>
 
             {/* Theme Toggle Button */}
 
@@ -159,10 +154,6 @@ const Header = () => {
                 <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
 
-              {/* Sync Status Indicator */}
-              <div className="px-4">
-                <SyncStatusIndicator compact />
-              </div>
 
               {/* Logout Button */}
 

@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { db as supabase } from '../lib/supabase';
+import { db as supabase, transformWorkoutFromDB } from '../lib/supabase';
 import { sanitizeWorkout } from '../utils/validation';
 import toast from 'react-hot-toast';
 
@@ -69,8 +69,9 @@ export const WorkoutProvider = ({ children }) => {
     dispatch({ type: ACTIONS.SET_LOADING, payload: true });
 
     try {
-      const workouts = await supabase.getWorkouts(user.id);
-      dispatch({ type: ACTIONS.SET_WORKOUTS, payload: workouts });
+      const data = await supabase.getWorkouts(user.id);
+      const transformed = data.map(transformWorkoutFromDB);
+      dispatch({ type: ACTIONS.SET_WORKOUTS, payload: transformed });
     } catch (error) {
       console.error('Error loading workouts:', error);
       toast.error('Failed to load workouts');
@@ -92,22 +93,16 @@ export const WorkoutProvider = ({ children }) => {
 
     try {
       const sanitized = sanitizeWorkout(workout);
-      const newWorkout = {
-        ...sanitized,
-        id: crypto.randomUUID(),
-        userId: user.id,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
 
       // Save directly to Supabase
-      await supabase.createWorkout(newWorkout, user.id);
+      const newWorkout = await supabase.createWorkout(sanitized, user.id);
+      const transformed = transformWorkoutFromDB(newWorkout);
 
       // Update local state
-      dispatch({ type: ACTIONS.ADD_WORKOUT, payload: newWorkout });
+      dispatch({ type: ACTIONS.ADD_WORKOUT, payload: transformed });
 
       toast.success('Workout saved!');
-      return newWorkout;
+      return transformed;
     } catch (error) {
       console.error('Error adding workout:', error);
       toast.error('Failed to save workout');
@@ -127,25 +122,22 @@ export const WorkoutProvider = ({ children }) => {
       selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
 
       const restDay = {
-        id: crypto.randomUUID(),
         type: 'rest_day',
         date: selectedDate.toISOString(),
         recoveryQuality: Math.max(1, Math.min(5, parseInt(restDayData.recoveryQuality) || 3)),
         activities: Array.isArray(restDayData.activities) ? restDayData.activities : [],
         notes: (restDayData.notes || '').trim().slice(0, 1000),
-        userId: user.id,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       };
 
       // Save directly to Supabase
-      await supabase.createWorkout(restDay, user.id);
+      const newRestDay = await supabase.createWorkout(restDay, user.id);
+      const transformed = transformWorkoutFromDB(newRestDay);
 
       // Update local state
-      dispatch({ type: ACTIONS.ADD_WORKOUT, payload: restDay });
+      dispatch({ type: ACTIONS.ADD_WORKOUT, payload: transformed });
 
       toast.success('Rest day logged!');
-      return restDay;
+      return transformed;
     } catch (error) {
       console.error('Error adding rest day:', error);
       toast.error('Failed to log rest day');
@@ -162,16 +154,12 @@ export const WorkoutProvider = ({ children }) => {
 
     try {
       const sanitized = sanitizeWorkout(workout);
-      const updated = {
-        ...sanitized,
-        updatedAt: new Date().toISOString(),
-      };
 
       // Update in Supabase
-      await supabase.updateWorkout(updated.id, updated, user.id);
+      await supabase.updateWorkout(sanitized.id, sanitized, user.id);
 
-      // Update local state
-      dispatch({ type: ACTIONS.UPDATE_WORKOUT, payload: updated });
+      // Reload to get fresh data
+      await loadWorkouts();
 
       toast.success('Workout updated!');
     } catch (error) {
@@ -233,7 +221,6 @@ export const WorkoutProvider = ({ children }) => {
     workouts: state.workouts,
     currentWorkout: state.currentWorkout,
     isLoading: state.isLoading,
-    isOnline: navigator.onLine, // Simple online check
     addWorkout,
     addRestDay,
     updateWorkout,
@@ -242,7 +229,6 @@ export const WorkoutProvider = ({ children }) => {
     clearCurrentWorkout,
     cloneWorkout,
     refreshWorkouts: loadWorkouts,
-    forceSync: loadWorkouts, // Just reload from Supabase
   };
 
   return (
