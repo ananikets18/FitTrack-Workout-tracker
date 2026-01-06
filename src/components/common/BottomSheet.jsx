@@ -80,3 +80,4 @@ const BottomSheet = ({ isOpen, onClose, children, title, height = '40%' }) => {
 };
 
 export default BottomSheet;
+

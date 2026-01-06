@@ -169,7 +169,7 @@ const Statistics = () => {
 
       {/* This Week Activity */}
       <Card>
-        <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-4 md:mb-6">This Week's Activity</h2>
+        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4 md:mb-6">This Week's Activity</h2>
         <div className="grid grid-cols-7 gap-1 md:gap-2">
           {thisWeekWorkouts.map((day, index) => {
             const isToday = isSameDay(day.date, now);
@@ -178,16 +178,16 @@ const Statistics = () => {
 
             return (
               <div key={index} className="text-center">
-                <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-1 md:mb-2 truncate">{day.day}</div>
+                <div className="text-xs md:text-sm text-gray-600 mb-1 md:mb-2 truncate">{day.day}</div>
                 <div
                   onClick={() => handleDayClick(day)}
                   className={`h-14 md:h-20 rounded-lg flex flex-col items-center justify-center font-bold text-base md:text-lg transition-all ${hasRestDay && !hasWorkouts
-                      ? 'bg-purple-100 dark:bg-purple-900/30 border-2 border-purple-400 dark:border-purple-600 text-purple-600 dark:text-purple-400 cursor-pointer hover:bg-purple-200 dark:hover:bg-purple-900/40 active:scale-95'
+                      ? 'bg-purple-100 border-2 border-purple-400 text-purple-600 cursor-pointer hover:bg-purple-200 active:scale-95'
                       : hasWorkouts
                         ? 'bg-primary-500 text-white cursor-pointer hover:bg-primary-600 active:scale-95'
                         : isToday
-                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-2 border-primary-500'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'
+                          ? 'bg-gray-200 text-gray-600 border-2 border-primary-500'
+                          : 'bg-gray-100 text-gray-400 '
                     }`}
                 >
                   {hasWorkouts ? (
@@ -212,19 +212,19 @@ const Statistics = () => {
         <>
           {/* Volume Trend */}
           <Card>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Volume Trend (Last 30 Days)</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Volume Trend (Last 30 Days)</h2>
             <VolumeChart workouts={workouts} />
           </Card>
 
           {/* Workout Frequency */}
           <Card>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Workout Frequency (Last 7 Days)</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Workout Frequency (Last 7 Days)</h2>
             <FrequencyChart workouts={workouts} />
           </Card>
 
           {/* PR Progression */}
           <Card>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Personal Records Progression</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Records Progression</h2>
             <PRProgressionChart workouts={workouts} />
           </Card>
         </>
@@ -305,19 +305,19 @@ const Statistics = () => {
           <div className="space-y-4">
             {selectedDay.workouts.map((workout, idx) => (
               <div key={idx} className={`rounded-xl p-4 space-y-3 ${workout.type === 'rest_day'
-                  ? 'bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800'
-                  : 'bg-gray-50 dark:bg-gray-800'
+                  ? 'bg-purple-50 border-2 border-purple-200 '
+                  : 'bg-gray-50 '
                 }`}>
                 {workout.type === 'rest_day' ? (
                   <>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="bg-purple-200 dark:bg-purple-900/50 rounded-xl p-2">
-                          <Hotel className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        <div className="bg-purple-200 rounded-xl p-2">
+                          <Hotel className="w-5 h-5 text-purple-600 " />
                         </div>
                         <div>
-                          <h4 className="font-bold text-lg text-gray-900 dark:text-white">Rest Day</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                          <h4 className="font-bold text-lg text-gray-900 ">Rest Day</h4>
+                          <p className="text-sm text-gray-500 mt-1">
                             {new Date(workout.date).toLocaleTimeString('en-US', {
                               hour: 'numeric',
                               minute: '2-digit',
@@ -328,14 +328,14 @@ const Statistics = () => {
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-purple-200 dark:border-purple-800">
+                    <div className="pt-2 border-t border-purple-200 ">
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Recovery Quality:</span>
+                        <span className="text-sm text-gray-600 ">Recovery Quality:</span>
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+                              className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
                             />
                           ))}
                         </div>
@@ -343,12 +343,12 @@ const Statistics = () => {
 
                       {workout.activities && workout.activities.length > 0 && (
                         <div>
-                          <span className="text-sm text-gray-600 dark:text-gray-400 block mb-2">Active Recovery:</span>
+                          <span className="text-sm text-gray-600 block mb-2">Active Recovery:</span>
                           <div className="flex flex-wrap gap-2">
                             {workout.activities.map((activity, actIdx) => (
                               <span
                                 key={actIdx}
-                                className="px-2 py-1 text-xs font-semibold bg-purple-200 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-lg"
+                                className="px-2 py-1 text-xs font-semibold bg-purple-200 text-purple-700 rounded-lg"
                               >
                                 {activity.replace('_', ' ')}
                               </span>
@@ -359,7 +359,7 @@ const Statistics = () => {
                     </div>
 
                     {workout.notes && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 italic pt-2 border-t border-purple-200 dark:border-purple-800">
+                      <p className="text-sm text-gray-600 italic pt-2 border-t border-purple-200 ">
                         {workout.notes}
                       </p>
                     )}
@@ -368,8 +368,8 @@ const Statistics = () => {
                   <>
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="font-bold text-lg text-gray-900 dark:text-white">{workout.name}</h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        <h4 className="font-bold text-lg text-gray-900 ">{workout.name}</h4>
+                        <p className="text-sm text-gray-500 mt-1">
                           {new Date(workout.date).toLocaleTimeString('en-US', {
                             hour: 'numeric',
                             minute: '2-digit',
@@ -377,28 +377,28 @@ const Statistics = () => {
                           })}
                         </p>
                       </div>
-                      <div className="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 px-3 py-1 rounded-lg text-sm font-semibold">
+                      <div className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-sm font-semibold">
                         {workout.exercises?.length || 0} exercises
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 ">
                       {workout.duration > 0 && (
                         <div className="flex items-center space-x-2">
                           <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">{workout.duration} min</span>
+                          <span className="text-sm text-gray-600 ">{workout.duration} min</span>
                         </div>
                       )}
                       <div className="flex items-center space-x-2">
                         <Weight className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-sm text-gray-600 ">
                           {kgToTons(calculateTotalVolume(workout))}T moved
                         </span>
                       </div>
                     </div>
 
                     {workout.notes && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 italic pt-2 border-t border-gray-200 dark:border-gray-700">
+                      <p className="text-sm text-gray-600 italic pt-2 border-t border-gray-200 ">
                         {workout.notes}
                       </p>
                     )}
@@ -424,3 +424,4 @@ const Statistics = () => {
 };
 
 export default Statistics;
+

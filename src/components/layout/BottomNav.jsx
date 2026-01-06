@@ -1,13 +1,17 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Home, Plus, History, BarChart3, CalendarDays } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, Plus, History, BarChart3, CalendarDays, LogOut } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { lightHaptic, mediumHaptic } from '../../utils/haptics';
+import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 
 
 const BottomNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
@@ -30,9 +34,22 @@ const BottomNav = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      lightHaptic();
+      await signOut();
+      localStorage.clear();
+      toast.success('Logged out successfully');
+      navigate('/login', { replace: true });
+    } catch (error) {
+      localStorage.clear();
+      navigate('/login', { replace: true });
+    }
+  };
+
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 pb-safe z-50 shadow-lifted transition-colors">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50 shadow-lifted">
       <div className="flex items-center justify-around px-2 h-16">
         {/* eslint-disable-next-line no-unused-vars */}
         {navItems.map(({ path, label, icon: NavIcon, primary }) => {
@@ -58,7 +75,7 @@ const BottomNav = () => {
                 <>
                   <motion.div
                     whileTap={{ scale: 0.85 }}
-                    className={`flex flex-col items-center justify-center transition-colors min-h-[48px] ${active ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'
+                    className={`flex flex-col items-center justify-center transition-colors min-h-[48px] ${active ? 'text-primary-600' : 'text-gray-500'
                       }`}
                   >
                     <NavIcon className="w-6 h-6 mb-1" strokeWidth={active ? 2.5 : 2} />
@@ -78,6 +95,20 @@ const BottomNav = () => {
             </Link>
           );
         })}
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="relative flex flex-col items-center justify-center flex-1 h-full min-w-[64px]"
+        >
+          <motion.div
+            whileTap={{ scale: 0.85 }}
+            className="flex flex-col items-center justify-center transition-colors min-h-[48px] text-red-600"
+          >
+            <LogOut className="w-6 h-6 mb-1" strokeWidth={2} />
+            <span className="text-xs font-medium">Logout</span>
+          </motion.div>
+        </button>
       </div>
     </nav>
 
@@ -85,3 +116,4 @@ const BottomNav = () => {
 };
 
 export default BottomNav;
+

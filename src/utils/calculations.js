@@ -179,3 +179,4 @@ export const groupWorkoutsByDate = (workouts) => {
   
   return grouped;
 };
+

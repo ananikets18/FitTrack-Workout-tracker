@@ -170,3 +170,4 @@ export default {
   getVersionInfo,
   CURRENT_VERSION,
 };
+

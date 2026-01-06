@@ -340,3 +340,4 @@ export function createConflictRecord(conflict, resolution) {
         chosenVersion: resolution.resolution
     };
 }
+

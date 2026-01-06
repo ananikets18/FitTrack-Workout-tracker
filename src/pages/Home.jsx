@@ -93,21 +93,21 @@ const Home = () => {
       value: totalWorkouts,
       icon: TrendingUp,
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+      bgColor: 'bg-blue-50 ',
     },
     {
       label: 'Current Streak',
       value: `${currentStreak} days`,
       icon: Flame,
       color: 'text-orange-600',
-      bgColor: 'bg-orange-50 dark:bg-orange-900/20',
+      bgColor: 'bg-orange-50 ',
     },
     {
       label: 'Rest Days',
       value: totalRestDays,
       icon: Hotel,
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
+      bgColor: 'bg-purple-50 ',
     },
   ];
 
@@ -146,8 +146,8 @@ const Home = () => {
                 <div className={`inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-2xl ${stat.bgColor} mb-2 md:mb-3 shadow-soft`}>
                   <stat.icon className={`w-6 h-6 md:w-8 md:h-8 ${stat.color}`} />
                 </div>
-                <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1">{stat.value}</div>
-                <div className="text-gray-500 dark:text-gray-400 text-xs md:text-sm font-medium">{stat.label}</div>
+                <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                <div className="text-gray-500 text-xs md:text-sm font-medium">{stat.label}</div>
               </Card>
             </motion.div>
           ))}
@@ -187,14 +187,14 @@ const Home = () => {
       {/* Recent Workouts */}
       {isLoading ? (
         <div className="space-y-4">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Recent Activity</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 ">Recent Activity</h2>
           <SkeletonCard />
           <SkeletonCard />
         </div>
       ) : recentWorkouts.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Recent Activity</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 ">Recent Activity</h2>
             <Link to="/history">
               <Button variant="outline" size="sm" className="flex items-center space-x-1 text-sm">
                 <span>View All</span>
@@ -216,16 +216,16 @@ const Home = () => {
                     {workout.type === 'rest_day' ? (
                       <div className="flex items-start justify-between">
                         <div className="flex items-start space-x-3 flex-1 min-w-0">
-                          <div className="bg-purple-100 dark:bg-purple-900/30 rounded-xl p-2 flex-shrink-0">
-                            <Hotel className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                          <div className="bg-purple-100 rounded-xl p-2 flex-shrink-0">
+                            <Hotel className="w-5 h-5 text-purple-600 " />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Rest Day</h3>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{formatDate(workout.date)}</p>
+                            <h3 className="text-lg font-semibold text-gray-900 ">Rest Day</h3>
+                            <p className="text-gray-500 text-sm mt-1">{formatDate(workout.date)}</p>
                             <div className="flex items-center space-x-2 mt-2">
                               <div className="flex items-center">
                                 {[...Array(5)].map((_, i) => (
-                                  <span key={i} className={`text-xs ${i < workout.recoveryQuality ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}>
+                                  <span key={i} className={`text-xs ${i < workout.recoveryQuality ? 'text-yellow-400' : 'text-gray-300 '}`}>
                                     ★
                                   </span>
                                 ))}
@@ -233,7 +233,7 @@ const Home = () => {
                               {workout.activities?.length > 0 && (
                                 <>
                                   <span className="text-gray-400">•</span>
-                                  <span className="text-xs text-gray-500 dark:text-gray-400">{workout.activities.length} activities</span>
+                                  <span className="text-xs text-gray-500 ">{workout.activities.length} activities</span>
                                 </>
                               )}
                             </div>
@@ -244,9 +244,9 @@ const Home = () => {
                     ) : (
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">{workout.name}</h3>
-                          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{formatDate(workout.date)}</p>
-                          <div className="flex items-center space-x-3 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                          <h3 className="text-lg font-semibold text-gray-900 truncate">{workout.name}</h3>
+                          <p className="text-gray-500 text-sm mt-1">{formatDate(workout.date)}</p>
+                          <div className="flex items-center space-x-3 mt-2 text-sm text-gray-500 ">
                             <span className="font-medium">{workout.exercises?.length || 0} exercises</span>
                             {workout.duration && <><span>•</span><span>{workout.duration} min</span></>}
                           </div>
@@ -273,8 +273,8 @@ const Home = () => {
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-primary shadow-lifted mb-2">
                 <Dumbbell className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">No workouts yet</h3>
-              <p className="text-gray-600 dark:text-gray-400">Start your fitness journey by tracking your progress</p>
+              <h3 className="text-xl font-bold text-gray-900 ">No workouts yet</h3>
+              <p className="text-gray-600 ">Start your fitness journey by tracking your progress</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
                 <Link to="/log">
                   <Button variant="primary" size="lg" className="w-full sm:w-auto">
@@ -305,7 +305,7 @@ const Home = () => {
               variant="outline"
               size="lg"
               onClick={handleRepeatLastWorkout}
-              className="w-full flex items-center justify-center border-2 border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20"
+              className="w-full flex items-center justify-center border-2 border-blue-500 text-blue-600 hover:bg-blue-50 "
             >
               <RotateCcw className="w-5 h-5 mr-2" />
               Repeat Last
@@ -342,3 +342,4 @@ const Home = () => {
 };
 
 export default Home;
+

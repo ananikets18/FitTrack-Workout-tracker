@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { WorkoutProvider } from './context/WorkoutContext';
-import { ThemeProvider } from './context/ThemeContext';
 import { TemplateProvider } from './context/TemplateContext';
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
@@ -27,108 +26,107 @@ const PageLoader = () => (
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <AuthProvider>
-          <TemplateProvider>
-            <WorkoutProvider>
-              <Router>
-                <Toaster
-                  position="top-center"
-                  toastOptions={{
+      <AuthProvider>
+        <TemplateProvider>
+          <WorkoutProvider>
+            <Router>
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  duration: 3000,
+                  style: {
+                    background: '#363636',
+                    color: '#fff',
+                    fontSize: '16px',
+                    padding: '16px',
+                    borderRadius: '12px',
+                  },
+                  success: {
+                    duration: 2000,
+                    iconTheme: {
+                      primary: '#10b981',
+                      secondary: '#fff',
+                    },
+                  },
+                  error: {
                     duration: 3000,
-                    style: {
-                      background: '#363636',
-                      color: '#fff',
-                      fontSize: '16px',
-                      padding: '16px',
-                      borderRadius: '12px',
+                    iconTheme: {
+                      primary: '#ef4444',
+                      secondary: '#fff',
                     },
-                    success: {
-                      duration: 2000,
-                      iconTheme: {
-                        primary: '#10b981',
-                        secondary: '#fff',
-                      },
-                    },
-                    error: {
-                      duration: 3000,
-                      iconTheme: {
-                        primary: '#ef4444',
-                        secondary: '#fff',
-                      },
-                    },
-                  }}
+                  },
+                }}
+              />
+
+              <Routes>
+                {/* Public Routes */}
+                <Route
+                  path="/login"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Login />
+                    </Suspense>
+                  }
                 />
 
-                <Routes>
-                  {/* Public Routes */}
+                {/* Protected Routes */}
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Layout />
+                    </ProtectedRoute>
+                  }
+                >
                   <Route
-                    path="/login"
+                    index
                     element={
                       <Suspense fallback={<PageLoader />}>
-                        <Login />
+                        <Home />
                       </Suspense>
                     }
                   />
-
-                  {/* Protected Routes */}
                   <Route
-                    path="/"
+                    path="log"
                     element={
-                      <ProtectedRoute>
-                        <Layout />
-                      </ProtectedRoute>
+                      <Suspense fallback={<PageLoader />}>
+                        <WorkoutLogMobile />
+                      </Suspense>
                     }
-                  >
-                    <Route
-                      index
-                      element={
-                        <Suspense fallback={<PageLoader />}>
-                          <Home />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="log"
-                      element={
-                        <Suspense fallback={<PageLoader />}>
-                          <WorkoutLogMobile />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="history"
-                      element={
-                        <Suspense fallback={<PageLoader />}>
-                          <History />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="stats"
-                      element={
-                        <Suspense fallback={<PageLoader />}>
-                          <Statistics />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="calendar"
-                      element={
-                        <Suspense fallback={<PageLoader />}>
-                          <Calendar />
-                        </Suspense>
-                      }
-                    />
-                  </Route>
-                </Routes>
-              </Router>
-            </WorkoutProvider>
-          </TemplateProvider>
-        </AuthProvider>
-      </ThemeProvider>
+                  />
+                  <Route
+                    path="history"
+                    element={
+                      <Suspense fallback={<PageLoader />}>
+                        <History />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="stats"
+                    element={
+                      <Suspense fallback={<PageLoader />}>
+                        <Statistics />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="calendar"
+                    element={
+                      <Suspense fallback={<PageLoader />}>
+                        <Calendar />
+                      </Suspense>
+                    }
+                  />
+                </Route>
+              </Routes>
+            </Router>
+          </WorkoutProvider>
+        </TemplateProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }
 
 export default App;
+

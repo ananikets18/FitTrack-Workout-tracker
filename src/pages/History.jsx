@@ -108,8 +108,8 @@ const History = () => {
       <div>
         <div className="flex items-start justify-between gap-3 mb-3 md:mb-0">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Workout History</h1>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1 md:mt-2">View and manage your past workouts</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 ">Workout History</h1>
+            <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">View and manage your past workouts</p>
           </div>
           
           {/* Import/Export Buttons - Desktop */}
@@ -254,23 +254,23 @@ const History = () => {
               {workout.type === 'rest_day' ? (
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3 flex-1">
-                    <div className="bg-purple-100 dark:bg-purple-900/30 rounded-xl p-3 flex-shrink-0">
-                      <Hotel className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    <div className="bg-purple-100 rounded-xl p-3 flex-shrink-0">
+                      <Hotel className="w-6 h-6 text-purple-600 " />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Rest Day</h3>
-                      <div className="flex items-center space-x-2 mt-2 text-gray-600 dark:text-gray-400">
+                      <h3 className="text-xl font-semibold text-gray-900 ">Rest Day</h3>
+                      <div className="flex items-center space-x-2 mt-2 text-gray-600 ">
                         <Calendar className="w-4 h-4" />
                         <span className="text-sm">{formatDate(workout.date)}</span>
                       </div>
                       <div className="flex items-center space-x-3 mt-3">
                         <div className="flex items-center space-x-1">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Recovery:</span>
+                          <span className="text-sm text-gray-600 ">Recovery:</span>
                           <div className="flex items-center">
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+                                className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
                               />
                             ))}
                           </div>
@@ -281,7 +281,7 @@ const History = () => {
                           {workout.activities.map((activity, idx) => (
                             <span
                               key={idx}
-                              className="px-2 py-1 text-xs font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full"
+                              className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full"
                             >
                               {activity.replace('_', ' ')}
                             </span>
@@ -294,12 +294,12 @@ const History = () => {
               ) : (
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{workout.name}</h3>
-                    <div className="flex items-center space-x-2 mt-2 text-gray-600 dark:text-gray-400">
+                    <h3 className="text-xl font-semibold text-gray-900 ">{workout.name}</h3>
+                    <div className="flex items-center space-x-2 mt-2 text-gray-600 ">
                       <Calendar className="w-4 h-4" />
                       <span className="text-sm">{formatDate(workout.date)}</span>
                     </div>
-                    <div className="flex items-center space-x-4 mt-3 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center space-x-4 mt-3 text-sm text-gray-600 ">
                       <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
                       <span>•</span>
                       <span>{calculateTotalSets(workout)} sets</span>
@@ -314,13 +314,13 @@ const History = () => {
                       {workout.exercises?.slice(0, 3).map((ex, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full"
+                          className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full"
                         >
                           {ex.name}
                         </span>
                       ))}
                       {workout.exercises?.length > 3 && (
-                        <span className="px-2 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full">
+                        <span className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full">
                           +{workout.exercises.length - 3} more
                         </span>
                       )}
@@ -346,16 +346,16 @@ const History = () => {
               {/* Rest Day Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Date</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">{formatDate(selectedWorkout.date)}</p>
+                  <p className="text-sm text-gray-600 ">Date</p>
+                  <p className="font-semibold text-gray-900 ">{formatDate(selectedWorkout.date)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Recovery Quality</p>
+                  <p className="text-sm text-gray-600 ">Recovery Quality</p>
                   <div className="flex items-center space-x-1 mt-1">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-5 h-5 ${i < selectedWorkout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+                        className={`w-5 h-5 ${i < selectedWorkout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
                       />
                     ))}
                   </div>
@@ -365,12 +365,12 @@ const History = () => {
               {/* Active Recovery Activities */}
               {selectedWorkout.activities && selectedWorkout.activities.length > 0 && (
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Active Recovery Activities</p>
+                  <p className="text-sm text-gray-600 mb-3">Active Recovery Activities</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedWorkout.activities.map((activity, idx) => (
                       <span
                         key={idx}
-                        className="px-3 py-2 text-sm font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg"
+                        className="px-3 py-2 text-sm font-semibold bg-purple-100 text-purple-700 rounded-lg"
                       >
                         {activity.replace('_', ' ')}
                       </span>
@@ -382,8 +382,8 @@ const History = () => {
               {/* Notes */}
               {selectedWorkout.notes && (
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Notes</p>
-                  <p className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-900 dark:text-white">{selectedWorkout.notes}</p>
+                  <p className="text-sm text-gray-600 mb-2">Notes</p>
+                  <p className="p-3 bg-gray-50 rounded-lg text-gray-900 ">{selectedWorkout.notes}</p>
                 </div>
               )}
 
@@ -405,36 +405,36 @@ const History = () => {
               {/* Workout Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Date</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">{formatDate(selectedWorkout.date)}</p>
+                  <p className="text-sm text-gray-600 ">Date</p>
+                  <p className="font-semibold text-gray-900 ">{formatDate(selectedWorkout.date)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Duration</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className="text-sm text-gray-600 ">Duration</p>
+                  <p className="font-semibold text-gray-900 ">
                     {selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Exercises</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">{selectedWorkout.exercises?.length || 0}</p>
+                  <p className="text-sm text-gray-600 ">Total Exercises</p>
+                  <p className="font-semibold text-gray-900 ">{selectedWorkout.exercises?.length || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Sets</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">{calculateTotalSets(selectedWorkout)}</p>
+                  <p className="text-sm text-gray-600 ">Total Sets</p>
+                  <p className="font-semibold text-gray-900 ">{calculateTotalSets(selectedWorkout)}</p>
                 </div>
               </div>
 
               {/* Notes */}
               {selectedWorkout.notes && (
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Notes</p>
-                  <p className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-900 dark:text-white">{selectedWorkout.notes}</p>
+                  <p className="text-sm text-gray-600 mb-2">Notes</p>
+                  <p className="p-3 bg-gray-50 rounded-lg text-gray-900 ">{selectedWorkout.notes}</p>
                 </div>
               )}
 
               {/* Exercises */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Exercises</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Exercises</h3>
                 <div className="space-y-4">
                   {selectedWorkout.exercises?.map((exercise) => {
                   const exerciseVolume = calculateExerciseVolume(exercise);
@@ -553,7 +553,7 @@ const History = () => {
             </div>
 
               {/* Actions */}
-              <div className="flex space-x-2 pt-4 border-t dark:border-gray-700">
+              <div className="flex space-x-2 pt-4 border-t ">
                 <Button
                   variant="primary"
                   size="sm"
@@ -582,3 +582,4 @@ const History = () => {
 };
 
 export default History;
+

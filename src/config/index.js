@@ -58,3 +58,4 @@ export const isDev = config.env.isDevelopment;
 export const isProd = config.env.isProduction;
 
 export default config;
+

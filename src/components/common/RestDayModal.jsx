@@ -71,7 +71,7 @@ const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
       <div className="space-y-6">
         {/* Date Picker */}
         <div>
-          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-2">
             <Calendar className="w-4 h-4" />
             <span>Date</span>
           </label>
@@ -80,13 +80,13 @@ const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
             value={restDayData.date}
             onChange={(e) => setRestDayData({ ...restDayData, date: e.target.value })}
             max={today}
-            className="w-full px-4 py-3 text-lg border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
 
         {/* Recovery Quality Rating */}
         <div>
-          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3">
             <Star className="w-4 h-4" />
             <span>Recovery Quality</span>
           </label>
@@ -104,13 +104,13 @@ const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                   className={`w-10 h-10 md:w-12 md:h-12 transition-colors ${
                     (hoverRating || restDayData.recoveryQuality) >= rating
                       ? 'fill-yellow-400 text-yellow-400'
-                      : 'text-gray-300 dark:text-gray-600'
+                      : 'text-gray-300 '
                   }`}
                 />
               </motion.button>
             ))}
           </div>
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+          <p className="text-center text-sm text-gray-500 mt-2">
             {restDayData.recoveryQuality === 1 && "Poor - Need more rest"}
             {restDayData.recoveryQuality === 2 && "Fair - Still recovering"}
             {restDayData.recoveryQuality === 3 && "Good - Normal recovery"}
@@ -121,7 +121,7 @@ const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
 
         {/* Activity Tags */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 block">
+          <label className="text-sm font-semibold text-gray-700 mb-3 block">
             Active Recovery (Optional)
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -132,8 +132,8 @@ const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                 onClick={() => handleActivityToggle(activity.id)}
                 className={`flex items-center space-x-2 px-3 py-2.5 rounded-xl border-2 transition-all ${
                   restDayData.activities.includes(activity.id)
-                    ? 'bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-400'
-                    : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300'
+                    ? 'bg-green-50 border-green-500 text-green-700 '
+                    : 'bg-gray-50 border-gray-200 text-gray-700 '
                 }`}
               >
                 <span className="text-xl">{activity.emoji}</span>
@@ -145,7 +145,7 @@ const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
 
         {/* Notes */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 block">
+          <label className="text-sm font-semibold text-gray-700 mb-2 block">
             Notes (Optional)
           </label>
           <textarea
@@ -153,7 +153,7 @@ const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
             onChange={(e) => setRestDayData({ ...restDayData, notes: e.target.value })}
             placeholder="How are you feeling? Any soreness?"
             rows={3}
-            className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
           />
         </div>
 
@@ -182,3 +182,4 @@ const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
 };
 
 export default RestDayModal;
+

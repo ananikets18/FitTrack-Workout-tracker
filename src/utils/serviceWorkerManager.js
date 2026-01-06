@@ -244,3 +244,4 @@ if (import.meta.env.PROD) {
         serviceWorkerManager.register();
     });
 }
+

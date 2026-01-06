@@ -24,3 +24,4 @@ const SkeletonCard = ({ className = '' }) => {
 };
 
 export default SkeletonCard;
+

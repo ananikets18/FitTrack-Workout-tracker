@@ -6,10 +6,10 @@ import { calculateTotalVolume } from '../../utils/calculations';
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lifted border border-gray-200 dark:border-gray-700">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white">{label}</p>
+      <div className="bg-white p-3 rounded-lg shadow-lifted border border-gray-200 ">
+        <p className="text-sm font-semibold text-gray-900 ">{label}</p>
         {payload.map((entry, index) => (
-          <p key={index} className="text-sm text-gray-600 dark:text-gray-300">
+          <p key={index} className="text-sm text-gray-600 ">
             {entry.name}: <span className="font-bold">{entry.value}</span>
           </p>
         ))}
@@ -152,7 +152,7 @@ export const PRProgressionChart = ({ workouts }) => {
 
   if (topExercises.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+      <div className="flex items-center justify-center h-64 text-gray-500 ">
         <p>No PR data available yet</p>
       </div>
     );
@@ -207,3 +207,4 @@ export const PRProgressionChart = ({ workouts }) => {
     </ResponsiveContainer>
   );
 };
+

@@ -169,3 +169,4 @@ export const secureCompare = (a, b) => {
   
   return result === 0;
 };
+

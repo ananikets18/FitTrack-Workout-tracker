@@ -336,3 +336,4 @@ const WorkoutLog = () => {
 };
 
 export default WorkoutLog;
+

@@ -185,3 +185,4 @@ export { NetworkDetector };
 export const isOnline = () => networkDetector.getStatus();
 export const waitForOnline = (timeout) => networkDetector.waitForOnline(timeout);
 export const onNetworkChange = (callback) => networkDetector.subscribe(callback);
+

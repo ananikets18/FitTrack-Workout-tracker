@@ -41,7 +41,7 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
       <div className="space-y-6">
         {/* Edit Type Selection */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 block">
+          <label className="text-sm font-semibold text-gray-700 mb-3 block">
             What to adjust
           </label>
           <div className="grid grid-cols-1 gap-2">
@@ -58,24 +58,24 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
                 }}
                 className={`flex items-start space-x-3 p-4 rounded-xl border-2 transition-all text-left ${
                   editType === type.id
-                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-400'
-                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    ? 'bg-blue-50 border-blue-500 '
+                    : 'bg-white border-gray-200 hover:border-gray-300 '
                 }`}
               >
                 <div className={`p-2 rounded-lg ${
                   editType === type.id 
-                    ? 'bg-blue-100 dark:bg-blue-800/30' 
-                    : 'bg-gray-100 dark:bg-gray-700'
+                    ? 'bg-blue-100 ' 
+                    : 'bg-gray-100 '
                 }`}>
                   <type.icon className={`w-5 h-5 ${
                     editType === type.id 
-                      ? 'text-blue-600 dark:text-blue-400' 
-                      : 'text-gray-600 dark:text-gray-400'
+                      ? 'text-blue-600 ' 
+                      : 'text-gray-600 '
                   }`} />
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-gray-900 dark:text-white">{type.label}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{type.description}</div>
+                  <div className="font-semibold text-gray-900 ">{type.label}</div>
+                  <div className="text-sm text-gray-500 mt-0.5">{type.description}</div>
                 </div>
               </motion.button>
             ))}
@@ -84,7 +84,7 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
 
         {/* Operation Selection */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 block">
+          <label className="text-sm font-semibold text-gray-700 mb-3 block">
             Operation
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -93,8 +93,8 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
               onClick={() => setOperation('add')}
               className={`flex items-center justify-center space-x-2 p-4 rounded-xl border-2 transition-all font-semibold ${
                 operation === 'add'
-                  ? 'bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-400 text-green-700 dark:text-green-400'
-                  : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300'
+                  ? 'bg-green-50 border-green-500 text-green-700 '
+                  : 'bg-white border-gray-200 text-gray-700 '
               }`}
             >
               <Plus className="w-5 h-5" />
@@ -105,8 +105,8 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
               onClick={() => setOperation('subtract')}
               className={`flex items-center justify-center space-x-2 p-4 rounded-xl border-2 transition-all font-semibold ${
                 operation === 'subtract'
-                  ? 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-400 text-red-700 dark:text-red-400'
-                  : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300'
+                  ? 'bg-red-50 border-red-500 text-red-700 '
+                  : 'bg-white border-gray-200 text-gray-700 '
               }`}
             >
               <Minus className="w-5 h-5" />
@@ -117,7 +117,7 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
 
         {/* Value Selector */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 block">
+          <label className="text-sm font-semibold text-gray-700 mb-3 block">
             Amount
           </label>
           {editType === 'weight' && (
@@ -157,12 +157,12 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
         </div>
 
         {/* Preview */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4">
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
           <div className="flex items-center space-x-2 mb-2">
-            <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <span className="font-semibold text-blue-900 dark:text-blue-200">Preview</span>
+            <TrendingUp className="w-5 h-5 text-blue-600 " />
+            <span className="font-semibold text-blue-900 ">Preview</span>
           </div>
-          <p className="text-blue-800 dark:text-blue-300 font-medium">
+          <p className="text-blue-800 font-medium">
             {getPreviewText()}
           </p>
         </div>
@@ -192,3 +192,4 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
 };
 
 export default BatchEditModal;
+

@@ -90,3 +90,4 @@ export const haptics = {
 };
 
 export default haptics;
+

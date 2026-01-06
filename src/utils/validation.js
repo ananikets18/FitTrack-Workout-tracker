@@ -212,3 +212,4 @@ export const checkStorageQuota = () => {
     return { available: false, error: 'Storage is not available' };
   }
 };
+

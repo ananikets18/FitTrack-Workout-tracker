@@ -154,3 +154,4 @@ export const getCategoryForExercise = (exerciseName) => {
   }
   return null; // Return null if not found
 };
+

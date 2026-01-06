@@ -292,3 +292,4 @@ export const transformWorkoutFromDB = (workout) => {
     createdAt: workout.created_at,
   };
 };
+

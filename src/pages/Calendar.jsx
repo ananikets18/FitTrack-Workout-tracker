@@ -87,9 +87,9 @@ const Calendar = () => {
     
     // Base styling
     if (!isCurrentMonth) {
-      className += 'text-gray-300 dark:text-gray-700 ';
+      className += 'text-gray-300 ';
     } else {
-      className += 'text-gray-900 dark:text-white ';
+      className += 'text-gray-900 ';
     }
 
     // Today highlight
@@ -99,15 +99,15 @@ const Calendar = () => {
 
     // Workout density colors
     if (density.hasRestDay && density.count === 0) {
-      className += 'bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/40 ';
+      className += 'bg-purple-100 hover:bg-purple-200 ';
     } else if (density.count === 0) {
-      className += 'hover:bg-gray-100 dark:hover:bg-gray-800 ';
+      className += 'hover:bg-gray-100 ';
     } else if (density.count === 1) {
-      className += 'bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/40 ';
+      className += 'bg-green-100 hover:bg-green-200 ';
     } else if (density.count === 2) {
-      className += 'bg-green-300 dark:bg-green-800/40 hover:bg-green-400 dark:hover:bg-green-800/50 ';
+      className += 'bg-green-300 hover:bg-green-400 ';
     } else {
-      className += 'bg-green-500 dark:bg-green-700 text-white hover:bg-green-600 dark:hover:bg-green-600 ';
+      className += 'bg-green-500 text-white hover:bg-green-600 ';
     }
 
     // Future dates
@@ -125,30 +125,30 @@ const Calendar = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Calendar</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">View your workout schedule</p>
+          <h1 className="text-3xl font-bold text-gray-900 ">Calendar</h1>
+          <p className="text-gray-600 mt-1">View your workout schedule</p>
         </div>
       </div>
 
       {/* Legend */}
       <Card>
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Legend</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Legend</h3>
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800"></div>
-            <span className="text-gray-600 dark:text-gray-400">1 Workout</span>
+            <div className="w-6 h-6 rounded bg-green-100 border border-green-200 "></div>
+            <span className="text-gray-600 ">1 Workout</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-green-300 dark:bg-green-800/40 border border-green-400 dark:border-green-700"></div>
-            <span className="text-gray-600 dark:text-gray-400">2 Workouts</span>
+            <div className="w-6 h-6 rounded bg-green-300 border border-green-400 "></div>
+            <span className="text-gray-600 ">2 Workouts</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-green-500 dark:bg-green-700 border border-green-600"></div>
-            <span className="text-gray-600 dark:text-gray-400">3+ Workouts</span>
+            <div className="w-6 h-6 rounded bg-green-500 border border-green-600"></div>
+            <span className="text-gray-600 ">3+ Workouts</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800"></div>
-            <span className="text-gray-600 dark:text-gray-400">Rest Day</span>
+            <div className="w-6 h-6 rounded bg-purple-100 border border-purple-200 "></div>
+            <span className="text-gray-600 ">Rest Day</span>
           </div>
         </div>
       </Card>
@@ -159,13 +159,13 @@ const Calendar = () => {
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={handlePrevMonth}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <ChevronLeft className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            <ChevronLeft className="w-6 h-6 text-gray-600 " />
           </button>
           
           <div className="flex items-center space-x-3">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl font-bold text-gray-900 ">
               {format(currentMonth, 'MMMM yyyy')}
             </h2>
             <Button variant="outline" size="sm" onClick={handleToday}>
@@ -175,16 +175,16 @@ const Calendar = () => {
 
           <button
             onClick={handleNextMonth}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <ChevronRight className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            <ChevronRight className="w-6 h-6 text-gray-600 " />
           </button>
         </div>
 
         {/* Week Days */}
         <div className="grid grid-cols-7 gap-2 mb-2">
           {weekDays.map((day) => (
-            <div key={day} className="text-center text-sm font-semibold text-gray-600 dark:text-gray-400 py-2">
+            <div key={day} className="text-center text-sm font-semibold text-gray-600 py-2">
               {day}
             </div>
           ))}
@@ -221,29 +221,29 @@ const Calendar = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card elevated className="text-center">
           <CalendarIcon className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="text-2xl font-bold text-gray-900 ">
             {workouts.filter(w => {
               const workoutDate = new Date(w.date);
               return isSameMonth(workoutDate, currentMonth) && w.type !== 'rest_day';
             }).length}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Workouts This Month</div>
+          <div className="text-sm text-gray-600 ">Workouts This Month</div>
         </Card>
 
         <Card elevated className="text-center">
           <Hotel className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="text-2xl font-bold text-gray-900 ">
             {workouts.filter(w => {
               const workoutDate = new Date(w.date);
               return isSameMonth(workoutDate, currentMonth) && w.type === 'rest_day';
             }).length}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Rest Days</div>
+          <div className="text-sm text-gray-600 ">Rest Days</div>
         </Card>
 
         <Card elevated className="text-center">
           <Weight className="w-8 h-8 text-green-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="text-2xl font-bold text-gray-900 ">
             {kgToTons(
               workouts
                 .filter(w => {
@@ -253,12 +253,12 @@ const Calendar = () => {
                 .reduce((sum, w) => sum + calculateTotalVolume(w), 0)
             )}T
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Volume Lifted</div>
+          <div className="text-sm text-gray-600 ">Volume Lifted</div>
         </Card>
 
         <Card elevated className="text-center">
           <Clock className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="text-2xl font-bold text-gray-900 ">
             {workouts
               .filter(w => {
                 const workoutDate = new Date(w.date);
@@ -266,7 +266,7 @@ const Calendar = () => {
               })
               .reduce((sum, w) => sum + (w.duration || 0), 0)}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Minutes Trained</div>
+          <div className="text-sm text-gray-600 ">Minutes Trained</div>
         </Card>
       </div>
 
@@ -281,19 +281,19 @@ const Calendar = () => {
             {selectedDate.workouts.map((workout, idx) => (
               <div key={idx} className={`rounded-xl p-4 space-y-3 ${
                 workout.type === 'rest_day' 
-                  ? 'bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800' 
-                  : 'bg-gray-50 dark:bg-gray-800'
+                  ? 'bg-purple-50 border-2 border-purple-200 ' 
+                  : 'bg-gray-50 '
               }`}>
                 {workout.type === 'rest_day' ? (
                   <>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="bg-purple-200 dark:bg-purple-900/50 rounded-xl p-2">
-                          <Hotel className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        <div className="bg-purple-200 rounded-xl p-2">
+                          <Hotel className="w-5 h-5 text-purple-600 " />
                         </div>
                         <div>
-                          <h4 className="font-bold text-lg text-gray-900 dark:text-white">Rest Day</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                          <h4 className="font-bold text-lg text-gray-900 ">Rest Day</h4>
+                          <p className="text-sm text-gray-500 mt-1">
                             {new Date(workout.date).toLocaleTimeString('en-US', {
                               hour: 'numeric',
                               minute: '2-digit',
@@ -304,14 +304,14 @@ const Calendar = () => {
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-purple-200 dark:border-purple-800">
+                    <div className="pt-2 border-t border-purple-200 ">
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Recovery:</span>
+                        <span className="text-sm text-gray-600 ">Recovery:</span>
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+                              className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
                             />
                           ))}
                         </div>
@@ -319,12 +319,12 @@ const Calendar = () => {
 
                       {workout.activities && workout.activities.length > 0 && (
                         <div>
-                          <span className="text-sm text-gray-600 dark:text-gray-400 block mb-2">Activities:</span>
+                          <span className="text-sm text-gray-600 block mb-2">Activities:</span>
                           <div className="flex flex-wrap gap-2">
                             {workout.activities.map((activity, actIdx) => (
                               <span
                                 key={actIdx}
-                                className="px-2 py-1 text-xs font-semibold bg-purple-200 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-lg"
+                                className="px-2 py-1 text-xs font-semibold bg-purple-200 text-purple-700 rounded-lg"
                               >
                                 {activity.replace('_', ' ')}
                               </span>
@@ -335,7 +335,7 @@ const Calendar = () => {
                     </div>
 
                     {workout.notes && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 italic pt-2 border-t border-purple-200 dark:border-purple-800">
+                      <p className="text-sm text-gray-600 italic pt-2 border-t border-purple-200 ">
                         {workout.notes}
                       </p>
                     )}
@@ -344,8 +344,8 @@ const Calendar = () => {
                   <>
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="font-bold text-lg text-gray-900 dark:text-white">{workout.name}</h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        <h4 className="font-bold text-lg text-gray-900 ">{workout.name}</h4>
+                        <p className="text-sm text-gray-500 mt-1">
                           {new Date(workout.date).toLocaleTimeString('en-US', {
                             hour: 'numeric',
                             minute: '2-digit',
@@ -353,28 +353,28 @@ const Calendar = () => {
                           })}
                         </p>
                       </div>
-                      <div className="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 px-3 py-1 rounded-lg text-sm font-semibold">
+                      <div className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-sm font-semibold">
                         {workout.exercises?.length || 0} exercises
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 ">
                       {workout.duration > 0 && (
                         <div className="flex items-center space-x-2">
                           <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">{workout.duration} min</span>
+                          <span className="text-sm text-gray-600 ">{workout.duration} min</span>
                         </div>
                       )}
                       <div className="flex items-center space-x-2">
                         <Weight className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-sm text-gray-600 ">
                           {kgToTons(calculateTotalVolume(workout))}T moved
                         </span>
                       </div>
                     </div>
 
                     {workout.notes && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 italic pt-2 border-t border-gray-200 dark:border-gray-700">
+                      <p className="text-sm text-gray-600 italic pt-2 border-t border-gray-200 ">
                         {workout.notes}
                       </p>
                     )}
@@ -402,3 +402,4 @@ const Calendar = () => {
 };
 
 export default Calendar;
+
