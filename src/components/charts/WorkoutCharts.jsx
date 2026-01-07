@@ -252,13 +252,13 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 min-w-[80px] px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+            className={`flex-1 min-w-[60px] px-2 sm:px-4 py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
               ? 'bg-white text-primary-600 shadow-md'
               : 'text-gray-600 hover:text-gray-900'
               }`}
           >
-            <span className="mr-1">{tab.icon}</span>
-            {tab.label}
+            <span className={tab.label ? 'sm:mr-1' : ''}>{tab.icon}</span>
+            <span className="hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>
@@ -596,8 +596,8 @@ export const WeeklyMonthlyActivityChart = ({ workouts }) => {
         <button
           onClick={() => setViewMode('weekly')}
           className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${viewMode === 'weekly'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            ? 'bg-primary-600 text-white shadow-md'
+            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
         >
           Weekly
@@ -605,8 +605,8 @@ export const WeeklyMonthlyActivityChart = ({ workouts }) => {
         <button
           onClick={() => setViewMode('monthly')}
           className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${viewMode === 'monthly'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            ? 'bg-primary-600 text-white shadow-md'
+            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
         >
           Monthly
