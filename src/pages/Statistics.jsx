@@ -9,6 +9,8 @@ import {
   calculateAverageWeight,
   getPersonalRecords,
   generateInsights,
+  calculateTotalActivity,
+  getActivityBreakdown,
 } from '../utils/calculations';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -52,6 +54,11 @@ const Statistics = () => {
     ? (regularWorkouts.reduce((sum, workout) => sum + parseFloat(calculateAverageWeight(workout)), 0) / regularWorkouts.length).toFixed(1)
     : 0;
 
+  // Calculate total activity points (NEW - Activity Points System)
+  const totalActivity = regularWorkouts.reduce((sum, workout) =>
+    sum + calculateTotalActivity(workout), 0
+  );
+
   const exerciseFrequency = {};
   regularWorkouts.forEach(workout => {
     workout.exercises?.forEach(exercise => {
@@ -90,6 +97,14 @@ const Statistics = () => {
       icon: Flame,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
+    },
+    {
+      label: 'Activity Score',
+      value: Math.round(totalActivity).toLocaleString(),
+      subtitle: 'All workouts combined',
+      icon: Activity,
+      color: 'text-cyan-600',
+      bgColor: 'bg-cyan-50',
     },
     {
       label: 'Weight Moved',

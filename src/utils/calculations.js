@@ -52,6 +52,80 @@ export const calculateExerciseVolume = (exercise) => {
   }, 0);
 };
 
+// ============================================
+// ACTIVITY POINTS SYSTEM - Unified Metric
+// ============================================
+// This system provides a single metric that works across all exercise types:
+// - Weight Training: reps × weight × 1.0
+// - Cardio: duration (mins) × 10
+// - Bodyweight: reps × 2
+
+// Calculate activity points for a single exercise
+export const calculateActivityPoints = (exercise) => {
+  if (!exercise?.sets) return 0;
+
+  const isCardio = exercise.category === 'cardio';
+  const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+  const isBodyweight = maxWeight === 0 && !isCardio;
+
+  return exercise.sets.reduce((sum, set) => {
+    if (isCardio) {
+      // Cardio: duration × 10 (duration stored in reps field)
+      return sum + ((set.reps || 0) * 10);
+    } else if (isBodyweight) {
+      // Bodyweight exercises: reps × 2
+      return sum + ((set.reps || 0) * 2);
+    } else {
+      // Weighted exercises: reps × weight
+      return sum + ((set.reps || 0) * (set.weight || 0));
+    }
+  }, 0);
+};
+
+// Calculate total activity points for a workout
+export const calculateTotalActivity = (workout) => {
+  if (!workout?.exercises) return 0;
+
+  return workout.exercises.reduce((total, exercise) => {
+    return total + calculateActivityPoints(exercise);
+  }, 0);
+};
+
+// Get activity breakdown by type (for insights)
+export const getActivityBreakdown = (workouts) => {
+  const breakdown = {
+    weighted: 0,
+    cardio: 0,
+    bodyweight: 0,
+    cardioMinutes: 0,
+    cardioSessions: 0
+  };
+
+  const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
+
+  regularWorkouts.forEach(workout => {
+    workout.exercises?.forEach(exercise => {
+      const isCardio = exercise.category === 'cardio';
+      const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+      const isBodyweight = maxWeight === 0 && !isCardio;
+
+      const points = calculateActivityPoints(exercise);
+
+      if (isCardio) {
+        breakdown.cardio += points;
+        breakdown.cardioMinutes += exercise.sets.reduce((sum, set) => sum + (set.reps || 0), 0);
+        breakdown.cardioSessions += 1;
+      } else if (isBodyweight) {
+        breakdown.bodyweight += points;
+      } else {
+        breakdown.weighted += points;
+      }
+    });
+  });
+
+  return breakdown;
+};
+
 // Compare workout volume with previous workout
 export const getVolumeComparison = (currentWorkout, previousWorkouts) => {
   if (!currentWorkout || !previousWorkouts || previousWorkouts.length === 0) {
@@ -314,6 +388,24 @@ export const generateInsights = (workouts) => {
     });
   }
 
-  // Return top 5 insights
-  return insights.slice(0, 5);
+  // 7. Cardio Achievement (NEW - Activity Points System)
+  const activityBreakdown = getActivityBreakdown(workouts);
+  if (activityBreakdown.cardioMinutes >= 150) {
+    insights.push({
+      icon: '🏃',
+      title: 'Cardio Champion',
+      message: `${activityBreakdown.cardioMinutes} mins of cardio - heart healthy!`,
+      color: 'blue',
+    });
+  } else if (activityBreakdown.cardioMinutes >= 60) {
+    insights.push({
+      icon: '❤️',
+      title: 'Cardio Warrior',
+      message: `${activityBreakdown.cardioMinutes} mins of cardio this period. Keep it up!`,
+      color: 'pink',
+    });
+  }
+
+  // Return top 6 insights (increased from 5 to accommodate cardio)
+  return insights.slice(0, 6);
 };

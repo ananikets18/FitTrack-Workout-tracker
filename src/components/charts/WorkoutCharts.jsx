@@ -1,7 +1,7 @@
 import React from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
-import { calculateTotalVolume } from '../../utils/calculations';
+import { calculateTotalVolume, calculateTotalActivity } from '../../utils/calculations';
 
 // Custom tooltip styling
 const CustomTooltip = ({ active, payload, label }) => {
@@ -20,7 +20,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-// Volume Over Time Chart (Last 30 Days)
+// Volume Over Time Chart (Last 30 Days) - Enhanced with Activity Points
 export const VolumeChart = ({ workouts }) => {
   // Filter out rest days
   const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
@@ -30,6 +30,17 @@ export const VolumeChart = ({ workouts }) => {
     end: new Date(),
   });
 
+  // Detect if we have cardio/bodyweight exercises
+  const hasCardioOrBodyweight = regularWorkouts.some(w =>
+    w.exercises?.some(ex => {
+      const maxWeight = Math.max(...ex.sets.map(s => s.weight || 0));
+      return ex.category === 'cardio' || maxWeight === 0;
+    })
+  );
+
+  // Use Activity Points if cardio/bodyweight present, otherwise use Volume
+  const useActivityPoints = hasCardioOrBodyweight;
+
   const data = last30Days.map((day) => {
     const dayWorkouts = regularWorkouts.filter((w) => {
       const workoutDate = new Date(w.date);
@@ -37,12 +48,18 @@ export const VolumeChart = ({ workouts }) => {
     });
 
     const totalVolume = dayWorkouts.reduce((sum, w) => sum + calculateTotalVolume(w), 0);
+    const totalActivity = dayWorkouts.reduce((sum, w) => sum + calculateTotalActivity(w), 0);
 
     return {
       date: format(day, 'MMM d'),
       volume: Math.round(totalVolume),
+      activity: Math.round(totalActivity),
     };
   });
+
+  const metricKey = useActivityPoints ? 'activity' : 'volume';
+  const metricLabel = useActivityPoints ? 'Activity Points' : 'Volume (kg)';
+  const metricColor = useActivityPoints ? '#06b6d4' : '#0284c7'; // cyan for activity, blue for volume
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -55,17 +72,17 @@ export const VolumeChart = ({ workouts }) => {
         />
         <YAxis
           tick={{ fontSize: 12 }}
-          label={{ value: 'Volume (kg)', angle: -90, position: 'insideLeft', fontSize: 12 }}
+          label={{ value: metricLabel, angle: -90, position: 'insideLeft', fontSize: 12 }}
         />
         <Tooltip content={<CustomTooltip />} />
         <Line
           type="monotone"
-          dataKey="volume"
-          stroke="#0284c7"
+          dataKey={metricKey}
+          stroke={metricColor}
           strokeWidth={2}
-          dot={{ fill: '#0284c7', r: 4 }}
+          dot={{ fill: metricColor, r: 4 }}
           activeDot={{ r: 6 }}
-          name="Volume (kg)"
+          name={metricLabel}
         />
       </LineChart>
     </ResponsiveContainer>
