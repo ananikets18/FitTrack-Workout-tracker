@@ -18,7 +18,7 @@ const WorkoutLogMobile = () => {
   const navigate = useNavigate();
   const { addWorkout, updateWorkout, currentWorkout, clearCurrentWorkout } = useWorkouts();
   const { templates, saveTemplate } = useTemplates();
-  
+
   // Check if we're editing an existing workout
   const isEditMode = !!currentWorkout;
   const editingWorkoutId = currentWorkout?.id;
@@ -27,7 +27,7 @@ const WorkoutLogMobile = () => {
   const [workoutDate, setWorkoutDate] = useState(new Date().toISOString().split('T')[0]); // YYYY-MM-DD format
   const [exercises, setExercises] = useState([]);
   const [duration, setDuration] = useState('');
-   
+
   const [notes, setNotes] = useState('');
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -36,7 +36,7 @@ const WorkoutLogMobile = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
-  
+
   // Load workout data if in edit mode
   useEffect(() => {
     if (currentWorkout) {
@@ -77,7 +77,7 @@ const WorkoutLogMobile = () => {
       navigate(path);
     }
   };
-  
+
   // Autocomplete state
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -98,7 +98,7 @@ const WorkoutLogMobile = () => {
 
   const handleExerciseNameChange = (value) => {
     setNewExercise({ ...newExercise, name: value });
-    
+
     if (value.trim().length > 0) {
       // Search across ALL categories when typing, not just the selected one
       const results = searchExercises(value, null);
@@ -114,14 +114,14 @@ const WorkoutLogMobile = () => {
 
   const handleSelectExercise = (exerciseName) => {
     const category = getCategoryForExercise(exerciseName);
-    setNewExercise({ 
-      ...newExercise, 
+    setNewExercise({
+      ...newExercise,
       name: exerciseName,
       category: category || newExercise.category // Use detected category or keep current
     });
     setShowSuggestions(false);
     vibrate(30);
-    
+
     if (category) {
       toast.success(`${exerciseName} - ${category}`, { duration: 2000 });
     }
@@ -131,7 +131,7 @@ const WorkoutLogMobile = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target) &&
-          inputRef.current && !inputRef.current.contains(event.target)) {
+        inputRef.current && !inputRef.current.contains(event.target)) {
         setShowSuggestions(false);
       }
     };
@@ -242,7 +242,7 @@ const WorkoutLogMobile = () => {
     // Convert selected date to ISO string at current time
     const selectedDate = new Date(workoutDate);
     selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
-    
+
     const workoutData = {
       name: workoutName,
       date: selectedDate.toISOString(),
@@ -261,7 +261,7 @@ const WorkoutLogMobile = () => {
       addWorkout(workoutData);
       toast.success('Workout saved! 🎉');
     }
-    
+
     setHasUnsavedChanges(false); // Clear unsaved changes flag
     vibrate([100, 50, 100, 50, 100]);
     setTimeout(() => navigate('/history'), 1000);
@@ -337,17 +337,17 @@ const WorkoutLogMobile = () => {
         ...ex,
         sets: ex.sets.map(set => {
           const currentValue = type === 'weight' ? set.weight : set.reps;
-          const newValue = operation === 'add' 
-            ? currentValue + value 
+          const newValue = operation === 'add'
+            ? currentValue + value
             : Math.max(0, currentValue - value); // Prevent negative values
-          
+
           return {
             ...set,
             [type]: newValue
           };
         })
       })));
-      
+
       const action = operation === 'add' ? 'increased' : 'decreased';
       toast.success(`All ${type}s ${action} by ${value}`, { duration: 2000 });
     } else if (type === 'sets') {
@@ -373,11 +373,11 @@ const WorkoutLogMobile = () => {
           };
         }
       }));
-      
+
       const action = operation === 'add' ? 'added' : 'removed';
       toast.success(`${value} set(s) ${action} to all exercises`, { duration: 2000 });
     }
-    
+
     vibrate(50);
   };
 
@@ -397,10 +397,10 @@ const WorkoutLogMobile = () => {
         onDelete();
       }
     };
-    
+
     const handleCopyPreviousSet = () => {
       if (setIndex === 0) return; // Can't copy if first set
-      
+
       const previousSet = exercise.sets[setIndex - 1];
       setExercises(exercises.map(ex => {
         if (ex.id === exercise.id) {
@@ -513,7 +513,7 @@ const WorkoutLogMobile = () => {
               <span className="hidden sm:inline">Templates</span>
             </motion.button>
           )}
-          
+
           {/* Save as Template Button */}
           {!isEditMode && exercises.length > 0 && (
             <motion.button
@@ -525,7 +525,7 @@ const WorkoutLogMobile = () => {
               <span className="hidden sm:inline">Template</span>
             </motion.button>
           )}
-          
+
           {/* Save Workout Button */}
           <motion.button
             whileTap={{ scale: 0.95 }}
@@ -636,7 +636,7 @@ const WorkoutLogMobile = () => {
             <div className="text-6xl mb-4">🏋️</div>
             <p className="text-gray-600 text-lg mb-4">No exercises added yet</p>
             <p className="text-gray-500 text-sm mb-6">Tap "Add" to get started</p>
-            
+
             {/* Load Template shortcut */}
             {!isEditMode && templates.length > 0 && (
               <motion.button
@@ -734,10 +734,10 @@ const WorkoutLogMobile = () => {
               />
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
-            
+
             {/* Autocomplete Suggestions */}
             {showSuggestions && suggestions.length > 0 && (
-              <div 
+              <div
                 ref={suggestionsRef}
                 className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto"
               >
@@ -792,7 +792,7 @@ const WorkoutLogMobile = () => {
             <div className="space-y-2 md:space-y-3">
               {newExercise.sets.map((set, index) => {
                 const isCardio = newExercise.category === 'cardio';
-                
+
                 return (
                   <div key={index} className="bg-gray-50 rounded-lg p-2.5 md:p-3">
                     <div className="flex items-center justify-between mb-2">
@@ -822,6 +822,28 @@ const WorkoutLogMobile = () => {
                           <div className="flex items-center justify-center text-gray-400">
                             <span className="text-sm">No weight needed</span>
                           </div>
+                        </>
+                      ) : newExercise.category === 'core' ? (
+                        // Core exercises: Reps + Optional Weight
+                        <>
+                          <NumberPicker
+                            label="Reps"
+                            value={set.reps}
+                            onChange={(val) => handleSetChange(index, 'reps', val)}
+                            min={1}
+                            max={200}
+                            quickIncrements={[-10, -5, 5, 10]}
+                          />
+                          <NumberPicker
+                            label="Weight (optional)"
+                            value={set.weight}
+                            onChange={(val) => handleSetChange(index, 'weight', val)}
+                            min={0}
+                            max={100}
+                            step={2.5}
+                            quickIncrements={[-10, -5, 5, 10]}
+                            unit="kg"
+                          />
                         </>
                       ) : (
                         // Weight training: Reps and Weight

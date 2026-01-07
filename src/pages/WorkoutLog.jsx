@@ -16,7 +16,7 @@ const WorkoutLog = () => {
   const [duration, setDuration] = useState('');
   const [notes, setNotes] = useState('');
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
-  
+
   // Exercise form state
   const [newExercise, setNewExercise] = useState({
     name: '',
@@ -69,7 +69,7 @@ const WorkoutLog = () => {
 
     setExercises([...exercises, exercise]);
     setIsExerciseModalOpen(false);
-    
+
     // Reset form
     setNewExercise({
       name: '',
@@ -215,11 +215,10 @@ const WorkoutLog = () => {
                       <div className="flex justify-center">
                         <button
                           onClick={() => handleToggleSet(exercise.id, index)}
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                            set.completed
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${set.completed
                               ? 'bg-green-500 border-green-500'
                               : 'border-gray-300 hover:border-primary-500'
-                          }`}
+                            }`}
                         >
                           {set.completed && <Check className="w-4 h-4 text-white" />}
                         </button>
@@ -279,34 +278,78 @@ const WorkoutLog = () => {
             </div>
 
             <div className="space-y-2">
-              {newExercise.sets.map((set, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <span className="text-sm font-semibold text-gray-700 w-8">#{index + 1}</span>
-                  <Input
-                    type="number"
-                    placeholder="Reps"
-                    value={set.reps}
-                    onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
-                    className="flex-1"
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Weight"
-                    value={set.weight}
-                    onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                    className="flex-1"
-                  />
-                  {newExercise.sets.length > 1 && (
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleRemoveSet(index)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
+              {newExercise.sets.map((set, index) => {
+                const isCardio = newExercise.category === 'cardio';
+                const isCore = newExercise.category === 'core';
+
+                return (
+                  <div key={index} className="flex items-center space-x-2">
+                    <span className="text-sm font-semibold text-gray-700 w-8">#{index + 1}</span>
+
+                    {isCardio ? (
+                      // Cardio: Duration only
+                      <>
+                        <Input
+                          type="number"
+                          placeholder="Duration (mins)"
+                          value={set.reps}
+                          onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                          className="flex-1"
+                        />
+                        <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+                          No weight needed
+                        </div>
+                      </>
+                    ) : isCore ? (
+                      // Core: Reps + Optional Weight
+                      <>
+                        <Input
+                          type="number"
+                          placeholder="Reps"
+                          value={set.reps}
+                          onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Weight (optional)"
+                          value={set.weight}
+                          onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+                          className="flex-1"
+                        />
+                      </>
+                    ) : (
+                      // Weight training: Reps + Weight
+                      <>
+                        <Input
+                          type="number"
+                          placeholder="Reps"
+                          value={set.reps}
+                          onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Weight (kg)"
+                          value={set.weight}
+                          onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+                          className="flex-1"
+                        />
+                      </>
+                    )}
+
+                    {newExercise.sets.length > 1 && (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleRemoveSet(index)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

@@ -138,7 +138,7 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
   const muscleChartData = Object.entries(muscleGroupData).map(([name, value]) => ({ name, value }));
   const COLORS = ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1'];
 
-  // 2. PROGRESSIVE OVERLOAD TRACKER
+  // 2. PROGRESSIVE OVERLOAD TRACKER (Enhanced for Cardio)
   const getProgressiveOverloadData = () => {
     const exerciseProgress = {};
 
@@ -146,21 +146,33 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
 
     sortedWorkouts.forEach(workout => {
       workout.exercises?.forEach(exercise => {
-        const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+        const isCardio = exercise.category === 'cardio';
+
+        // For cardio: track duration, for weights: track max weight
+        const metric = isCardio
+          ? exercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0) // Total duration
+          : Math.max(...exercise.sets.map(s => s.weight || 0)); // Max weight
+
         if (!exerciseProgress[exercise.name]) {
-          exerciseProgress[exercise.name] = [];
+          exerciseProgress[exercise.name] = { records: [], isCardio };
         }
-        exerciseProgress[exercise.name].push({ weight: maxWeight, date: workout.date });
+        exerciseProgress[exercise.name].records.push({ metric, date: workout.date });
       });
     });
 
     const trends = [];
-    Object.entries(exerciseProgress).forEach(([name, records]) => {
-      if (records.length >= 2) {
-        const recent = records.slice(-2);
-        const change = recent[1].weight - recent[0].weight;
+    Object.entries(exerciseProgress).forEach(([name, data]) => {
+      if (data.records.length >= 2) {
+        const recent = data.records.slice(-2);
+        const change = recent[1].metric - recent[0].metric;
         const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'flat';
-        trends.push({ name, change, trend, currentWeight: recent[1].weight });
+        trends.push({
+          name,
+          change,
+          trend,
+          currentMetric: recent[1].metric,
+          isCardio: data.isCardio
+        });
       }
     });
 
@@ -314,13 +326,15 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">{item.name}</p>
-                      <p className="text-sm text-gray-500">{item.currentWeight} kg</p>
+                      <p className="text-sm text-gray-500">
+                        {item.isCardio ? `${item.currentMetric} mins` : `${item.currentMetric} kg`}
+                      </p>
                     </div>
                   </div>
                   <div className={`font-bold ${item.trend === 'up' ? 'text-green-600' :
                     item.trend === 'down' ? 'text-red-600' : 'text-gray-600'
                     }`}>
-                    {item.change > 0 ? '+' : ''}{item.change} kg
+                    {item.change > 0 ? '+' : ''}{item.change} {item.isCardio ? 'mins' : 'kg'}
                   </div>
                 </div>
               ))
@@ -491,6 +505,156 @@ export const PRProgressionChart = ({ workouts }) => {
         ))}
       </LineChart>
     </ResponsiveContainer>
+  );
+};
+
+// Weekly/Monthly Activity Trends Chart (NEW - Activity Points System)
+export const WeeklyMonthlyActivityChart = ({ workouts }) => {
+  const [viewMode, setViewMode] = React.useState('weekly'); // 'weekly' or 'monthly'
+
+  const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
+
+  // Helper to get week number
+  const getWeekNumber = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return `W${weekNo}`;
+  };
+
+  // Helper to get month
+  const getMonth = (date) => {
+    return format(new Date(date), 'MMM yyyy');
+  };
+
+  // Group workouts by week or month
+  const groupedData = {};
+
+  regularWorkouts.forEach(workout => {
+    const key = viewMode === 'weekly' ? getWeekNumber(workout.date) : getMonth(workout.date);
+
+    if (!groupedData[key]) {
+      groupedData[key] = {
+        weighted: 0,
+        cardio: 0,
+        bodyweight: 0,
+        total: 0
+      };
+    }
+
+    workout.exercises?.forEach(exercise => {
+      const isCardio = exercise.category === 'cardio';
+      const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+      const isBodyweight = maxWeight === 0 && !isCardio;
+
+      const points = exercise.sets.reduce((sum, set) => {
+        if (isCardio) {
+          return sum + ((set.reps || 0) * 10);
+        } else if (isBodyweight) {
+          return sum + ((set.reps || 0) * 2);
+        } else {
+          return sum + ((set.reps || 0) * (set.weight || 0));
+        }
+      }, 0);
+
+      if (isCardio) {
+        groupedData[key].cardio += points;
+      } else if (isBodyweight) {
+        groupedData[key].bodyweight += points;
+      } else {
+        groupedData[key].weighted += points;
+      }
+      groupedData[key].total += points;
+    });
+  });
+
+  // Convert to array and sort
+  const chartData = Object.entries(groupedData)
+    .map(([period, data]) => ({
+      period,
+      Weights: Math.round(data.weighted),
+      Cardio: Math.round(data.cardio),
+      Bodyweight: Math.round(data.bodyweight),
+      Total: Math.round(data.total)
+    }))
+    .slice(-8); // Last 8 weeks or months
+
+  if (chartData.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64 text-gray-500">
+        <p>No activity data available yet</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* View Mode Toggle */}
+      <div className="flex gap-2 justify-center">
+        <button
+          onClick={() => setViewMode('weekly')}
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${viewMode === 'weekly'
+              ? 'bg-primary-600 text-white shadow-md'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+        >
+          Weekly
+        </button>
+        <button
+          onClick={() => setViewMode('monthly')}
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${viewMode === 'monthly'
+              ? 'bg-primary-600 text-white shadow-md'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+        >
+          Monthly
+        </button>
+      </div>
+
+      {/* Stacked Bar Chart */}
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis
+            dataKey="period"
+            tick={{ fontSize: 12 }}
+          />
+          <YAxis
+            tick={{ fontSize: 12 }}
+            label={{ value: 'Activity Points', angle: -90, position: 'insideLeft', fontSize: 12 }}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend wrapperStyle={{ fontSize: '12px' }} />
+          <Bar dataKey="Weights" stackId="a" fill="#0284c7" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="Cardio" stackId="a" fill="#06b6d4" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="Bodyweight" stackId="a" fill="#10b981" radius={[8, 8, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-3 gap-3 mt-4">
+        <div className="bg-blue-50 rounded-lg p-3 text-center">
+          <div className="text-xs text-blue-600 font-semibold mb-1">Weights</div>
+          <div className="text-lg font-bold text-blue-700">
+            {Math.round(chartData.reduce((sum, d) => sum + d.Weights, 0)).toLocaleString()}
+          </div>
+        </div>
+        <div className="bg-cyan-50 rounded-lg p-3 text-center">
+          <div className="text-xs text-cyan-600 font-semibold mb-1">Cardio</div>
+          <div className="text-lg font-bold text-cyan-700">
+            {Math.round(chartData.reduce((sum, d) => sum + d.Cardio, 0)).toLocaleString()}
+          </div>
+        </div>
+        <div className="bg-green-50 rounded-lg p-3 text-center">
+          <div className="text-xs text-green-600 font-semibold mb-1">Bodyweight</div>
+          <div className="text-lg font-bold text-green-700">
+            {Math.round(chartData.reduce((sum, d) => sum + d.Bodyweight, 0)).toLocaleString()}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

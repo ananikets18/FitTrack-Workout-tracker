@@ -16,7 +16,7 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import BottomSheet from '../components/common/BottomSheet';
 import ExerciseHistoryModal from '../components/common/ExerciseHistoryModal';
-import { VolumeChart, TrainingIntelligenceChart, PRProgressionChart } from '../components/charts/WorkoutCharts';
+import { VolumeChart, TrainingIntelligenceChart, PRProgressionChart, WeeklyMonthlyActivityChart } from '../components/charts/WorkoutCharts';
 import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, Clock, ChevronRight, Hotel, Star, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -208,6 +208,12 @@ const Statistics = () => {
           <Card>
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Training Intelligence (Last 7 Days)</h2>
             <TrainingIntelligenceChart workouts={workouts} />
+          </Card>
+
+          {/* Weekly/Monthly Activity Trends (NEW) */}
+          <Card>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Activity Trends</h2>
+            <WeeklyMonthlyActivityChart workouts={workouts} />
           </Card>
 
           {/* PR Progression */}

@@ -147,7 +147,7 @@ export const getVolumeComparison = (currentWorkout, previousWorkouts) => {
   return { percentage: Math.abs(percentage), trend };
 };
 
-// Get progressive overload for an exercise
+// Get progressive overload for an exercise (Enhanced for Cardio)
 export const getProgressiveOverload = (exerciseName, currentWorkout, workoutHistory) => {
   const currentExercise = currentWorkout?.exercises?.find(ex => ex.name === exerciseName);
   if (!currentExercise) return null;
@@ -165,20 +165,46 @@ export const getProgressiveOverload = (exerciseName, currentWorkout, workoutHist
 
   if (!previousExercise) return { status: 'new', message: 'First time!' };
 
-  const currentMaxWeight = Math.max(...currentExercise.sets.map(s => s.weight || 0));
-  const previousMaxWeight = Math.max(...previousExercise.sets.map(s => s.weight || 0));
-  const currentTotalReps = currentExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
-  const previousTotalReps = previousExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
+  // Check if this is a cardio exercise
+  const isCardio = currentExercise.category === 'cardio';
 
-  if (currentMaxWeight > previousMaxWeight) {
-    return { status: 'improved', message: `+${currentMaxWeight - previousMaxWeight}kg weight`, color: 'green' };
-  } else if (currentTotalReps > previousTotalReps && currentMaxWeight === previousMaxWeight) {
-    return { status: 'improved', message: `+${currentTotalReps - previousTotalReps} reps`, color: 'green' };
-  } else if (currentMaxWeight < previousMaxWeight) {
-    return { status: 'declined', message: `-${previousMaxWeight - currentMaxWeight}kg weight`, color: 'red' };
+  if (isCardio) {
+    // For cardio: compare duration (stored in reps field)
+    const currentDuration = currentExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
+    const previousDuration = previousExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
+
+    if (currentDuration > previousDuration) {
+      return {
+        status: 'improved',
+        message: `+${currentDuration - previousDuration} mins duration`,
+        color: 'green'
+      };
+    } else if (currentDuration < previousDuration) {
+      return {
+        status: 'declined',
+        message: `-${previousDuration - currentDuration} mins duration`,
+        color: 'red'
+      };
+    } else {
+      return { status: 'maintained', message: 'Same duration', color: 'gray' };
+    }
+  } else {
+    // For weight training: compare weight and reps
+    const currentMaxWeight = Math.max(...currentExercise.sets.map(s => s.weight || 0));
+    const previousMaxWeight = Math.max(...previousExercise.sets.map(s => s.weight || 0));
+    const currentTotalReps = currentExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
+    const previousTotalReps = previousExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
+
+    if (currentMaxWeight > previousMaxWeight) {
+      return { status: 'improved', message: `+${currentMaxWeight - previousMaxWeight}kg weight`, color: 'green' };
+    } else if (currentTotalReps > previousTotalReps && currentMaxWeight === previousMaxWeight) {
+      return { status: 'improved', message: `+${currentTotalReps - previousTotalReps} reps`, color: 'green' };
+    } else if (currentMaxWeight < previousMaxWeight) {
+      return { status: 'declined', message: `-${previousMaxWeight - currentMaxWeight}kg weight`, color: 'red' };
+    }
+
+    return { status: 'maintained', message: 'Same as last time', color: 'gray' };
   }
-
-  return { status: 'maintained', message: 'Same as last time', color: 'gray' };
 };
 
 export const calculateTotalSets = (workout) => {
