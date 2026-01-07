@@ -252,13 +252,13 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 min-w-[60px] px-2 sm:px-4 py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+            className={`md:flex-1 px-3 md:px-4 py-2.5 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
               ? 'bg-white text-primary-600 shadow-md'
               : 'text-gray-600 hover:text-gray-900'
               }`}
           >
-            <span className={tab.label ? 'sm:mr-1' : ''}>{tab.icon}</span>
-            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="md:mr-1">{tab.icon}</span>
+            <span className="hidden md:inline">{tab.label}</span>
           </button>
         ))}
       </div>
