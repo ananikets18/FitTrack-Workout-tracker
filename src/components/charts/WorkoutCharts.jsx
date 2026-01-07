@@ -252,7 +252,7 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`md:flex-1 px-3 md:px-4 py-2.5 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+            className={`flex-1 flex items-center justify-center px-3 md:px-4 py-2.5 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
               ? 'bg-white text-primary-600 shadow-md'
               : 'text-gray-600 hover:text-gray-900'
               }`}
