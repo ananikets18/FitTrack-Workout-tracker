@@ -1,4 +1,7 @@
 import { differenceInDays, startOfWeek, endOfWeek } from 'date-fns';
+import { getWorkoutOverloadRecommendations } from './progressiveOverloadPredictor';
+import { assessInjuryRisk, suggestRecoveryWork } from './injuryPrevention';
+import { calculateReadinessScore, determineDifficultyLevel, getWorkoutAdjustment } from './workoutDifficultyAdjuster';
 
 // ============================================
 // INTELLIGENT WORKOUT RECOMMENDATION SYSTEM
@@ -310,11 +313,25 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
             workout: null,
             confidence: 0,
             reasoning: ['Need at least 2 workouts to make recommendations'],
-            alternatives: []
+            alternatives: [],
+            injuryRisk: null,
+            readinessScore: null,
+            progressiveOverload: null
         };
     }
 
     const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
+
+    // ============================================
+    // ADVANCED INTELLIGENCE ANALYSIS
+    // ============================================
+
+    // 1. INJURY RISK ASSESSMENT
+    const injuryRisk = assessInjuryRisk(workouts);
+
+    // 2. READINESS & DIFFICULTY CALCULATION
+    const readinessScore = calculateReadinessScore(workouts);
+    const difficultyLevel = determineDifficultyLevel(readinessScore);
 
     // Get all analysis data
     const muscleRecovery = getMuscleRecoveryStatus(workouts);
@@ -332,19 +349,55 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
     const reasoning = [];
     const warnings = [];
 
-    // 1. CHECK FATIGUE - Highest Priority
+    // ============================================
+    // CRITICAL CHECKS (HIGHEST PRIORITY)
+    // ============================================
+
+    // CHECK 1: CRITICAL INJURY RISK
+    if (injuryRisk.riskLevel === 'critical') {
+        reasoning.push(`🚨 CRITICAL: ${injuryRisk.criticalWarnings} high-risk factor(s) detected`);
+        injuryRisk.warnings.slice(0, 2).forEach(warning => {
+            reasoning.push(`${warning.icon} ${warning.message}`);
+        });
+
+        return {
+            workout: null,
+            confidence: 100,
+            reasoning: [...reasoning, '💤 Mandatory rest day for injury prevention'],
+            shouldRest: true,
+            alternatives: [],
+            injuryRisk,
+            readinessScore,
+            difficultyLevel: 'deload',
+            recoveryWork: suggestRecoveryWork(injuryRisk.warnings)
+        };
+    }
+
+    // CHECK 2: HIGH FATIGUE
     if (fatigue.recommendation === 'rest') {
         reasoning.push(`⚠️ High fatigue detected (${fatigue.consecutiveDays} consecutive days)`);
+
+        if (injuryRisk.riskLevel === 'high') {
+            reasoning.push(`🚨 Injury risk: ${injuryRisk.riskLevel.toUpperCase()}`);
+        }
+
         return {
             workout: null,
             confidence: 95,
             reasoning: [...reasoning, '💤 Recommendation: Take a rest day to recover'],
             shouldRest: true,
-            alternatives: []
+            alternatives: [],
+            injuryRisk,
+            readinessScore,
+            difficultyLevel: 'deload'
         };
     }
 
-    // 2. CHECK REST DAY QUALITY
+    // ============================================
+    // WORKOUT SELECTION & SCORING
+    // ============================================
+
+    // CHECK REST DAY QUALITY
     let intensityModifier = 1.0;
     if (lastRestDay) {
         if (lastRestDay.quality <= 2 && lastRestDay.daysSince <= 2) {
@@ -356,7 +409,7 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
         }
     }
 
-    // 3. ANALYZE MUSCLE RECOVERY & VOLUME NEEDS
+    // ANALYZE MUSCLE RECOVERY & VOLUME NEEDS
     const muscleScores = {};
 
     Object.keys(MUSCLE_KEYWORDS).forEach(muscle => {
@@ -390,7 +443,7 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
         };
     });
 
-    // 4. FIND BEST MATCHING WORKOUT
+    // FIND BEST MATCHING WORKOUT
     const workoutScores = regularWorkouts.map(workout => {
         const muscles = detectMuscleGroups(workout);
         const muscleSets = calculateMuscleSets(workout);
@@ -444,9 +497,25 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
             workout: null,
             confidence: 0,
             reasoning: ['No suitable workout found based on current recovery status'],
-            alternatives: []
+            alternatives: [],
+            injuryRisk,
+            readinessScore,
+            difficultyLevel
         };
     }
+
+    // ============================================
+    // ADVANCED ENHANCEMENTS
+    // ============================================
+
+    // 3. PROGRESSIVE OVERLOAD RECOMMENDATIONS
+    const overloadRecommendations = getWorkoutOverloadRecommendations(
+        topRecommendation.workout,
+        workouts
+    );
+
+    // 4. WORKOUT DIFFICULTY ADJUSTMENT
+    const workoutAdjustment = getWorkoutAdjustment(topRecommendation.workout, workouts);
 
     // Build reasoning
     if (topRecommendation.recoveredMuscles.length > 0) {
@@ -457,9 +526,27 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
         reasoning.push(`📊 Needs volume: ${topRecommendation.needsVolumeMuscles.join(', ')}`);
     }
 
+    // Add readiness info
+    if (readinessScore >= 90) {
+        reasoning.push(`🔥 Peak readiness (${readinessScore}/100) - perfect for PRs!`);
+    } else if (readinessScore <= 50) {
+        reasoning.push(`😌 Lower readiness (${readinessScore}/100) - ${difficultyLevel} workout suggested`);
+    }
+
+    // Add injury warnings if present
+    if (injuryRisk.riskLevel === 'high') {
+        warnings.push(`⚠️ High injury risk - ${injuryRisk.totalWarnings} warning(s)`);
+    } else if (injuryRisk.riskLevel === 'moderate') {
+        warnings.push(`⚡ Moderate injury risk - be cautious`);
+    }
+
     // Calculate confidence (0-100)
     const maxPossibleScore = 100 * topRecommendation.matchedMuscles.length;
-    const confidence = Math.min(100, Math.round((topRecommendation.score / maxPossibleScore) * 100));
+    let confidence = Math.min(100, Math.round((topRecommendation.score / maxPossibleScore) * 100));
+
+    // Adjust confidence based on injury risk
+    if (injuryRisk.riskLevel === 'high') confidence = Math.min(confidence, 70);
+    else if (injuryRisk.riskLevel === 'moderate') confidence = Math.min(confidence, 85);
 
     // Get alternatives (top 3)
     const alternatives = workoutScores.slice(1, 4).map(ws => ({
@@ -475,6 +562,15 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
         muscleTargets: topRecommendation.matchedMuscles,
         alternatives,
         shouldRest: false,
-        fatigueLevel: fatigue.level
+        fatigueLevel: fatigue.level,
+
+        // Advanced intelligence data
+        injuryRisk,
+        readinessScore,
+        difficultyLevel,
+        workoutAdjustment,
+        progressiveOverload: overloadRecommendations.slice(0, 3), // Top 3 exercises
+        recoveryWork: injuryRisk.warnings.length > 0 ? suggestRecoveryWork(injuryRisk.warnings) : null
     };
 };
+
