@@ -50,19 +50,23 @@ export const PreferencesProvider = ({ children }) => {
                 // Logged in - load from Supabase
                 const dbPreferences = await db.getUserPreferences(user.id);
 
+                console.log('📊 Loaded preferences from DB:', dbPreferences);
+
                 if (dbPreferences) {
                     // Transform DB format to app format
                     const loadedPreferences = {
                         split: dbPreferences.split || 'custom',
                         weeklyFrequency: dbPreferences.weekly_frequency || 4,
                         volumeTargets: dbPreferences.volume_targets || DEFAULT_VOLUME_TARGETS,
-                        hasCompletedSetup: dbPreferences.has_completed_setup || false,
+                        hasCompletedSetup: dbPreferences.has_completed_setup === true,
                         setupCompletedAt: dbPreferences.setup_completed_at,
                     };
+                    console.log('✅ Transformed preferences:', loadedPreferences);
                     setPreferences(loadedPreferences);
                     // Also save to localStorage as backup
                     localStorage.setItem('userPreferences', JSON.stringify(loadedPreferences));
                 } else {
+                    console.log('⚠️ No preferences in DB, checking localStorage');
                     // No preferences in DB yet - check localStorage
                     const saved = localStorage.getItem('userPreferences');
                     if (saved) {

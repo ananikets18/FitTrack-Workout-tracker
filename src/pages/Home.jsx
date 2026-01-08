@@ -41,8 +41,20 @@ const Home = () => {
 
   // Show setup wizard for users with workouts who haven't completed setup
   useEffect(() => {
+    console.log('🔍 Setup wizard check:', {
+      isLoading,
+      preferencesLoading,
+      workoutsCount: workouts.length,
+      hasCompletedSetup: preferences.hasCompletedSetup,
+      shouldShow: !isLoading && !preferencesLoading && workouts.length >= 2 && !preferences.hasCompletedSetup
+    });
+
     if (!isLoading && !preferencesLoading && workouts.length >= 2 && !preferences.hasCompletedSetup) {
+      console.log('🎯 Showing setup wizard');
       setShowSetupWizard(true);
+    } else {
+      console.log('✅ Setup wizard hidden');
+      setShowSetupWizard(false);
     }
   }, [isLoading, preferencesLoading, workouts.length, preferences.hasCompletedSetup]);
 
