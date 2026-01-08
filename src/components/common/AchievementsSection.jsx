@@ -79,10 +79,14 @@ const AchievementsSection = () => {
                                         <h4 className="font-bold text-white mb-1">{achievement.name}</h4>
                                         <p className="text-white/60 text-xs mb-3">{achievement.description}</p>
 
-                                        {/* Progress Bar */}
                                         <div className="space-y-1">
                                             <div className="flex justify-between text-xs text-white/60">
-                                                <span>{data.current.toFixed(category === 'volume' ? 1 : 0)}</span>
+                                                <span>
+                                                    {typeof data.current === 'number'
+                                                        ? data.current.toFixed(category === 'volume' ? 1 : 0)
+                                                        : Number(data.current || 0).toFixed(category === 'volume' ? 1 : 0)
+                                                    }
+                                                </span>
                                                 <span>{achievement.requirement}</span>
                                             </div>
                                             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
