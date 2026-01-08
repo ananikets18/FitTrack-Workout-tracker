@@ -47,6 +47,9 @@ const AchievementsAccordion = () => {
                         <p className="text-xs md:text-sm text-white/60">
                             {unlockedAchievements.length} unlocked • {nextAchievements.length} in progress
                         </p>
+                        {!isOpen && (
+                            <p className="text-xs text-white/40 mt-0.5">Tap to expand</p>
+                        )}
                     </div>
                 </div>
 

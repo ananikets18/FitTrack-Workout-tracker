@@ -48,10 +48,11 @@ const BottomNav = () => {
               {primary ? (
                 <motion.div
                   whileTap={{ scale: 0.9 }}
-                  className="flex flex-col items-center justify-center"
+                  whileHover={{ scale: 1.05 }}
+                  className="flex flex-col items-center justify-center -mt-6"
                 >
-                  <div className="bg-gradient-primary rounded-full p-3 shadow-lifted">
-                    <NavIcon className="w-5 h-5 text-white" strokeWidth={2.5} />
+                  <div className="bg-gradient-primary rounded-full p-4 shadow-2xl ring-4 ring-white">
+                    <NavIcon className="w-6 h-6 text-white" strokeWidth={2.5} />
                   </div>
                 </motion.div>
               ) : (

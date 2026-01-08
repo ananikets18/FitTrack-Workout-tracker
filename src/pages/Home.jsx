@@ -92,48 +92,44 @@ const Home = () => {
       value: thisWeekWorkouts,
       icon: Calendar,
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50 ',
+      bgColor: 'bg-blue-50',
     },
     {
       label: 'Current Streak',
       value: `${currentStreak} days`,
       icon: Flame,
       color: 'text-orange-600',
-      bgColor: 'bg-orange-50 ',
+      bgColor: 'bg-orange-50',
+    },
+    {
+      label: 'Total Workouts',
+      value: totalWorkouts,
+      icon: TrendingUp,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
     },
     {
       label: 'Rest Days',
       value: totalRestDays,
       icon: Hotel,
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50 ',
+      bgColor: 'bg-purple-50',
     },
   ];
 
   return (
-    <div className="space-y-6 pb-safe">
-      {/* Mobile Logo Header */}
-      <div className="md:hidden flex items-center justify-between pt-safe mb-2">
-        <div className="flex items-center space-x-3">
-          <div className="bg-gradient-primary rounded-xl p-2.5 shadow-soft">
-            <Dumbbell className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">FitTrack</h1>
-            <p className="text-xs text-gray-500">Your Workout Companion</p>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-8 pb-safe">
 
       {/* Stats Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
+          <SkeletonStatCard />
           <SkeletonStatCard />
           <SkeletonStatCard />
           <SkeletonStatCard />
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
           {stats.map((stat, index) => (
             <motion.div
               key={index}
@@ -199,7 +195,7 @@ const Home = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-lifted"
+              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-5 text-white shadow-lifted"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
@@ -213,40 +209,51 @@ const Home = () => {
                 </div>
               </div>
 
-              <h3 className="text-2xl font-bold mb-2">{recommendation.workout.name}</h3>
+              <h3 className="text-xl font-bold mb-2">{recommendation.workout.name}</h3>
 
               <p className="text-white/80 text-sm mb-3">
                 {recommendation.workout.exercises?.length || 0} exercises • Last done {formatDate(recommendation.workout.date)}
               </p>
 
-              {/* Reasoning */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 mb-4 space-y-1">
-                {recommendation.reasoning.map((reason, idx) => (
-                  <p key={idx} className="text-white/90 text-xs flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>{reason}</span>
-                  </p>
-                ))}
-              </div>
-
               {/* Muscle Targets */}
               {recommendation.muscleTargets && recommendation.muscleTargets.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {recommendation.muscleTargets.map((muscle, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold capitalize"
-                    >
-                      {muscle}
-                    </span>
-                  ))}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {recommendation.muscleTargets.map((muscle, idx) => {
+                    // Color mapping for different muscle groups
+                    const muscleColors = {
+                      chest: 'bg-red-500/30 border border-red-400/50',
+                      back: 'bg-blue-500/30 border border-blue-400/50',
+                      legs: 'bg-green-500/30 border border-green-400/50',
+                      shoulders: 'bg-yellow-500/30 border border-yellow-400/50',
+                      arms: 'bg-purple-500/30 border border-purple-400/50',
+                      core: 'bg-orange-500/30 border border-orange-400/50',
+                      cardio: 'bg-pink-500/30 border border-pink-400/50',
+                    };
+                    const colorClass = muscleColors[muscle.toLowerCase()] || 'bg-white/20';
+
+                    return (
+                      <span
+                        key={idx}
+                        className={`${colorClass} backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold capitalize`}
+                      >
+                        {muscle}
+                      </span>
+                    );
+                  })}
                 </div>
+              )}
+
+              {/* Reasoning - Simplified */}
+              {recommendation.reasoning && recommendation.reasoning.length > 0 && (
+                <p className="text-white/80 text-xs mb-4">
+                  {recommendation.reasoning[0]}
+                </p>
               )}
 
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={handleStartRecommendedWorkout}
-                className="w-full bg-white text-blue-600 font-bold py-3 px-4 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center space-x-2"
+                className="w-full bg-white text-blue-600 font-bold py-3 px-4 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center space-x-2 shadow-md"
               >
                 <Zap className="w-5 h-5" />
                 <span>Start This Workout</span>
@@ -255,7 +262,7 @@ const Home = () => {
               {/* Alternatives */}
               {recommendation.alternatives && recommendation.alternatives.length > 0 && (
                 <details className="mt-3">
-                  <summary className="text-xs text-white/70 cursor-pointer hover:text-white transition-colors">
+                  <summary className="text-xs text-white/70 cursor-pointer hover:text-white transition-colors font-medium">
                     View {recommendation.alternatives.length} alternative{recommendation.alternatives.length > 1 ? 's' : ''}
                   </summary>
                   <div className="mt-2 space-y-1">
@@ -283,9 +290,9 @@ const Home = () => {
       ) : recentWorkouts.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 ">Recent Activity</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Recent Activity</h2>
             <Link to="/history">
-              <Button variant="outline" size="sm" className="flex items-center space-x-1 text-sm">
+              <Button variant="ghost" size="sm" className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 font-semibold">
                 <span>View All</span>
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -309,12 +316,12 @@ const Home = () => {
                             <Hotel className="w-5 h-5 text-purple-600 " />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-semibold text-gray-900 ">Rest Day</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">Rest Day</h3>
                             <p className="text-gray-500 text-sm mt-1">{formatDate(workout.date)}</p>
                             <div className="flex items-center space-x-2 mt-2">
                               <div className="flex items-center">
                                 {[...Array(5)].map((_, i) => (
-                                  <span key={i} className={`text-xs ${i < workout.recoveryQuality ? 'text-yellow-400' : 'text-gray-300 '}`}>
+                                  <span key={i} className={`text-sm ${i < workout.recoveryQuality ? 'text-yellow-400' : 'text-gray-300'}`}>
                                     ★
                                   </span>
                                 ))}
@@ -322,7 +329,7 @@ const Home = () => {
                               {workout.activities?.length > 0 && (
                                 <>
                                   <span className="text-gray-400">•</span>
-                                  <span className="text-xs text-gray-500 ">{workout.activities.length} activities</span>
+                                  <span className="text-sm text-gray-500">{workout.activities.length} activities</span>
                                 </>
                               )}
                             </div>
@@ -388,24 +395,24 @@ const Home = () => {
 
       {/* Quick Action Buttons - When there are workouts */}
       {!isLoading && workouts.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Link to="/log" className="sm:col-span-2">
+            <Button variant="primary" size="lg" className="w-full flex items-center justify-center shadow-md">
+              <Plus className="w-5 h-5 mr-2" />
+              Log New Workout
+            </Button>
+          </Link>
           {lastWorkout && (
             <Button
               variant="outline"
               size="lg"
               onClick={handleRepeatLastWorkout}
-              className="w-full flex items-center justify-center border-2 border-blue-500 text-blue-600 hover:bg-blue-50 "
+              className="w-full flex items-center justify-center border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
             >
               <RotateCcw className="w-5 h-5 mr-2" />
               Repeat Last
             </Button>
           )}
-          <Link to="/log" className={lastWorkout ? '' : 'sm:col-span-2'}>
-            <Button variant="primary" size="lg" className="w-full flex items-center justify-center">
-              <Plus className="w-5 h-5 mr-2" />
-              Log Workout
-            </Button>
-          </Link>
           <Button
             variant="secondary"
             size="lg"
@@ -413,7 +420,7 @@ const Home = () => {
             className="w-full flex items-center justify-center"
           >
             <Hotel className="w-5 h-5 mr-2" />
-            Rest Day
+            Log Rest Day
           </Button>
         </div>
       )}
