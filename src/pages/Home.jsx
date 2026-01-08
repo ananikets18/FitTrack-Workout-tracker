@@ -9,6 +9,7 @@ import { calculateStreak } from '../utils/calculations';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import RestDayModal from '../components/common/RestDayModal';
+import AchievementsAccordion from '../components/common/AchievementsAccordion';
 
 import SkeletonCard from '../components/common/SkeletonCard';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
@@ -158,6 +159,9 @@ const Home = () => {
           ))}
         </div>
       )}
+
+      {/* Achievements Accordion */}
+      {!isLoading && workouts.length > 0 && <AchievementsAccordion />}
 
       {/* Predicted Workout Card - Show when there's a prediction */}
       {!isLoading && predictedWorkout && (
