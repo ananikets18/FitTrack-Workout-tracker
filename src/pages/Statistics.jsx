@@ -15,6 +15,7 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import BottomSheet from '../components/common/BottomSheet';
 import ExerciseHistoryModal from '../components/common/ExerciseHistoryModal';
+import AchievementsSection from '../components/common/AchievementsSection';
 import { VolumeChart, TrainingIntelligenceChart, PRProgressionChart, WeeklyMonthlyActivityChart } from '../components/charts/WorkoutCharts';
 import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, Clock, ChevronRight, Hotel, Star } from 'lucide-react';
 import { format } from 'date-fns';
@@ -157,6 +158,12 @@ const Statistics = () => {
         ))}
       </div>
 
+      {/* Achievements Section */}
+      {workouts.length > 0 && (
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 md:p-8 shadow-2xl">
+          <AchievementsSection />
+        </div>
+      )}
 
 
       {/* Progress Charts */}
