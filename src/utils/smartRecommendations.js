@@ -179,6 +179,16 @@ export const getMuscleRecoveryStatus = (workouts) => {
         const workoutDate = new Date(workout.date);
 
         muscles.forEach(muscle => {
+            // Safety check: ensure muscle exists in muscleStatus
+            if (!muscleStatus[muscle]) {
+                muscleStatus[muscle] = {
+                    lastTrained: null,
+                    daysSince: Infinity,
+                    isRecovered: true,
+                    recoveryPercentage: 100
+                };
+            }
+
             if (!muscleStatus[muscle].lastTrained || workoutDate > muscleStatus[muscle].lastTrained) {
                 muscleStatus[muscle].lastTrained = workoutDate;
             }
