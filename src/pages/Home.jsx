@@ -1,19 +1,22 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { useWorkouts } from '../context/WorkoutContext';
 import { useAuth } from '../context/AuthContext';
+import { usePreferences } from '../context/PreferencesContext';
 import { useNavigate } from 'react-router-dom';
 import { calculateStreak } from '../utils/calculations';
+import { getSmartRecommendation } from '../utils/smartRecommendations';
 
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import RestDayModal from '../components/common/RestDayModal';
 import AchievementsAccordion from '../components/common/AchievementsAccordion';
+import SetupWizard from '../components/SetupWizard';
 
 import SkeletonCard from '../components/common/SkeletonCard';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
-import { TrendingUp, Calendar, Flame, ChevronRight, Dumbbell, Hotel, Plus, RotateCcw, Zap } from 'lucide-react';
+import { TrendingUp, Calendar, Flame, ChevronRight, Dumbbell, Hotel, Plus, RotateCcw, Zap, Brain, AlertCircle } from 'lucide-react';
 import { formatDate } from '../utils/calculations';
 import toast from 'react-hot-toast';
 // eslint-disable-next-line no-unused-vars
@@ -22,8 +25,10 @@ import { motion } from 'framer-motion';
 const Home = () => {
   const { workouts, isLoading, addRestDay, cloneWorkout } = useWorkouts();
   const { user } = useAuth();
+  const { preferences, updatePreferences, completeSetup } = usePreferences();
   const navigate = useNavigate();
   const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
 
   const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
   const totalWorkouts = regularWorkouts.length;
@@ -34,34 +39,15 @@ const Home = () => {
   // Get last workout
   const lastWorkout = regularWorkouts[0];
 
-  // Predict next workout based on patterns
-  const getPredictedWorkout = () => {
-    if (regularWorkouts.length < 2) return null;
-
-    // Analyze workout patterns
-    const workoutNames = regularWorkouts.slice(0, 10).map(w => w.name.toLowerCase());
-    const uniqueNames = [...new Set(workoutNames)];
-
-    // Find the most common rotation pattern
-    if (uniqueNames.length <= 1) return null;
-
-    // Check if there's a rotation (e.g., Push, Pull, Legs)
-    const lastWorkoutName = regularWorkouts[0].name.toLowerCase();
-    const rotation = uniqueNames.filter(name => name !== lastWorkoutName);
-
-    if (rotation.length > 0) {
-      // Find the next workout in rotation
-      const nextInRotation = regularWorkouts.find(w =>
-        rotation.includes(w.name.toLowerCase()) && w.id !== regularWorkouts[0].id
-      );
-
-      return nextInRotation || null;
+  // Show setup wizard for new users
+  useEffect(() => {
+    if (!isLoading && workouts.length >= 2 && !preferences.hasCompletedSetup) {
+      setShowSetupWizard(true);
     }
+  }, [isLoading, workouts.length, preferences.hasCompletedSetup]);
 
-    return null;
-  };
-
-  const predictedWorkout = getPredictedWorkout();
+  // Get intelligent recommendation
+  const recommendation = getSmartRecommendation(workouts, preferences);
 
   const handleRepeatLastWorkout = () => {
     if (!lastWorkout) {
@@ -74,12 +60,19 @@ const Home = () => {
     navigate('/log');
   };
 
-  const handleStartPredictedWorkout = () => {
-    if (!predictedWorkout) return;
+  const handleStartRecommendedWorkout = () => {
+    if (!recommendation.workout) return;
 
-    cloneWorkout(predictedWorkout);
-    toast.success(`Starting: ${predictedWorkout.name}`, { duration: 2000, icon: '⚡' });
+    cloneWorkout(recommendation.workout);
+    toast.success(`Starting: ${recommendation.workout.name}`, { duration: 2000, icon: '⚡' });
     navigate('/log');
+  };
+
+  const handleSetupComplete = (setupPreferences) => {
+    updatePreferences(setupPreferences);
+    completeSetup();
+    setShowSetupWizard(false);
+    toast.success('Setup complete! 🎉 Smart recommendations enabled', { duration: 3000 });
   };
 
   const handleSaveRestDay = (restDayData) => {
@@ -163,34 +156,121 @@ const Home = () => {
       {/* Achievements Accordion */}
       {!isLoading && workouts.length > 0 && <AchievementsAccordion />}
 
-      {/* Predicted Workout Card - Show when there's a prediction */}
-      {!isLoading && predictedWorkout && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-lifted"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
-                <Zap className="w-5 h-5" />
+      {/* Intelligent Recommendation Card */}
+      {!isLoading && recommendation && (
+        <>
+          {/* Rest Day Recommendation */}
+          {recommendation.shouldRest && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 text-white shadow-lifted"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+                    <Hotel className="w-5 h-5" />
+                  </div>
+                  <span className="text-sm font-semibold uppercase tracking-wide">Smart Recommendation</span>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1">
+                  <span className="text-xs font-bold">{recommendation.confidence}% Confident</span>
+                </div>
               </div>
-              <span className="text-sm font-semibold uppercase tracking-wide">Suggested Next</span>
-            </div>
-          </div>
-          <h3 className="text-2xl font-bold mb-2">{predictedWorkout.name}</h3>
-          <p className="text-white/80 text-sm mb-4">
-            {predictedWorkout.exercises?.length || 0} exercises • Last done {formatDate(predictedWorkout.date)}
-          </p>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleStartPredictedWorkout}
-            className="w-full bg-white text-blue-600 font-bold py-3 px-4 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center space-x-2"
-          >
-            <Zap className="w-5 h-5" />
-            <span>Start This Workout</span>
-          </motion.button>
-        </motion.div>
+              <h3 className="text-2xl font-bold mb-2">Take a Rest Day</h3>
+              <div className="space-y-1 mb-4">
+                {recommendation.reasoning.map((reason, idx) => (
+                  <p key={idx} className="text-white/90 text-sm">{reason}</p>
+                ))}
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsRestDayModalOpen(true)}
+                className="w-full bg-white text-purple-600 font-bold py-3 px-4 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center space-x-2"
+              >
+                <Hotel className="w-5 h-5" />
+                <span>Log Rest Day</span>
+              </motion.button>
+            </motion.div>
+          )}
+
+          {/* Workout Recommendation */}
+          {!recommendation.shouldRest && recommendation.workout && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-lifted"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+                    <Brain className="w-5 h-5" />
+                  </div>
+                  <span className="text-sm font-semibold uppercase tracking-wide">AI Recommendation</span>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1">
+                  <span className="text-xs font-bold">{recommendation.confidence}% Match</span>
+                </div>
+              </div>
+
+              <h3 className="text-2xl font-bold mb-2">{recommendation.workout.name}</h3>
+
+              <p className="text-white/80 text-sm mb-3">
+                {recommendation.workout.exercises?.length || 0} exercises • Last done {formatDate(recommendation.workout.date)}
+              </p>
+
+              {/* Reasoning */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 mb-4 space-y-1">
+                {recommendation.reasoning.map((reason, idx) => (
+                  <p key={idx} className="text-white/90 text-xs flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>{reason}</span>
+                  </p>
+                ))}
+              </div>
+
+              {/* Muscle Targets */}
+              {recommendation.muscleTargets && recommendation.muscleTargets.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {recommendation.muscleTargets.map((muscle, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold capitalize"
+                    >
+                      {muscle}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleStartRecommendedWorkout}
+                className="w-full bg-white text-blue-600 font-bold py-3 px-4 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center space-x-2"
+              >
+                <Zap className="w-5 h-5" />
+                <span>Start This Workout</span>
+              </motion.button>
+
+              {/* Alternatives */}
+              {recommendation.alternatives && recommendation.alternatives.length > 0 && (
+                <details className="mt-3">
+                  <summary className="text-xs text-white/70 cursor-pointer hover:text-white transition-colors">
+                    View {recommendation.alternatives.length} alternative{recommendation.alternatives.length > 1 ? 's' : ''}
+                  </summary>
+                  <div className="mt-2 space-y-1">
+                    {recommendation.alternatives.map((alt, idx) => (
+                      <div key={idx} className="text-xs text-white/80 bg-white/5 rounded-lg p-2">
+                        <span className="font-semibold">{alt.workout.name}</span>
+                        <span className="text-white/60"> - {alt.reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </motion.div>
+          )}
+        </>
       )}
 
       {/* Recent Workouts */}
@@ -345,6 +425,12 @@ const Home = () => {
         onSave={handleSaveRestDay}
       />
 
+      {/* Setup Wizard */}
+      <SetupWizard
+        isOpen={showSetupWizard}
+        onClose={() => setShowSetupWizard(false)}
+        onComplete={handleSetupComplete}
+      />
 
     </div>
   );
