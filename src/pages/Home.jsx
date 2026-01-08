@@ -25,7 +25,7 @@ import { motion } from 'framer-motion';
 const Home = () => {
   const { workouts, isLoading, addRestDay, cloneWorkout } = useWorkouts();
   const { user } = useAuth();
-  const { preferences, updatePreferences, completeSetup } = usePreferences();
+  const { preferences, updatePreferences, completeSetup, isLoading: preferencesLoading } = usePreferences();
   const navigate = useNavigate();
   const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
   const [showSetupWizard, setShowSetupWizard] = useState(false);
@@ -39,12 +39,12 @@ const Home = () => {
   // Get last workout
   const lastWorkout = regularWorkouts[0];
 
-  // Show setup wizard for new users
+  // Show setup wizard for users with workouts who haven't completed setup
   useEffect(() => {
-    if (!isLoading && workouts.length >= 2 && !preferences.hasCompletedSetup) {
+    if (!isLoading && !preferencesLoading && workouts.length >= 2 && !preferences.hasCompletedSetup) {
       setShowSetupWizard(true);
     }
-  }, [isLoading, workouts.length, preferences.hasCompletedSetup]);
+  }, [isLoading, preferencesLoading, workouts.length, preferences.hasCompletedSetup]);
 
   // Get intelligent recommendation
   const recommendation = getSmartRecommendation(workouts, preferences);

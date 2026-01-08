@@ -85,7 +85,7 @@ export const db = {
     if (workout.exercises?.length > 0) {
       for (let i = 0; i < workout.exercises.length; i++) {
         const exercise = workout.exercises[i];
-        
+
         const { data: exerciseData, error: exerciseError } = await supabase
           .from('exercises')
           .insert({
@@ -144,7 +144,7 @@ export const db = {
     if (workout.exercises?.length > 0) {
       for (let i = 0; i < workout.exercises.length; i++) {
         const exercise = workout.exercises[i];
-        
+
         const { data: exerciseData, error: exerciseError } = await supabase
           .from('exercises')
           .insert({
@@ -247,6 +247,43 @@ export const db = {
       .subscribe();
 
     return subscription;
+  },
+
+  // User Preferences
+  async getUserPreferences(userId) {
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      // If no preferences exist yet, return null (not an error)
+      if (error.code === 'PGRST116') return null;
+      throw error;
+    }
+    return data;
+  },
+
+  async upsertUserPreferences(userId, preferences) {
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .upsert({
+        user_id: userId,
+        split: preferences.split,
+        weekly_frequency: preferences.weeklyFrequency,
+        volume_targets: preferences.volumeTargets,
+        has_completed_setup: preferences.hasCompletedSetup,
+        setup_completed_at: preferences.setupCompletedAt,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id'
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
 };
 
