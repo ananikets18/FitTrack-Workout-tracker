@@ -4,6 +4,8 @@
 // Classifies exercises by intensity (compound vs isolation)
 // Calculates systemic (CNS) stress separate from local muscle fatigue
 
+import { differenceInDays } from 'date-fns';
+
 /**
  * Exercise intensity classifications
  */
@@ -197,7 +199,6 @@ export function calculateAvgIntensity(workout) {
 export function getSystemicReadiness(workouts, daysToConsider = 7) {
     if (!workouts || workouts.length === 0) return 100;
 
-    const { differenceInDays } = require('date-fns');
     const today = new Date();
 
     // Get recent workouts
