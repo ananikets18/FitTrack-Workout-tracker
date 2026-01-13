@@ -671,30 +671,30 @@ const History = () => {
                 variant="danger"
                 size="md"
                 onClick={() => handleDeleteWorkout(selectedWorkout)}
-                className="w-full"
+                className="w-full min-h-[44px]"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
               </Button>
             ) : (
-              <div className="flex gap-2 md:gap-3">
+              <div className="flex gap-2 md:gap-3 w-full">
                 <Button
                   variant="primary"
-                  size="sm"
+                  size="md"
                   onClick={() => handleEditWorkout(selectedWorkout)}
-                  className="flex-1"
+                  className="flex-1 min-h-[44px]"
                 >
-                  <Edit className="w-4 h-4 mr-1" />
-                  Edit
+                  <Edit className="w-4 h-4 mr-1 md:mr-2" />
+                  <span>Edit</span>
                 </Button>
                 <Button
                   variant="danger"
-                  size="sm"
+                  size="md"
                   onClick={() => handleDeleteWorkout(selectedWorkout)}
-                  className="flex-1"
+                  className="flex-1 min-h-[44px]"
                 >
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Delete
+                  <Trash2 className="w-4 h-4 mr-1 md:mr-2" />
+                  <span>Delete</span>
                 </Button>
               </div>
             )

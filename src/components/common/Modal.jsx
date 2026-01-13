@@ -74,7 +74,7 @@ const Modal = ({
           />
           
           {/* Modal - Full screen on mobile, centered on desktop */}
-          <div className="fixed inset-0 md:flex md:items-center md:justify-center md:p-4">
+          <div className="fixed inset-0 md:flex md:items-center md:justify-center md:p-4 overflow-hidden">
             <motion.div
               ref={modalRef}
               tabIndex={-1}
@@ -85,8 +85,8 @@ const Modal = ({
               className={`relative bg-white h-full md:h-auto md:rounded-2xl shadow-2xl w-full ${sizes[size]} flex flex-col md:max-h-[90vh]`}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-4 py-4 md:px-6 md:py-5 border-b border-gray-200 flex-shrink-0">
-                <h2 id="modal-title" className="text-xl md:text-2xl font-bold text-gray-900">{title}</h2>
+              <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-5 border-b border-gray-200 flex-shrink-0 bg-white">
+                <h2 id="modal-title" className="text-lg md:text-2xl font-bold text-gray-900 truncate pr-2">{title}</h2>
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
@@ -97,13 +97,13 @@ const Modal = ({
               </div>
               
               {/* Content - Scrollable */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {children}
               </div>
               
               {/* Footer - Fixed at bottom, not scrollable */}
               {footer && (
-                <div className="flex-shrink-0 border-t border-gray-200 p-3 md:p-4 bg-white">
+                <div className="flex-shrink-0 border-t border-gray-200 p-3 md:p-4 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] safe-bottom z-10">
                   {footer}
                 </div>
               )}
@@ -116,4 +116,20 @@ const Modal = ({
 };
 
 export default Modal;
+
+// Add safe area CSS for iOS devices
+const style = document.createElement('style');
+style.textContent = `
+  .safe-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom)) !important;
+  }
+  @media (min-width: 768px) {
+    .safe-bottom {
+      padding-bottom: 1rem !important;
+    }
+  }
+`;
+if (typeof document !== 'undefined') {
+  document.head.appendChild(style);
+}
 
