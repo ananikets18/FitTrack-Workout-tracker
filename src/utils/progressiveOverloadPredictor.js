@@ -1,4 +1,5 @@
 import { differenceInDays } from 'date-fns';
+import { getSystemicReadiness } from './intensityClassification';
 
 // ============================================
 // PROGRESSIVE OVERLOAD PREDICTOR
@@ -78,7 +79,7 @@ export const analyzeExerciseProgression = (exerciseName, workouts) => {
     };
 };
 
-// Check if user is ready for progressive overload
+// Check if user is ready for progressive overload (ENHANCED - considers systemic readiness)
 export const checkOverloadReadiness = (exerciseName, workouts) => {
     const analysis = analyzeExerciseProgression(exerciseName, workouts);
 
@@ -89,6 +90,9 @@ export const checkOverloadReadiness = (exerciseName, workouts) => {
             suggestion: null
         };
     }
+
+    // NEW: Check systemic readiness before recommending increases
+    const systemicReadiness = getSystemicReadiness(workouts, 7);
 
     const { history } = analysis;
     const recent = history.slice(-3); // Last 3 sessions
@@ -130,21 +134,36 @@ export const checkOverloadReadiness = (exerciseName, workouts) => {
     // Calculate days since last session
     const daysSinceLastSession = differenceInDays(new Date(), recent[recent.length - 1].date);
 
-    // READY FOR WEIGHT INCREASE
+    // READY FOR WEIGHT INCREASE (with systemic readiness check)
     if (allSetsCompleted && avgRepsRecent >= upperReps) {
         const increment = getWeightIncrement(exerciseName);
         const newWeight = currentWeight + increment;
 
+        // NEW: Adjust confidence based on systemic readiness
+        let confidence = 95;
+        let message = `Increase to ${newWeight}kg (${currentWeight}kg + ${increment}kg)`;
+
+        if (systemicReadiness < 50) {
+            confidence = 60;
+            message += ` - Consider waiting for better recovery (readiness: ${systemicReadiness}/100)`;
+        } else if (systemicReadiness < 70) {
+            confidence = 80;
+            message += ` - Moderate readiness (${systemicReadiness}/100)`;
+        } else {
+            message += ` - Excellent readiness (${systemicReadiness}/100)`;
+        }
+
         return {
-            ready: true,
+            ready: systemicReadiness >= 50, // Only recommend if readiness is decent
             reason: `Consistently completing ${Math.round(avgRepsRecent)} reps - ready to progress!`,
             suggestion: {
                 action: 'increase_weight',
                 currentWeight,
                 newWeight,
                 increment,
-                message: `Increase to ${newWeight}kg (${currentWeight}kg + ${increment}kg)`,
-                confidence: 95
+                message,
+                confidence,
+                systemicReadiness
             }
         };
     }
@@ -160,18 +179,25 @@ export const checkOverloadReadiness = (exerciseName, workouts) => {
                 currentReps: Math.round(avgRepsRecent),
                 targetReps: upperReps,
                 message: `Aim for ${upperReps} reps per set at ${currentWeight}kg`,
-                confidence: 85
+                confidence: 85,
+                systemicReadiness
             }
         };
     }
 
-    // STRUGGLING - CONSIDER DELOAD
+    // STRUGGLING - CONSIDER DELOAD (enhanced with readiness check)
     const strugglingRecently = recent.slice(-2).some(session => {
         return session.sets.some(set => set.reps < targetReps);
     });
 
     if (strugglingRecently && daysSinceLastSession <= 7) {
         const deloadWeight = Math.round(currentWeight * 0.9); // 10% reduction
+
+        // If low readiness, strongly recommend deload
+        const confidence = systemicReadiness < 60 ? 90 : 75;
+        const message = systemicReadiness < 60
+            ? `Deload to ${deloadWeight}kg (90% of current) - Low readiness (${systemicReadiness}/100) suggests recovery needed`
+            : `Deload to ${deloadWeight}kg (90% of current) for 1-2 weeks`;
 
         return {
             ready: false,
@@ -180,8 +206,9 @@ export const checkOverloadReadiness = (exerciseName, workouts) => {
                 action: 'deload',
                 currentWeight,
                 deloadWeight,
-                message: `Deload to ${deloadWeight}kg (90% of current) for 1-2 weeks`,
-                confidence: 75
+                message,
+                confidence,
+                systemicReadiness
             }
         };
     }
@@ -194,7 +221,8 @@ export const checkOverloadReadiness = (exerciseName, workouts) => {
             action: 'maintain',
             currentWeight,
             message: `Continue with ${currentWeight}kg - focus on form and consistency`,
-            confidence: 70
+            confidence: 70,
+            systemicReadiness
         }
     };
 };
