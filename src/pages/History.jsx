@@ -11,7 +11,14 @@ import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExc
 import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 // Sub-component for individual workout card
-const WorkoutCard = ({ workout, onClick }) => (
+const WorkoutCard = ({ workout, onClick }) => {
+  // Safety check for null/undefined workout
+  if (!workout) {
+    console.warn('WorkoutCard received null/undefined workout');
+    return null;
+  }
+  
+  return (
   <Card hover onClick={onClick}>
     {workout.type === 'rest_day' ? (
       <div className="flex items-start justify-between">
@@ -32,7 +39,7 @@ const WorkoutCard = ({ workout, onClick }) => (
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
+                      className={`w-4 h-4 ${i < (workout.recoveryQuality || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
                     />
                   ))}
                 </div>
@@ -45,7 +52,7 @@ const WorkoutCard = ({ workout, onClick }) => (
                     key={idx}
                     className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full"
                   >
-                    {activity.replace('_', ' ')}
+                    {activity ? activity.replace('_', ' ') : 'Unknown'}
                   </span>
                 ))}
               </div>
@@ -56,7 +63,7 @@ const WorkoutCard = ({ workout, onClick }) => (
     ) : (
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 ">{workout.name}</h3>
+          <h3 className="text-xl font-semibold text-gray-900 ">{workout.name || 'Unnamed Workout'}</h3>
           <div className="flex items-center space-x-2 mt-2 text-gray-600 ">
             <Calendar className="w-4 h-4" />
             <span className="text-sm">{formatDate(workout.date)}</span>
@@ -65,7 +72,7 @@ const WorkoutCard = ({ workout, onClick }) => (
             <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
             <span>•</span>
             <span>{calculateTotalSets(workout)} sets</span>
-            {workout.duration > 0 && (
+            {workout.duration && workout.duration > 0 && (
               <>
                 <span>•</span>
                 <span>{workout.duration} min</span>
@@ -78,7 +85,7 @@ const WorkoutCard = ({ workout, onClick }) => (
                 key={idx}
                 className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full"
               >
-                {ex.name}
+                {ex?.name || 'Unknown Exercise'}
               </span>
             ))}
             {workout.exercises?.length > 3 && (
@@ -91,7 +98,8 @@ const WorkoutCard = ({ workout, onClick }) => (
       </div>
     )}
   </Card>
-);
+  );
+};
 
 const History = () => {
   const navigate = useNavigate();
@@ -104,6 +112,8 @@ const History = () => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportPeriod, setExportPeriod] = useState('all');
   const [exportDate, setExportDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Filtering and Sorting states
   const [filterType, setFilterType] = useState('all'); // 'all', 'workout', 'rest_day'
@@ -112,10 +122,15 @@ const History = () => {
 
   // Helper function to calculate total volume for a workout
   const calculateWorkoutVolume = (workout) => {
-    if (workout.type === 'rest_day' || !workout.exercises) return 0;
-    return workout.exercises.reduce((total, exercise) => {
-      return total + calculateExerciseVolume(exercise);
-    }, 0);
+    if (!workout || workout.type === 'rest_day' || !workout.exercises || !Array.isArray(workout.exercises)) return 0;
+    try {
+      return workout.exercises.reduce((total, exercise) => {
+        return total + calculateExerciseVolume(exercise);
+      }, 0);
+    } catch (error) {
+      console.error('Error calculating workout volume:', error);
+      return 0;
+    }
   };
 
   // Filter workouts by type and search term
@@ -126,13 +141,15 @@ const History = () => {
 
     // Filter by search term
     if (workout.type === 'rest_day') {
-      return workout.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        workout.activities?.some(activity => activity.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesNotes = workout.notes?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+      const matchesActivities = Array.isArray(workout.activities) && 
+        workout.activities.some(activity => activity?.toLowerCase().includes(searchTerm.toLowerCase()));
+      return matchesNotes || matchesActivities;
     }
-    return workout.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      workout.exercises?.some(ex =>
-        ex.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    const matchesName = workout.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+    const matchesExercises = Array.isArray(workout.exercises) && 
+      workout.exercises.some(ex => ex?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesName || matchesExercises;
   });
 
   // Sort workouts
@@ -142,14 +159,16 @@ const History = () => {
         return new Date(b.date) - new Date(a.date);
       case 'date-asc':
         return new Date(a.date) - new Date(b.date);
-      case 'name-asc':
+      case 'name-asc': {
         const nameA = a.type === 'rest_day' ? 'Rest Day' : a.name;
         const nameB = b.type === 'rest_day' ? 'Rest Day' : b.name;
         return nameA.localeCompare(nameB);
-      case 'name-desc':
+      }
+      case 'name-desc': {
         const nameA2 = a.type === 'rest_day' ? 'Rest Day' : a.name;
         const nameB2 = b.type === 'rest_day' ? 'Rest Day' : b.name;
         return nameB2.localeCompare(nameA2);
+      }
       case 'duration-desc':
         return (b.duration || 0) - (a.duration || 0);
       case 'volume-desc':
@@ -163,78 +182,122 @@ const History = () => {
   const groupedWorkouts = groupByDate ? (() => {
     const groups = {};
     sortedWorkouts.forEach(workout => {
-      const date = new Date(workout.date);
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      // Reset time parts for accurate comparison
-      const workoutDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const yesterdayDateOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
-
-      let groupKey;
-      if (workoutDateOnly.getTime() === todayDateOnly.getTime()) {
-        groupKey = 'Today';
-      } else if (workoutDateOnly.getTime() === yesterdayDateOnly.getTime()) {
-        groupKey = 'Yesterday';
-      } else {
-        // Group by week
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        // Check if it's this week
-        const thisWeekStart = new Date(today);
-        thisWeekStart.setDate(today.getDate() - today.getDay());
-        const thisWeekStartOnly = new Date(thisWeekStart.getFullYear(), thisWeekStart.getMonth(), thisWeekStart.getDate());
-
-        if (weekStart.getTime() === thisWeekStartOnly.getTime()) {
-          groupKey = 'This Week';
-        } else {
-          // Format as "Week of Jan 1 - Jan 7"
-          groupKey = `Week of ${monthNames[weekStart.getMonth()]} ${weekStart.getDate()} - ${monthNames[weekEnd.getMonth()]} ${weekEnd.getDate()}`;
+      try {
+        // Validate workout date
+        if (!workout?.date) {
+          console.warn('Workout missing date:', workout);
+          return;
         }
-      }
 
-      if (!groups[groupKey]) {
-        groups[groupKey] = [];
+        const date = new Date(workout.date);
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+          console.warn('Invalid workout date:', workout.date);
+          return;
+        }
+
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        // Reset time parts for accurate comparison
+        const workoutDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const yesterdayDateOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+
+        let groupKey;
+        if (workoutDateOnly.getTime() === todayDateOnly.getTime()) {
+          groupKey = 'Today';
+        } else if (workoutDateOnly.getTime() === yesterdayDateOnly.getTime()) {
+          groupKey = 'Yesterday';
+        } else {
+          // Group by week
+          const weekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+          weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 6);
+
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+          // Check if it's this week
+          const thisWeekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          thisWeekStart.setDate(today.getDate() - today.getDay());
+          const thisWeekStartOnly = new Date(thisWeekStart.getFullYear(), thisWeekStart.getMonth(), thisWeekStart.getDate());
+
+          if (weekStart.getTime() === thisWeekStartOnly.getTime()) {
+            groupKey = 'This Week';
+          } else {
+            // Safely get month name with bounds check
+            const startMonth = monthNames[weekStart.getMonth()] || 'Unknown';
+            const endMonth = monthNames[weekEnd.getMonth()] || 'Unknown';
+            // Format as "Week of Jan 1 - Jan 7"
+            groupKey = `Week of ${startMonth} ${weekStart.getDate()} - ${endMonth} ${weekEnd.getDate()}`;
+          }
+        }
+
+        if (!groups[groupKey]) {
+          groups[groupKey] = [];
+        }
+        groups[groupKey].push(workout);
+      } catch (error) {
+        console.error('Error grouping workout:', error, workout);
       }
-      groups[groupKey].push(workout);
     });
     return groups;
   })() : null;
 
   const handleViewDetails = (workout) => {
+    if (!workout) {
+      console.warn('Attempted to view details of null/undefined workout');
+      return;
+    }
     setSelectedWorkout(workout);
     setIsDetailModalOpen(true);
   };
 
   const handleEditWorkout = (workout) => {
+    if (!workout) {
+      console.warn('Attempted to edit null/undefined workout');
+      toast.error('Cannot edit workout: invalid data');
+      return;
+    }
     setCurrentWorkout(workout);
     navigate('/log');
   };
 
   const handleDeleteWorkout = (workout) => {
+    if (!workout) {
+      console.warn('Attempted to delete null/undefined workout');
+      toast.error('Cannot delete workout: invalid data');
+      return;
+    }
     setWorkoutToDelete(workout);
     setIsDeleteDialogOpen(true);
   };
 
   const confirmDelete = () => {
-    if (workoutToDelete) {
+    if (workoutToDelete && workoutToDelete.id) {
       deleteWorkout(workoutToDelete.id);
       setIsDetailModalOpen(false);
       setWorkoutToDelete(null);
       toast.success('Workout deleted successfully');
+    } else {
+      console.error('Cannot delete workout: missing workout ID');
+      toast.error('Failed to delete workout');
+      setIsDeleteDialogOpen(false);
+      setWorkoutToDelete(null);
     }
   };
 
-  const handleExport = (format) => {
+  const handleExport = async (format) => {
     if (workouts.length === 0) {
       toast.error('No workouts to export');
+      return;
+    }
+
+    if (isExporting) {
+      toast.error('Export already in progress');
       return;
     }
 
@@ -245,39 +308,60 @@ const History = () => {
     }
 
     // For CSV and Excel, export directly
-    let success = false;
-    switch (format) {
-      case 'csv':
-        success = exportToCSV(workouts);
-        break;
-      case 'excel':
-        success = exportToExcel(workouts);
-        break;
-      default:
-        break;
-    }
+    setIsExporting(true);
+    try {
+      let success = false;
+      switch (format) {
+        case 'csv':
+          success = exportToCSV(workouts);
+          break;
+        case 'excel':
+          success = exportToExcel(workouts);
+          break;
+        default:
+          throw new Error(`Unsupported export format: ${format}`);
+      }
 
-    if (success) {
-      toast.success(`Exported successfully as ${format.toUpperCase()}!`);
-    } else {
-      toast.error('Export failed. Please try again.');
+      if (success) {
+        toast.success(`Exported successfully as ${format.toUpperCase()}!`);
+      } else {
+        toast.error('Export failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error(error.message || 'Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
     }
   };
 
-  const handleConfirmExport = () => {
-    const dateRange = exportPeriod === 'all' ? null : {
-      period: exportPeriod,
-      date: exportDate
-    };
+  const handleConfirmExport = async () => {
+    if (isExporting) {
+      toast.error('Export already in progress');
+      return;
+    }
 
-    const success = exportToJSON(workouts, dateRange);
+    setIsExporting(true);
+    try {
+      const dateRange = exportPeriod === 'all' ? null : {
+        period: exportPeriod,
+        date: exportDate
+      };
 
-    if (success) {
-      const periodText = exportPeriod === 'all' ? 'all workouts' : `${exportPeriod} workouts`;
-      toast.success(`Exported ${periodText} successfully!`);
-      setIsExportModalOpen(false);
-    } else {
-      toast.error('No workouts found in the selected date range');
+      const success = exportToJSON(workouts, dateRange);
+
+      if (success) {
+        const periodText = exportPeriod === 'all' ? 'all workouts' : `${exportPeriod} workouts`;
+        toast.success(`Exported ${periodText} successfully!`);
+        setIsExportModalOpen(false);
+      } else {
+        toast.error('No workouts found in the selected date range');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error(error.message || 'Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -285,7 +369,22 @@ const History = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (isImporting) {
+      toast.error('Import already in progress');
+      e.target.value = '';
+      return;
+    }
+
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    
+    if (!fileExtension) {
+      toast.error('Unable to determine file type');
+      e.target.value = '';
+      return;
+    }
+
+    setIsImporting(true);
+    const loadingToast = toast.loading('Importing workouts...');
 
     try {
       let importedWorkouts;
@@ -295,19 +394,32 @@ const History = () => {
       } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
         importedWorkouts = await importFromExcel(file);
       } else {
-        toast.error('Unsupported file format. Use JSON or Excel files.');
+        throw new Error('Unsupported file format. Use JSON or Excel files.');
+      }
+
+      // Validate imported data
+      if (!Array.isArray(importedWorkouts)) {
+        throw new Error('Invalid data format: expected an array of workouts');
+      }
+
+      if (importedWorkouts.length === 0) {
+        toast.dismiss(loadingToast);
+        toast.error('No workouts found in the file');
         return;
       }
 
       importWorkouts(importedWorkouts);
+      toast.dismiss(loadingToast);
       toast.success(`Successfully imported ${importedWorkouts.length} workout(s)!`);
     } catch (error) {
       console.error('Import error:', error);
+      toast.dismiss(loadingToast);
       toast.error(error.message || 'Failed to import workouts');
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      e.target.value = '';
     }
-
-    // Reset file input
-    e.target.value = '';
   };
 
   return (
@@ -344,27 +456,30 @@ const History = () => {
               <>
                 <button
                   onClick={() => handleExport('csv')}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
+                  disabled={isExporting || isImporting}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Export as CSV"
                 >
                   <FileSpreadsheet className="w-4 h-4" />
-                  <span className="hidden lg:inline">CSV</span>
+                  <span className="hidden lg:inline">{isExporting ? 'Exporting...' : 'CSV'}</span>
                 </button>
                 <button
                   onClick={() => handleExport('excel')}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
+                  disabled={isExporting || isImporting}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Export as Excel"
                 >
                   <Sheet className="w-4 h-4" />
-                  <span className="hidden lg:inline">Excel</span>
+                  <span className="hidden lg:inline">{isExporting ? 'Exporting...' : 'Excel'}</span>
                 </button>
                 <button
                   onClick={() => handleExport('json')}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95"
+                  disabled={isExporting || isImporting}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Export as JSON"
                 >
                   <FileJson className="w-4 h-4" />
-                  <span className="hidden lg:inline">JSON</span>
+                  <span className="hidden lg:inline">{isExporting ? 'Exporting...' : 'JSON'}</span>
                 </button>
               </>
             )}
@@ -394,21 +509,24 @@ const History = () => {
             <>
               <button
                 onClick={() => handleExport('csv')}
-                className="flex items-center justify-center px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95"
+                disabled={isExporting || isImporting}
+                className="flex items-center justify-center px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export as CSV"
               >
                 <FileSpreadsheet className="w-4 h-4" />
               </button>
               <button
                 onClick={() => handleExport('excel')}
-                className="flex items-center justify-center px-2.5 py-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95"
+                disabled={isExporting || isImporting}
+                className="flex items-center justify-center px-2.5 py-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export as Excel"
               >
                 <Sheet className="w-4 h-4" />
               </button>
               <button
                 onClick={() => handleExport('json')}
-                className="flex items-center justify-center px-2.5 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95"
+                disabled={isExporting || isImporting}
+                className="flex items-center justify-center px-2.5 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export as JSON"
               >
                 <FileJson className="w-4 h-4" />
@@ -507,7 +625,7 @@ const History = () => {
         </Card>
       ) : (
         <div className="space-y-6">
-          {groupByDate ? (
+          {groupByDate && groupedWorkouts ? (
             // Grouped View
             Object.entries(groupedWorkouts).map(([group, groupWorkouts]) => (
               <div key={group} className="space-y-3">
@@ -515,9 +633,9 @@ const History = () => {
                   {group}
                 </h3>
                 <div className="space-y-4">
-                  {groupWorkouts.map(workout => (
+                  {Array.isArray(groupWorkouts) && groupWorkouts.map((workout, idx) => (
                     <WorkoutCard
-                      key={workout.id}
+                      key={workout?.id || `workout-${group}-${idx}`}
                       workout={workout}
                       onClick={() => handleViewDetails(workout)}
                     />
@@ -528,9 +646,9 @@ const History = () => {
           ) : (
             // Flat List View
             <div className="space-y-4">
-              {sortedWorkouts.map((workout) => (
+              {sortedWorkouts.map((workout, idx) => (
                 <WorkoutCard
-                  key={workout.id}
+                  key={workout?.id || `workout-flat-${idx}`}
                   workout={workout}
                   onClick={() => handleViewDetails(workout)}
                 />
@@ -545,7 +663,7 @@ const History = () => {
         <Modal
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
-          title={selectedWorkout.type === 'rest_day' ? 'Rest Day' : selectedWorkout.name}
+          title={selectedWorkout.type === 'rest_day' ? 'Rest Day' : (selectedWorkout.name || 'Unnamed Workout')}
           size="lg"
         >
           {selectedWorkout.type === 'rest_day' ? (
@@ -562,7 +680,7 @@ const History = () => {
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-5 h-5 ${i < selectedWorkout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
+                        className={`w-5 h-5 ${i < (selectedWorkout.recoveryQuality || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
                       />
                     ))}
                   </div>
@@ -579,7 +697,7 @@ const History = () => {
                         key={idx}
                         className="px-3 py-2 text-sm font-semibold bg-purple-100 text-purple-700 rounded-lg"
                       >
-                        {activity.replace('_', ' ')}
+                        {activity ? activity.replace('_', ' ') : 'Unknown'}
                       </span>
                     ))}
                   </div>
@@ -618,7 +736,7 @@ const History = () => {
                 <div>
                   <p className="text-sm text-gray-600 ">Duration</p>
                   <p className="font-semibold text-gray-900 ">
-                    {selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
+                    {selectedWorkout.duration && selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
                   </p>
                 </div>
                 <div>
@@ -644,9 +762,11 @@ const History = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Exercises</h3>
                 <div className="space-y-4">
                   {selectedWorkout.exercises?.map((exercise) => {
+                    if (!exercise) return null;
                     const exerciseVolume = calculateExerciseVolume(exercise);
-                    const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
-                    const progressData = getProgressiveOverload(exercise.name, selectedWorkout, workouts);
+                    const weights = Array.isArray(exercise.sets) ? exercise.sets.map(s => s?.weight || 0) : [0];
+                    const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
+                    const progressData = getProgressiveOverload(exercise?.name, selectedWorkout, workouts);
                     const isCardioOrBodyweight = exercise.category === 'cardio' || maxWeight === 0;
 
                     return (
@@ -701,7 +821,9 @@ const History = () => {
                                 <div>Duration/Reps</div>
                                 <div className="text-right">Status</div>
                               </div>
-                              {exercise.sets.map((set, index) => (
+                              {Array.isArray(exercise.sets) && exercise.sets.map((set, index) => {
+                                if (!set) return null;
+                                return (
                                 <div
                                   key={index}
                                   className={`grid grid-cols-3 gap-2 text-sm ${set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
@@ -709,13 +831,13 @@ const History = () => {
                                 >
                                   <div className="font-medium">{index + 1}</div>
                                   <div className="font-semibold">
-                                    {exercise.category === 'cardio' ? `${set.duration || 0} mins` : `${set.reps} reps`}
+                                    {exercise.category === 'cardio' ? `${set.duration || 0} mins` : `${set.reps || 0} reps`}
                                   </div>
                                   <div className="text-right text-xs">
                                     {set.completed ? '✓ Done' : '-'}
                                   </div>
                                 </div>
-                              ))}
+                              )})}
                             </>
                           ) : (
                             // Weight training display
@@ -726,8 +848,9 @@ const History = () => {
                                 <div className="text-right">Volume</div>
                                 <div className="text-right">Status</div>
                               </div>
-                              {exercise.sets.map((set, index) => {
-                                const setVolume = set.reps * set.weight;
+                              {Array.isArray(exercise.sets) && exercise.sets.map((set, index) => {
+                                if (!set) return null;
+                                const setVolume = (set.reps || 0) * (set.weight || 0);
                                 return (
                                   <div
                                     key={index}
@@ -735,7 +858,7 @@ const History = () => {
                                       } py-2 px-2 rounded`}
                                   >
                                     <div className="font-medium">{index + 1}</div>
-                                    <div className="font-semibold">{set.weight}kg × {set.reps}</div>
+                                    <div className="font-semibold">{set.weight || 0}kg × {set.reps || 0}</div>
                                     <div className="text-right font-medium">{setVolume}kg</div>
                                     <div className="text-right text-xs">
                                       {set.completed ? '✓ Done' : '-'}
@@ -899,10 +1022,11 @@ const History = () => {
               variant="primary"
               size="md"
               onClick={handleConfirmExport}
+              disabled={isExporting}
               className="flex-1"
             >
               <FileJson className="w-4 h-4 mr-2" />
-              Export JSON
+              {isExporting ? 'Exporting...' : 'Export JSON'}
             </Button>
           </div>
         </div>
