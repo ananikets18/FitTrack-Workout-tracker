@@ -11,15 +11,21 @@ import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExc
 import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 // Sub-component for individual workout card
-const WorkoutCard = ({ workout, onClick }) => {
+const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
   // Safety check for null/undefined workout
   if (!workout) {
     console.warn('WorkoutCard received null/undefined workout');
     return null;
   }
   
+  const handleCardClick = (e) => {
+    if (!e.target.closest('.action-button')) {
+      onClick?.();
+    }
+  };
+  
   return (
-  <Card hover onClick={onClick} className="p-3 md:p-4">
+  <Card hover onClick={handleCardClick} className="p-3 md:p-4">
     {workout.type === 'rest_day' ? (
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-2 md:space-x-3 flex-1">
