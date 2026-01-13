@@ -473,8 +473,8 @@ const History = () => {
               <button
                 onClick={() => setGroupByDate(!groupByDate)}
                 className={`flex h-10 items-center gap-2 px-3 border rounded-lg text-sm font-medium transition-colors ${groupByDate
-                    ? 'bg-primary-50 border-primary-200 text-primary-700'
-                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  ? 'bg-primary-50 border-primary-200 text-primary-700'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 title="Toggle date grouping"
               >
