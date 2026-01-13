@@ -19,7 +19,7 @@ const WorkoutCard = ({ workout, onClick }) => {
   }
   
   return (
-  <Card hover onClick={onClick}>
+  <Card hover onClick={onClick} className="p-3 md:p-4">
     {workout.type === 'rest_day' ? (
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-2 md:space-x-3 flex-1">
@@ -665,12 +665,45 @@ const History = () => {
           onClose={() => setIsDetailModalOpen(false)}
           title={selectedWorkout.type === 'rest_day' ? 'Rest Day' : (selectedWorkout.name || 'Unnamed Workout')}
           size="lg"
+          footer={
+            selectedWorkout.type === 'rest_day' ? (
+              <Button
+                variant="danger"
+                size="md"
+                onClick={() => handleDeleteWorkout(selectedWorkout)}
+                className="w-full"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </Button>
+            ) : (
+              <div className="flex gap-2 md:gap-3">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => handleEditWorkout(selectedWorkout)}
+                  className="flex-1"
+                >
+                  <Edit className="w-4 h-4 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handleDeleteWorkout(selectedWorkout)}
+                  className="flex-1"
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Delete
+                </Button>
+              </div>
+            )
+          }
         >
           {selectedWorkout.type === 'rest_day' ? (
-            <>
-              <div className="space-y-6 pb-20 md:pb-6">
-                {/* Rest Day Info */}
-                <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4 md:space-y-6">
+              {/* Rest Day Info */}
+              <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600 ">Date</p>
                     <p className="font-semibold text-gray-900 ">{formatDate(selectedWorkout.date)}</p>
@@ -713,25 +746,10 @@ const History = () => {
                   </div>
                 )}
               </div>
-
-              {/* Action Buttons - Sticky on Mobile */}
-              <div className="fixed md:relative bottom-0 left-0 right-0 p-4 md:p-0 bg-white md:bg-transparent border-t md:border-t-0 border-gray-200 md:mt-4">
-                <Button
-                  variant="danger"
-                  size="md"
-                  onClick={() => handleDeleteWorkout(selectedWorkout)}
-                  className="w-full"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
-            </>
           ) : (
-            <>
-              <div className="space-y-6 pb-24 md:pb-6">
-                {/* Workout Info */}
-                <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="space-y-4 md:space-y-6">
+              {/* Workout Info */}
+              <div className="grid grid-cols-2 gap-2.5 md:gap-4">
                   <div>
                     <p className="text-sm text-gray-600 ">Date</p>
                     <p className="font-semibold text-gray-900 text-sm md:text-base">{formatDate(selectedWorkout.date)}</p>
@@ -762,8 +780,8 @@ const History = () => {
 
                 {/* Exercises */}
                 <div>
-                  <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Exercises</h3>
-                  <div className="space-y-3 md:space-y-4">
+                  <h3 className="text-sm md:text-lg font-semibold text-gray-900 mb-2.5 md:mb-4">Exercises</h3>
+                  <div className="space-y-2.5 md:space-y-4">
                     {selectedWorkout.exercises?.map((exercise) => {
                     if (!exercise) return null;
                     const exerciseVolume = calculateExerciseVolume(exercise);
@@ -884,33 +902,6 @@ const History = () => {
                 </div>
               </div>
             </div>
-
-            {/* Actions - Sticky on Mobile */}
-            <div className="fixed md:relative bottom-0 left-0 right-0 p-3 md:p-0 bg-white md:bg-transparent border-t md:border-t-0 border-gray-200 shadow-lg md:shadow-none md:mt-6">
-              <div className="flex gap-2 md:gap-3 max-w-2xl mx-auto">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => handleEditWorkout(selectedWorkout)}
-                  className="flex-1"
-                >
-                  <Edit className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Edit</span>
-                  <span className="sm:hidden">Edit</span>
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleDeleteWorkout(selectedWorkout)}
-                  className="flex-1"
-                >
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Delete</span>
-                  <span className="sm:hidden">Delete</span>
-                </Button>
-              </div>
-            </div>
-          </>
           )}
         </Modal>
       )}

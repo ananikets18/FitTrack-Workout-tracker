@@ -8,6 +8,7 @@ const Modal = ({
   onClose, 
   title, 
   children,
+  footer,
   size = 'md' 
 }) => {
   const modalRef = useRef(null);
@@ -99,6 +100,13 @@ const Modal = ({
               <div className="flex-1 overflow-y-auto p-4 md:p-6">
                 {children}
               </div>
+              
+              {/* Footer - Fixed at bottom, not scrollable */}
+              {footer && (
+                <div className="flex-shrink-0 border-t border-gray-200 p-3 md:p-4 bg-white">
+                  {footer}
+                </div>
+              )}
             </motion.div>
           </div>
         </div>
