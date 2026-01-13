@@ -68,6 +68,17 @@ CREATE TABLE IF NOT EXISTS templates (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Create water_intake table
+CREATE TABLE IF NOT EXISTS water_intake (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  amount INTEGER NOT NULL DEFAULT 0, -- in milliliters
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, date)
+);
+
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_workouts_user_id ON workouts(user_id);
 CREATE INDEX IF NOT EXISTS idx_workouts_date ON workouts(date);
@@ -76,6 +87,8 @@ CREATE INDEX IF NOT EXISTS idx_exercises_workout_id ON exercises(workout_id);
 CREATE INDEX IF NOT EXISTS idx_sets_exercise_id ON sets(exercise_id);
 CREATE INDEX IF NOT EXISTS idx_rest_day_activities_workout_id ON rest_day_activities(workout_id);
 CREATE INDEX IF NOT EXISTS idx_templates_user_id ON templates(user_id);
+CREATE INDEX IF NOT EXISTS idx_water_intake_user_id ON water_intake(user_id);
+CREATE INDEX IF NOT EXISTS idx_water_intake_user_date ON water_intake(user_id, date);
 
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -84,6 +97,7 @@ ALTER TABLE exercises ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rest_day_activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE water_intake ENABLE ROW LEVEL SECURITY;
 
 -- Profiles RLS Policies
 CREATE POLICY "Users can view their own profile"
@@ -259,6 +273,23 @@ CREATE POLICY "Users can delete their own templates"
   ON templates FOR DELETE
   USING (auth.uid() = user_id);
 
+-- Water Intake RLS Policies
+CREATE POLICY "Users can view their own water intake"
+  ON water_intake FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own water intake"
+  ON water_intake FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own water intake"
+  ON water_intake FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own water intake"
+  ON water_intake FOR DELETE
+  USING (auth.uid() = user_id);
+
 -- Create function to automatically create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -299,4 +330,8 @@ CREATE TRIGGER set_updated_at
 
 CREATE TRIGGER set_updated_at
   BEFORE UPDATE ON templates
+  FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER set_updated_at
+  BEFORE UPDATE ON water_intake
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();

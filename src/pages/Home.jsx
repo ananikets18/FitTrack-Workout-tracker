@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 
 import { useWorkouts } from '../context/WorkoutContext';
-import { useAuth } from '../context/AuthContext';
 import { usePreferences } from '../context/PreferencesContext';
 import { useNavigate } from 'react-router-dom';
 import { calculateStreak } from '../utils/calculations';
@@ -16,19 +15,22 @@ import SetupWizard from '../components/SetupWizard';
 
 import SkeletonCard from '../components/common/SkeletonCard';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
-import { TrendingUp, Calendar, Flame, ChevronRight, Dumbbell, Hotel, Plus, RotateCcw, Zap, Brain, AlertCircle } from 'lucide-react';
+import { TrendingUp, Calendar, Flame, ChevronRight, Dumbbell, Hotel, Plus, RotateCcw, Zap, Brain, AlertCircle, Droplet, Minus } from 'lucide-react';
 import { formatDate } from '../utils/calculations';
 import toast from 'react-hot-toast';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 const Home = () => {
-  const { workouts, isLoading, addRestDay, cloneWorkout } = useWorkouts();
-  const { user } = useAuth();
+  const { workouts, isLoading, addRestDay, cloneWorkout, waterIntake, addWaterIntake } = useWorkouts();
   const { preferences, updatePreferences, completeSetup, isLoading: preferencesLoading } = usePreferences();
   const navigate = useNavigate();
   const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
-  const [showSetupWizard, setShowSetupWizard] = useState(false);
+
+  // Derive showSetupWizard from current state instead of using useEffect
+  const showSetupWizard = useMemo(() => {
+    return !isLoading && !preferencesLoading && workouts.length >= 2 && !preferences.hasCompletedSetup;
+  }, [isLoading, preferencesLoading, workouts.length, preferences.hasCompletedSetup]);
 
   const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
   const totalWorkouts = regularWorkouts.length;
@@ -38,15 +40,6 @@ const Home = () => {
 
   // Get last workout
   const lastWorkout = regularWorkouts[0];
-
-  // Show setup wizard for users with workouts who haven't completed setup
-  useEffect(() => {
-    if (!isLoading && !preferencesLoading && workouts.length >= 2 && !preferences.hasCompletedSetup) {
-      setShowSetupWizard(true);
-    } else {
-      setShowSetupWizard(false);
-    }
-  }, [isLoading, preferencesLoading, workouts.length, preferences.hasCompletedSetup]);
 
   // Get intelligent recommendation
   const recommendation = getSmartRecommendation(workouts, preferences);
@@ -73,7 +66,6 @@ const Home = () => {
   const handleSetupComplete = (setupPreferences) => {
     updatePreferences(setupPreferences);
     completeSetup();
-    setShowSetupWizard(false);
     toast.success('Setup complete! 🎉 Smart recommendations enabled', { duration: 3000 });
   };
 
@@ -153,6 +145,110 @@ const Home = () => {
 
       {/* Achievements Accordion */}
       {!isLoading && workouts.length > 0 && <AchievementsAccordion />}
+
+      {/* Water Intake Tracker */}
+      {!isLoading && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-500 rounded-xl p-2.5 shadow-soft">
+                  <Droplet className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Water Intake</h3>
+                  <p className="text-xs text-gray-600">Stay hydrated throughout the day</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600">{(waterIntake.amount / 1000).toFixed(1)}L</div>
+                <div className="text-xs text-gray-500">of 4L goal</div>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-4">
+              <div className="h-3 bg-blue-100 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((waterIntake.amount / 4000) * 100, 100)}%` }}
+                  transition={{ duration: 0.5 }}
+                  className="h-full bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full"
+                />
+              </div>
+              <div className="flex justify-between mt-1 text-xs text-gray-500">
+                <span>0L</span>
+                <span className="font-medium text-blue-600">{Math.round((waterIntake.amount / 4000) * 100)}%</span>
+                <span>4L</span>
+              </div>
+            </div>
+
+            {/* Quick Add Buttons */}
+            <div className="grid grid-cols-4 gap-2">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => addWaterIntake(250)}
+                className="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-xl p-3 transition-colors group"
+              >
+                <Droplet className="w-5 h-5 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+                <div className="text-xs font-bold text-gray-900">+250ml</div>
+                <div className="text-[10px] text-gray-500">Glass</div>
+              </motion.button>
+              
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => addWaterIntake(500)}
+                className="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-xl p-3 transition-colors group"
+              >
+                <Droplet className="w-6 h-6 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+                <div className="text-xs font-bold text-gray-900">+500ml</div>
+                <div className="text-[10px] text-gray-500">Bottle</div>
+              </motion.button>
+              
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => addWaterIntake(750)}
+                className="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-xl p-3 transition-colors group"
+              >
+                <Droplet className="w-7 h-7 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+                <div className="text-xs font-bold text-gray-900">+750ml</div>
+                <div className="text-[10px] text-gray-500">Large</div>
+              </motion.button>
+              
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => addWaterIntake(-250)}
+                disabled={waterIntake.amount === 0}
+                className="bg-white hover:bg-red-50 border-2 border-red-200 rounded-xl p-3 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Minus className="w-5 h-5 text-red-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+                <div className="text-xs font-bold text-gray-900">-250ml</div>
+                <div className="text-[10px] text-gray-500">Undo</div>
+              </motion.button>
+            </div>
+
+            {/* Hydration Status */}
+            {waterIntake.amount >= 4000 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-3 p-3 bg-green-100 border-2 border-green-200 rounded-xl text-center"
+              >
+                <span className="text-sm font-bold text-green-700">🎉 Daily goal achieved! Great job!</span>
+              </motion.div>
+            )}
+            
+            {waterIntake.amount < 1000 && waterIntake.amount > 0 && (
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+                <span className="text-xs text-yellow-700">💧 Keep drinking! You\'re just getting started.</span>
+              </div>
+            )}
+          </Card>
+        </motion.div>
+      )}
 
       {/* Intelligent Recommendation Card */}
       {!isLoading && recommendation && (
@@ -402,7 +498,6 @@ const Home = () => {
       {/* Setup Wizard */}
       <SetupWizard
         isOpen={showSetupWizard}
-        onClose={() => setShowSetupWizard(false)}
         onComplete={handleSetupComplete}
       />
 

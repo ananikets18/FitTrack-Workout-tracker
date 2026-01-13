@@ -285,6 +285,53 @@ export const db = {
     if (error) throw error;
     return data;
   },
+
+  // Water Intake
+  async getWaterIntake(userId, date) {
+    const { data, error } = await supabase
+      .from('water_intake')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('date', date)
+      .single();
+
+    if (error) {
+      // If no record exists yet, return null (not an error)
+      if (error.code === 'PGRST116') return null;
+      throw error;
+    }
+    return data;
+  },
+
+  async upsertWaterIntake(userId, date, amount) {
+    const { data, error } = await supabase
+      .from('water_intake')
+      .upsert({
+        user_id: userId,
+        date: date,
+        amount: amount,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id,date'
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getWaterIntakeHistory(userId, limit = 30) {
+    const { data, error } = await supabase
+      .from('water_intake')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  },
 };
 
 // Helper to transform Supabase data to app format

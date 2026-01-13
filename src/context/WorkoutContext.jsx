@@ -15,6 +15,9 @@ const ACTIONS = {
   SET_CURRENT_WORKOUT: 'SET_CURRENT_WORKOUT',
   CLEAR_CURRENT_WORKOUT: 'CLEAR_CURRENT_WORKOUT',
   SET_LOADING: 'SET_LOADING',
+  SET_WATER_INTAKE: 'SET_WATER_INTAKE',
+  ADD_WATER_INTAKE: 'ADD_WATER_INTAKE',
+  RESET_WATER_INTAKE: 'RESET_WATER_INTAKE',
 };
 
 // Reducer
@@ -42,6 +45,12 @@ const workoutReducer = (state, action) => {
       return { ...state, currentWorkout: action.payload };
     case ACTIONS.CLEAR_CURRENT_WORKOUT:
       return { ...state, currentWorkout: null };
+    case ACTIONS.SET_WATER_INTAKE:
+      return { ...state, waterIntake: action.payload };
+    case ACTIONS.ADD_WATER_INTAKE:
+      return { ...state, waterIntake: { ...state.waterIntake, amount: state.waterIntake.amount + action.payload } };
+    case ACTIONS.RESET_WATER_INTAKE:
+      return { ...state, waterIntake: { date: new Date().toISOString().split('T')[0], amount: 0 } };
     default:
       return state;
   }
@@ -52,6 +61,7 @@ const initialState = {
   workouts: [],
   currentWorkout: null,
   isLoading: true,
+  waterIntake: { date: new Date().toISOString().split('T')[0], amount: 0 },
 };
 
 // Provider component
@@ -217,10 +227,104 @@ export const WorkoutProvider = ({ children }) => {
     return clonedWorkout;
   };
 
+  // Water intake methods
+  const addWaterIntake = async (amount) => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Reset if it's a new day
+    if (state.waterIntake.date !== today) {
+      dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
+    }
+    
+    const newAmount = Math.max(0, state.waterIntake.amount + amount); // Prevent negative values
+    const waterData = { date: today, amount: newAmount };
+    
+    dispatch({ type: ACTIONS.SET_WATER_INTAKE, payload: waterData });
+    
+    // Save to Supabase if user is logged in
+    if (user) {
+      try {
+        await supabase.upsertWaterIntake(user.id, today, newAmount);
+      } catch (error) {
+        console.error('Error saving water intake to Supabase:', error);
+        toast.error('Failed to save water intake');
+      }
+    } else {
+      // Save to localStorage for guests
+      try {
+        localStorage.setItem('waterIntake_guest', JSON.stringify(waterData));
+      } catch (error) {
+        console.error('Error saving water intake to localStorage:', error);
+      }
+    }
+  };
+
+  const resetWaterIntake = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const waterData = { date: today, amount: 0 };
+    dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
+    
+    if (user) {
+      try {
+        await supabase.upsertWaterIntake(user.id, today, 0);
+      } catch (error) {
+        console.error('Error resetting water intake in Supabase:', error);
+      }
+    } else {
+      try {
+        localStorage.setItem('waterIntake_guest', JSON.stringify(waterData));
+      } catch (error) {
+        console.error('Error resetting water intake in localStorage:', error);
+      }
+    }
+  };
+
+  // Load water intake from Supabase or localStorage
+  useEffect(() => {
+    const loadWaterIntake = async () => {
+      const today = new Date().toISOString().split('T')[0];
+
+      if (user) {
+        try {
+          const data = await supabase.getWaterIntake(user.id, today);
+          if (data) {
+            dispatch({ type: ACTIONS.SET_WATER_INTAKE, payload: { date: data.date, amount: data.amount } });
+          } else {
+            // No record for today, reset
+            dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
+          }
+        } catch (error) {
+          console.error('Error loading water intake from Supabase:', error);
+          dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
+        }
+      } else {
+        // Load from localStorage for guests
+        try {
+          const saved = localStorage.getItem('waterIntake_guest');
+          if (saved) {
+            const waterData = JSON.parse(saved);
+            
+            // Reset if saved data is from a previous day
+            if (waterData.date !== today) {
+              dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
+            } else {
+              dispatch({ type: ACTIONS.SET_WATER_INTAKE, payload: waterData });
+            }
+          }
+        } catch (error) {
+          console.error('Error loading water intake from localStorage:', error);
+        }
+      }
+    };
+
+    loadWaterIntake();
+  }, [user]);
+
   const value = {
     workouts: state.workouts,
     currentWorkout: state.currentWorkout,
     isLoading: state.isLoading,
+    waterIntake: state.waterIntake,
     addWorkout,
     addRestDay,
     updateWorkout,
@@ -229,6 +333,8 @@ export const WorkoutProvider = ({ children }) => {
     clearCurrentWorkout,
     cloneWorkout,
     refreshWorkouts: loadWorkouts,
+    addWaterIntake,
+    resetWaterIntake,
   };
 
   return (
