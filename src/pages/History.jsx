@@ -8,8 +8,90 @@ import SkeletonCard from '../components/common/SkeletonCard';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import { formatDate, calculateTotalSets, calculateExerciseVolume, kgToTons, getProgressiveOverload } from '../utils/calculations';
 import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExcel } from '../utils/exportUtils';
-import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star } from 'lucide-react';
+import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
+// Sub-component for individual workout card
+const WorkoutCard = ({ workout, onClick }) => (
+  <Card hover onClick={onClick}>
+    {workout.type === 'rest_day' ? (
+      <div className="flex items-start justify-between">
+        <div className="flex items-start space-x-3 flex-1">
+          <div className="bg-purple-100 rounded-xl p-3 flex-shrink-0">
+            <Hotel className="w-6 h-6 text-purple-600 " />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-gray-900 ">Rest Day</h3>
+            <div className="flex items-center space-x-2 mt-2 text-gray-600 ">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm">{formatDate(workout.date)}</span>
+            </div>
+            <div className="flex items-center space-x-3 mt-3">
+              <div className="flex items-center space-x-1">
+                <span className="text-sm text-gray-600 ">Recovery:</span>
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+            {workout.activities?.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {workout.activities.map((activity, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full"
+                  >
+                    {activity.replace('_', ' ')}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-gray-900 ">{workout.name}</h3>
+          <div className="flex items-center space-x-2 mt-2 text-gray-600 ">
+            <Calendar className="w-4 h-4" />
+            <span className="text-sm">{formatDate(workout.date)}</span>
+          </div>
+          <div className="flex items-center space-x-4 mt-3 text-sm text-gray-600 ">
+            <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
+            <span>•</span>
+            <span>{calculateTotalSets(workout)} sets</span>
+            {workout.duration > 0 && (
+              <>
+                <span>•</span>
+                <span>{workout.duration} min</span>
+              </>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2 mt-3">
+            {workout.exercises?.slice(0, 3).map((ex, idx) => (
+              <span
+                key={idx}
+                className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full"
+              >
+                {ex.name}
+              </span>
+            ))}
+            {workout.exercises?.length > 3 && (
+              <span className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full">
+                +{workout.exercises.length - 3} more
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+  </Card>
+);
 
 const History = () => {
   const navigate = useNavigate();
@@ -23,7 +105,26 @@ const History = () => {
   const [exportPeriod, setExportPeriod] = useState('all');
   const [exportDate, setExportDate] = useState(new Date().toISOString().split('T')[0]);
 
+  // Filtering and Sorting states
+  const [filterType, setFilterType] = useState('all'); // 'all', 'workout', 'rest_day'
+  const [sortBy, setSortBy] = useState('date-desc'); // 'date-desc', 'date-asc', 'name-asc', 'name-desc', 'duration-desc', 'volume-desc'
+  const [groupByDate, setGroupByDate] = useState(true); // Toggle for date grouping
+
+  // Helper function to calculate total volume for a workout
+  const calculateWorkoutVolume = (workout) => {
+    if (workout.type === 'rest_day' || !workout.exercises) return 0;
+    return workout.exercises.reduce((total, exercise) => {
+      return total + calculateExerciseVolume(exercise);
+    }, 0);
+  };
+
+  // Filter workouts by type and search term
   const filteredWorkouts = workouts.filter(workout => {
+    // Filter by type
+    if (filterType === 'workout' && workout.type === 'rest_day') return false;
+    if (filterType === 'rest_day' && workout.type !== 'rest_day') return false;
+
+    // Filter by search term
     if (workout.type === 'rest_day') {
       return workout.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         workout.activities?.some(activity => activity.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -33,6 +134,79 @@ const History = () => {
         ex.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
   });
+
+  // Sort workouts
+  const sortedWorkouts = [...filteredWorkouts].sort((a, b) => {
+    switch (sortBy) {
+      case 'date-desc':
+        return new Date(b.date) - new Date(a.date);
+      case 'date-asc':
+        return new Date(a.date) - new Date(b.date);
+      case 'name-asc':
+        const nameA = a.type === 'rest_day' ? 'Rest Day' : a.name;
+        const nameB = b.type === 'rest_day' ? 'Rest Day' : b.name;
+        return nameA.localeCompare(nameB);
+      case 'name-desc':
+        const nameA2 = a.type === 'rest_day' ? 'Rest Day' : a.name;
+        const nameB2 = b.type === 'rest_day' ? 'Rest Day' : b.name;
+        return nameB2.localeCompare(nameA2);
+      case 'duration-desc':
+        return (b.duration || 0) - (a.duration || 0);
+      case 'volume-desc':
+        return calculateWorkoutVolume(b) - calculateWorkoutVolume(a);
+      default:
+        return new Date(b.date) - new Date(a.date);
+    }
+  });
+
+  // Group workouts by date if enabled
+  const groupedWorkouts = groupByDate ? (() => {
+    const groups = {};
+    sortedWorkouts.forEach(workout => {
+      const date = new Date(workout.date);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      // Reset time parts for accurate comparison
+      const workoutDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const yesterdayDateOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+
+      let groupKey;
+      if (workoutDateOnly.getTime() === todayDateOnly.getTime()) {
+        groupKey = 'Today';
+      } else if (workoutDateOnly.getTime() === yesterdayDateOnly.getTime()) {
+        groupKey = 'Yesterday';
+      } else {
+        // Group by week
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // Check if it's this week
+        const thisWeekStart = new Date(today);
+        thisWeekStart.setDate(today.getDate() - today.getDay());
+        const thisWeekStartOnly = new Date(thisWeekStart.getFullYear(), thisWeekStart.getMonth(), thisWeekStart.getDate());
+
+        if (weekStart.getTime() === thisWeekStartOnly.getTime()) {
+          groupKey = 'This Week';
+        } else {
+          // Format as "Week of Jan 1 - Jan 7"
+          groupKey = `Week of ${monthNames[weekStart.getMonth()]} ${weekStart.getDate()} - ${monthNames[weekEnd.getMonth()]} ${weekEnd.getDate()}`;
+        }
+      }
+
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(workout);
+    });
+    return groups;
+  })() : null;
 
   const handleViewDetails = (workout) => {
     setSelectedWorkout(workout);
@@ -244,19 +418,77 @@ const History = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <Card>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search workouts or exercises..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-        </div>
-      </Card>
+      {/* Search and Filters */}
+      <div className="space-y-3">
+        <Card>
+          <div className="flex flex-col md:flex-row gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search workouts or exercises..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+
+            {/* Controls Toolbar */}
+            <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
+              {/* Type Filter */}
+              <div className="relative">
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="appearance-none pl-9 pr-8 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50"
+                />
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 pointer-events-none" />
+                <div className="absolute inset-0 pointer-events-none flex items-center pl-9">
+                  {/* Invisible text to set width + absolute rendering for the dropdown effect */}
+                  <span className="opacity-0">{filterType === 'all' ? 'All Types' : filterType === 'workout' ? 'Workouts' : 'Rest Days'}</span>
+                </div>
+                {/* Actual options */}
+                <option value="all">All Types</option>
+                <option value="workout">Workouts</option>
+                <option value="rest_day">Rest Days</option>
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="relative min-w-[140px]">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full appearance-none pl-9 pr-8 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50"
+                >
+                  <option value="date-desc">Newest First</option>
+                  <option value="date-asc">Oldest First</option>
+                  <option value="name-asc">Name (A-Z)</option>
+                  <option value="name-desc">Name (Z-A)</option>
+                  <option value="duration-desc">Duration (High-Low)</option>
+                  <option value="volume-desc">Volume (High-Low)</option>
+                </select>
+                <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 pointer-events-none" />
+              </div>
+
+              {/* Group Toggle */}
+              <button
+                onClick={() => setGroupByDate(!groupByDate)}
+                className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${groupByDate
+                  ? 'bg-primary-50 border-primary-200 text-primary-700'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                title="Toggle date grouping"
+              >
+                <Layers className="w-4 h-4" />
+                <span className="hidden sm:inline">Group</span>
+              </button>
+            </div>
+          </div>
+        </Card>
+      </div>
 
       {/* Workouts List */}
       {isLoading ? (
@@ -273,97 +505,42 @@ const History = () => {
           </h3>
           <p className="text-gray-600">
             {searchTerm
-              ? 'Try adjusting your search terms'
+              ? 'Try adjusting your search terms or filters'
               : 'Start logging workouts to see them here'}
           </p>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {filteredWorkouts.map((workout) => (
-            <Card
-              key={workout.id}
-              hover
-              onClick={() => handleViewDetails(workout)}
-            >
-              {workout.type === 'rest_day' ? (
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3 flex-1">
-                    <div className="bg-purple-100 rounded-xl p-3 flex-shrink-0">
-                      <Hotel className="w-6 h-6 text-purple-600 " />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-gray-900 ">Rest Day</h3>
-                      <div className="flex items-center space-x-2 mt-2 text-gray-600 ">
-                        <Calendar className="w-4 h-4" />
-                        <span className="text-sm">{formatDate(workout.date)}</span>
-                      </div>
-                      <div className="flex items-center space-x-3 mt-3">
-                        <div className="flex items-center space-x-1">
-                          <span className="text-sm text-gray-600 ">Recovery:</span>
-                          <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      {workout.activities?.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {workout.activities.map((activity, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full"
-                            >
-                              {activity.replace('_', ' ')}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+        <div className="space-y-6">
+          {groupByDate ? (
+            // Grouped View
+            Object.entries(groupedWorkouts).map(([group, groupWorkouts]) => (
+              <div key={group} className="space-y-3">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider pl-1 sticky top-0 bg-gray-50/95 backdrop-blur-sm py-2 z-10 w-full">
+                  {group}
+                </h3>
+                <div className="space-y-4">
+                  {groupWorkouts.map(workout => (
+                    <WorkoutCard
+                      key={workout.id}
+                      workout={workout}
+                      onClick={() => handleViewDetails(workout)}
+                    />
+                  ))}
                 </div>
-              ) : (
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-gray-900 ">{workout.name}</h3>
-                    <div className="flex items-center space-x-2 mt-2 text-gray-600 ">
-                      <Calendar className="w-4 h-4" />
-                      <span className="text-sm">{formatDate(workout.date)}</span>
-                    </div>
-                    <div className="flex items-center space-x-4 mt-3 text-sm text-gray-600 ">
-                      <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
-                      <span>•</span>
-                      <span>{calculateTotalSets(workout)} sets</span>
-                      {workout.duration > 0 && (
-                        <>
-                          <span>•</span>
-                          <span>{workout.duration} min</span>
-                        </>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {workout.exercises?.slice(0, 3).map((ex, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full"
-                        >
-                          {ex.name}
-                        </span>
-                      ))}
-                      {workout.exercises?.length > 3 && (
-                        <span className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full">
-                          +{workout.exercises.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Card>
-          ))}
+              </div>
+            ))
+          ) : (
+            // Flat List View
+            <div className="space-y-4">
+              {sortedWorkouts.map((workout) => (
+                <WorkoutCard
+                  key={workout.id}
+                  workout={workout}
+                  onClick={() => handleViewDetails(workout)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
