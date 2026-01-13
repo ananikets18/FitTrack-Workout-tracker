@@ -211,8 +211,8 @@ const Statistics = () => {
                     onClick={() => handleExerciseClick(exercise)}
                     className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
                   >
-                    <span className="font-medium text-gray-900">{exercise}</span>
-                    <span className="text-lg font-bold text-primary-600">{weight} kg</span>
+                    <span className="font-medium text-gray-900 truncate mr-3" title={exercise}>{exercise}</span>
+                    <span className="text-lg font-bold text-primary-600 flex-shrink-0">{weight} kg</span>
                   </button>
                 ))}
             </div>
@@ -234,13 +234,13 @@ const Statistics = () => {
             <div className="space-y-3">
               {topExercises.map(([exercise, count], index) => (
                 <div key={exercise} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
                       #{index + 1}
                     </div>
-                    <span className="font-medium text-gray-900">{exercise}</span>
+                    <span className="font-medium text-gray-900 truncate" title={exercise}>{exercise}</span>
                   </div>
-                  <span className="text-sm text-gray-600">{count} times</span>
+                  <span className="text-sm text-gray-600 flex-shrink-0 ml-3">{count} times</span>
                 </div>
               ))}
             </div>

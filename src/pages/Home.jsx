@@ -157,41 +157,6 @@ const Home = () => {
       {/* Intelligent Recommendation Card */}
       {!isLoading && recommendation && (
         <>
-          {/* Rest Day Recommendation */}
-          {recommendation.shouldRest && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 text-white shadow-lifted"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
-                    <Hotel className="w-5 h-5" />
-                  </div>
-                  <span className="text-sm font-semibold uppercase tracking-wide">Smart Recommendation</span>
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1">
-                  <span className="text-xs font-bold">{recommendation.confidence}% Confident</span>
-                </div>
-              </div>
-              <h3 className="text-2xl font-bold mb-2">Take a Rest Day</h3>
-              <div className="space-y-1 mb-4">
-                {recommendation.reasoning.map((reason, idx) => (
-                  <p key={idx} className="text-white/90 text-sm">{reason}</p>
-                ))}
-              </div>
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsRestDayModalOpen(true)}
-                className="w-full bg-white text-purple-600 font-bold py-3 px-4 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center space-x-2"
-              >
-                <Hotel className="w-5 h-5" />
-                <span>Log Rest Day</span>
-              </motion.button>
-            </motion.div>
-          )}
-
           {/* Workout Recommendation */}
           {!recommendation.shouldRest && recommendation.workout && (
             <motion.div
