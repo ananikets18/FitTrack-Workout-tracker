@@ -1,4 +1,21 @@
 import { format, differenceInDays, startOfDay } from 'date-fns';
+import {
+  detectCardioType,
+  calculateCardioStress,
+  classifyWorkoutCardio,
+  getCardioTypeLabel,
+  CARDIO_TYPES
+} from './cardioClassification';
+import {
+  getExerciseMuscleDistribution,
+  calculateWeightedMuscleSets
+} from './exerciseMuscleMapping';
+import {
+  calculateSystemicStress,
+  getSystemicReadiness,
+  getWorkoutIntensityClassification,
+  classifyExerciseIntensity
+} from './intensityClassification';
 
 export const calculateTotalVolume = (workout) => {
   if (!workout?.exercises) return 0;
@@ -68,11 +85,13 @@ export const calculateActivityPoints = (exercise) => {
   const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
   const isBodyweight = maxWeight === 0 && !isCardio;
 
+  if (isCardio) {
+    // Use advanced cardio stress calculation (accounts for LISS/MISS/HIIT)
+    return calculateCardioStress(exercise) * 10; // Scale to match activity points
+  }
+
   return exercise.sets.reduce((sum, set) => {
-    if (isCardio) {
-      // Cardio: duration × 10 (duration stored in reps field)
-      return sum + ((set.reps || 0) * 10);
-    } else if (isBodyweight) {
+    if (isBodyweight) {
       // Bodyweight exercises: reps × 2
       return sum + ((set.reps || 0) * 2);
     } else {
@@ -98,7 +117,13 @@ export const getActivityBreakdown = (workouts) => {
     cardio: 0,
     bodyweight: 0,
     cardioMinutes: 0,
-    cardioSessions: 0
+    cardioSessions: 0,
+    // Cardio type breakdown
+    cardioTypes: {
+      LISS: 0,
+      MISS: 0,
+      HIIT: 0
+    }
   };
 
   const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
@@ -115,6 +140,10 @@ export const getActivityBreakdown = (workouts) => {
         breakdown.cardio += points;
         breakdown.cardioMinutes += exercise.sets.reduce((sum, set) => sum + (set.reps || 0), 0);
         breakdown.cardioSessions += 1;
+
+        // Track cardio type
+        const cardioType = detectCardioType(exercise.name);
+        breakdown.cardioTypes[cardioType]++;
       } else if (isBodyweight) {
         breakdown.bodyweight += points;
       } else {
@@ -232,6 +261,35 @@ export const getPersonalRecords = (workouts) => {
   });
 
   return records;
+};
+
+// ============================================
+// ADVANCED WORKOUT INTELLIGENCE
+// ============================================
+
+// Calculate systemic (CNS) stress for a workout
+export const getWorkoutSystemicStress = (workout) => {
+  return calculateSystemicStress(workout);
+};
+
+// Get workout intensity classification with label and color
+export const getWorkoutIntensity = (workout) => {
+  return getWorkoutIntensityClassification(workout);
+};
+
+// Get weighted muscle distribution for a workout
+export const getWorkoutMuscleDistribution = (workout) => {
+  return calculateWeightedMuscleSets(workout);
+};
+
+// Get cardio breakdown for a workout
+export const getWorkoutCardioBreakdown = (workout) => {
+  return classifyWorkoutCardio(workout);
+};
+
+// Calculate systemic readiness score
+export const getUserReadinessScore = (workouts, daysToConsider = 7) => {
+  return getSystemicReadiness(workouts, daysToConsider);
 };
 
 export const calculateStreak = (workouts) => {
@@ -432,6 +490,48 @@ export const generateInsights = (workouts) => {
     });
   }
 
-  // Return top 6 insights (increased from 5 to accommodate cardio)
-  return insights.slice(0, 6);
+  // 8. Systemic Readiness Insight (NEW - CNS Stress Tracking)
+  const readinessScore = getUserReadinessScore(workouts, 7);
+  if (readinessScore < 50) {
+    insights.push({
+      icon: '⚠️',
+      title: 'Recovery Needed',
+      message: `Your readiness score is ${readinessScore}/100. Consider a rest day or light activity.`,
+      color: 'red',
+    });
+  } else if (readinessScore >= 80) {
+    insights.push({
+      icon: '💯',
+      title: 'Fully Recovered',
+      message: `Readiness score: ${readinessScore}/100. You're ready for intense training!`,
+      color: 'green',
+    });
+  }
+
+  // 9. Cardio Type Insight (NEW - LISS/MISS/HIIT Breakdown)
+  if (activityBreakdown.cardioTypes) {
+    const { LISS, MISS, HIIT } = activityBreakdown.cardioTypes;
+    const totalCardioSessions = LISS + MISS + HIIT;
+
+    if (totalCardioSessions >= 3) {
+      if (HIIT >= 2) {
+        insights.push({
+          icon: '⚡',
+          title: 'High Intensity Focus',
+          message: `${HIIT} HIIT sessions this period. Great for fat loss and conditioning!`,
+          color: 'orange',
+        });
+      } else if (LISS >= 3) {
+        insights.push({
+          icon: '🚶',
+          title: 'Active Recovery',
+          message: `${LISS} LISS sessions. Perfect for recovery and heart health!`,
+          color: 'teal',
+        });
+      }
+    }
+  }
+
+  // Return top 8 insights (increased to accommodate new intelligence)
+  return insights.slice(0, 8);
 };
