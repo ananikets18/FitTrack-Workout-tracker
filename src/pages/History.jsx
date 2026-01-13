@@ -535,7 +535,9 @@ const History = () => {
                                     } py-2 px-2 rounded`}
                                 >
                                   <div className="font-medium">{index + 1}</div>
-                                  <div className="font-semibold">{set.reps} mins</div>
+                                  <div className="font-semibold">
+                                    {exercise.category === 'cardio' ? `${set.duration || 0} mins` : `${set.reps} reps`}
+                                  </div>
                                   <div className="text-right text-xs">
                                     {set.completed ? '✓ Done' : '-'}
                                   </div>
@@ -643,8 +645,8 @@ const History = () => {
                 <button
                   onClick={() => setExportPeriod('all')}
                   className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'all'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
                   All Workouts
@@ -652,8 +654,8 @@ const History = () => {
                 <button
                   onClick={() => setExportPeriod('day')}
                   className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'day'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
                   Single Day
@@ -661,8 +663,8 @@ const History = () => {
                 <button
                   onClick={() => setExportPeriod('week')}
                   className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'week'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
                   Week
@@ -670,8 +672,8 @@ const History = () => {
                 <button
                   onClick={() => setExportPeriod('month')}
                   className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'month'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
                   Month
@@ -679,8 +681,8 @@ const History = () => {
                 <button
                   onClick={() => setExportPeriod('year')}
                   className={`px-4 py-3 rounded-lg font-medium transition-all col-span-2 ${exportPeriod === 'year'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
                   Year

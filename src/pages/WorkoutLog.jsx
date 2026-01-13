@@ -21,7 +21,7 @@ const WorkoutLog = () => {
   const [newExercise, setNewExercise] = useState({
     name: '',
     category: 'chest',
-    sets: [{ reps: '', weight: '', completed: false }],
+    sets: [{ reps: '', weight: '', duration: '', completed: false }],
     notes: '',
   });
 
@@ -32,7 +32,7 @@ const WorkoutLog = () => {
   const handleAddSet = () => {
     setNewExercise({
       ...newExercise,
-      sets: [...newExercise.sets, { reps: '', weight: '', completed: false }],
+      sets: [...newExercise.sets, { reps: '', weight: '', duration: '', completed: false }],
     });
   };
 
@@ -55,13 +55,16 @@ const WorkoutLog = () => {
       return;
     }
 
+    const isCardio = newExercise.category === 'cardio';
+
     const exercise = {
       id: crypto.randomUUID(),
       name: newExercise.name,
       category: newExercise.category,
       sets: newExercise.sets.map(set => ({
-        reps: parseInt(set.reps) || 0,
+        reps: isCardio ? 0 : (parseInt(set.reps) || 0),
         weight: parseFloat(set.weight) || 0,
+        duration: isCardio ? (parseInt(set.duration) || 0) : undefined,
         completed: set.completed,
       })),
       notes: newExercise.notes,
@@ -74,7 +77,7 @@ const WorkoutLog = () => {
     setNewExercise({
       name: '',
       category: 'chest',
-      sets: [{ reps: '', weight: '', completed: false }],
+      sets: [{ reps: '', weight: '', duration: '', completed: false }],
       notes: '',
     });
   };
@@ -201,30 +204,61 @@ const WorkoutLog = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="grid grid-cols-4 gap-2 text-sm font-semibold text-gray-700">
-                    <div>Set</div>
-                    <div>Reps</div>
-                    <div>Weight (kg)</div>
-                    <div className="text-center">Done</div>
-                  </div>
-                  {exercise.sets.map((set, index) => (
-                    <div key={index} className="grid grid-cols-4 gap-2 items-center">
-                      <div className="text-gray-600">{index + 1}</div>
-                      <div className="text-gray-900 font-semibold">{set.reps}</div>
-                      <div className="text-gray-900 font-semibold">{set.weight}</div>
-                      <div className="flex justify-center">
-                        <button
-                          onClick={() => handleToggleSet(exercise.id, index)}
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${set.completed
-                              ? 'bg-green-500 border-green-500'
-                              : 'border-gray-300 hover:border-primary-500'
-                            }`}
-                        >
-                          {set.completed && <Check className="w-4 h-4 text-white" />}
-                        </button>
+                  {exercise.category === 'cardio' ? (
+                    // Cardio display
+                    <>
+                      <div className="grid grid-cols-3 gap-2 text-sm font-semibold text-gray-700">
+                        <div>Set</div>
+                        <div>Duration (mins)</div>
+                        <div className="text-center">Done</div>
                       </div>
-                    </div>
-                  ))}
+                      {exercise.sets.map((set, index) => (
+                        <div key={index} className="grid grid-cols-3 gap-2 items-center">
+                          <div className="text-gray-600">{index + 1}</div>
+                          <div className="text-gray-900 font-semibold">{set.duration || 0}</div>
+                          <div className="flex justify-center">
+                            <button
+                              onClick={() => handleToggleSet(exercise.id, index)}
+                              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${set.completed
+                                  ? 'bg-green-500 border-green-500'
+                                  : 'border-gray-300 hover:border-primary-500'
+                                }`}
+                            >
+                              {set.completed && <Check className="w-4 h-4 text-white" />}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    // Weight training display
+                    <>
+                      <div className="grid grid-cols-4 gap-2 text-sm font-semibold text-gray-700">
+                        <div>Set</div>
+                        <div>Reps</div>
+                        <div>Weight (kg)</div>
+                        <div className="text-center">Done</div>
+                      </div>
+                      {exercise.sets.map((set, index) => (
+                        <div key={index} className="grid grid-cols-4 gap-2 items-center">
+                          <div className="text-gray-600">{index + 1}</div>
+                          <div className="text-gray-900 font-semibold">{set.reps}</div>
+                          <div className="text-gray-900 font-semibold">{set.weight}</div>
+                          <div className="flex justify-center">
+                            <button
+                              onClick={() => handleToggleSet(exercise.id, index)}
+                              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${set.completed
+                                  ? 'bg-green-500 border-green-500'
+                                  : 'border-gray-300 hover:border-primary-500'
+                                }`}
+                            >
+                              {set.completed && <Check className="w-4 h-4 text-white" />}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
 
                 {exercise.notes && (
@@ -292,8 +326,8 @@ const WorkoutLog = () => {
                         <Input
                           type="number"
                           placeholder="Duration (mins)"
-                          value={set.reps}
-                          onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+                          value={set.duration}
+                          onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
                           className="flex-1"
                         />
                         <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">

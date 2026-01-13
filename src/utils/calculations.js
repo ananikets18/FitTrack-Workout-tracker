@@ -138,7 +138,7 @@ export const getActivityBreakdown = (workouts) => {
 
       if (isCardio) {
         breakdown.cardio += points;
-        breakdown.cardioMinutes += exercise.sets.reduce((sum, set) => sum + (set.reps || 0), 0);
+        breakdown.cardioMinutes += exercise.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
         breakdown.cardioSessions += 1;
 
         // Track cardio type
@@ -198,9 +198,9 @@ export const getProgressiveOverload = (exerciseName, currentWorkout, workoutHist
   const isCardio = currentExercise.category === 'cardio';
 
   if (isCardio) {
-    // For cardio: compare duration (stored in reps field)
-    const currentDuration = currentExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
-    const previousDuration = previousExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
+    // For cardio: compare duration
+    const currentDuration = currentExercise.sets.reduce((sum, s) => sum + (s.duration || 0), 0);
+    const previousDuration = previousExercise.sets.reduce((sum, s) => sum + (s.duration || 0), 0);
 
     if (currentDuration > previousDuration) {
       return {

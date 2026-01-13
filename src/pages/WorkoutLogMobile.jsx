@@ -152,7 +152,7 @@ const WorkoutLogMobile = () => {
     const lastSet = newExercise.sets[newExercise.sets.length - 1];
     setNewExercise({
       ...newExercise,
-      sets: [...newExercise.sets, { reps: lastSet.reps, weight: lastSet.weight, completed: false }],
+      sets: [...newExercise.sets, { reps: lastSet.reps, weight: lastSet.weight, duration: lastSet.duration || '', completed: false }],
     });
     vibrate(30);
   };
@@ -179,11 +179,18 @@ const WorkoutLogMobile = () => {
       return;
     }
 
+    const isCardio = newExercise.category === 'cardio';
+
     const exercise = {
       id: crypto.randomUUID(),
       name: newExercise.name,
       category: newExercise.category,
-      sets: newExercise.sets,
+      sets: newExercise.sets.map(set => ({
+        reps: isCardio ? 0 : (parseInt(set.reps) || 0),
+        weight: parseFloat(set.weight) || 0,
+        duration: isCardio ? (parseInt(set.duration) || 0) : undefined,
+        completed: set.completed,
+      })),
       notes: newExercise.notes,
     };
 
@@ -196,7 +203,7 @@ const WorkoutLogMobile = () => {
     setNewExercise({
       name: '',
       category: 'chest',
-      sets: [{ reps: 10, weight: 0, completed: false }],
+      sets: [{ reps: 10, weight: 0, duration: '', completed: false }],
       notes: '',
     });
   };
@@ -286,6 +293,7 @@ const WorkoutLogMobile = () => {
         sets: ex.sets.map(set => ({
           reps: set.reps,
           weight: set.weight,
+          duration: set.duration,
           completed: false
         })),
         notes: ex.notes
@@ -440,10 +448,19 @@ const WorkoutLogMobile = () => {
 
               <div className="flex-1">
                 <div className="flex items-center space-x-2 text-lg">
-                  <span className="font-bold text-gray-900">{set.reps}</span>
-                  <span className="text-gray-500">reps ×</span>
-                  <span className="font-bold text-gray-900">{set.weight}</span>
-                  <span className="text-gray-500">kg</span>
+                  {exercise.category === 'cardio' ? (
+                    <>
+                      <span className="font-bold text-gray-900">{set.duration || 0}</span>
+                      <span className="text-gray-500">mins</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-bold text-gray-900">{set.reps}</span>
+                      <span className="text-gray-500">reps ×</span>
+                      <span className="font-bold text-gray-900">{set.weight}</span>
+                      <span className="text-gray-500">kg</span>
+                    </>
+                  )}
                 </div>
                 {setIndex > 0 && (
                   <motion.button
@@ -813,8 +830,8 @@ const WorkoutLogMobile = () => {
                         <>
                           <NumberPicker
                             label="Duration (mins)"
-                            value={set.reps}
-                            onChange={(val) => handleSetChange(index, 'reps', val)}
+                            value={set.duration}
+                            onChange={(val) => handleSetChange(index, 'duration', val)}
                             min={1}
                             max={120}
                             quickIncrements={[-5, -1, 1, 5]}

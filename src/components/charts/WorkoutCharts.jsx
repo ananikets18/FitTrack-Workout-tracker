@@ -150,7 +150,7 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
 
         // For cardio: track duration, for weights: track max weight
         const metric = isCardio
-          ? exercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0) // Total duration
+          ? exercise.sets.reduce((sum, s) => sum + (s.duration || 0), 0) // Total duration
           : Math.max(...exercise.sets.map(s => s.weight || 0)); // Max weight
 
         if (!exerciseProgress[exercise.name]) {
@@ -551,7 +551,7 @@ export const WeeklyMonthlyActivityChart = ({ workouts }) => {
 
       const points = exercise.sets.reduce((sum, set) => {
         if (isCardio) {
-          return sum + ((set.reps || 0) * 10);
+          return sum + ((set.duration || 0) * 10);
         } else if (isBodyweight) {
           return sum + ((set.reps || 0) * 2);
         } else {
