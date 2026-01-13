@@ -2,6 +2,14 @@ import { differenceInDays, startOfWeek, endOfWeek } from 'date-fns';
 import { getWorkoutOverloadRecommendations } from './progressiveOverloadPredictor';
 import { assessInjuryRisk, suggestRecoveryWork } from './injuryPrevention';
 import { calculateReadinessScore, determineDifficultyLevel, getWorkoutAdjustment } from './workoutDifficultyAdjuster';
+import {
+    calculateWeightedMuscleSets,
+    detectMuscleGroupsWeighted
+} from './exerciseMuscleMapping';
+import {
+    getSystemicReadiness,
+    calculateSystemicStress
+} from './intensityClassification';
 
 // ============================================
 // INTELLIGENT WORKOUT RECOMMENDATION SYSTEM
@@ -104,59 +112,17 @@ const MUSCLE_KEYWORDS = {
 // HELPER FUNCTIONS
 // ============================================
 
-// Detect muscle groups in a workout
+// Detect muscle groups in a workout (ENHANCED - uses weighted detection)
 export const detectMuscleGroups = (workout) => {
-    const muscleGroups = new Set();
-
-    if (!workout?.exercises) return [];
-
-    workout.exercises.forEach(exercise => {
-        // First try category
-        if (exercise.category && CATEGORY_TO_MUSCLE[exercise.category]) {
-            muscleGroups.add(CATEGORY_TO_MUSCLE[exercise.category]);
-        } else {
-            // Fallback to keyword matching
-            const exerciseName = exercise.name.toLowerCase();
-            for (const [muscle, keywords] of Object.entries(MUSCLE_KEYWORDS)) {
-                if (keywords.some(keyword => exerciseName.includes(keyword))) {
-                    muscleGroups.add(muscle);
-                    break;
-                }
-            }
-        }
-    });
-
-    return Array.from(muscleGroups);
+    // Use new weighted muscle detection system
+    return detectMuscleGroupsWeighted(workout);
 };
 
-// Calculate sets per muscle group in a workout
+// Calculate sets per muscle group in a workout (ENHANCED - uses weighted distribution)
 export const calculateMuscleSets = (workout) => {
-    const muscleSets = {};
-
-    if (!workout?.exercises) return muscleSets;
-
-    workout.exercises.forEach(exercise => {
-        let muscle = null;
-
-        // Detect muscle group
-        if (exercise.category && CATEGORY_TO_MUSCLE[exercise.category]) {
-            muscle = CATEGORY_TO_MUSCLE[exercise.category];
-        } else {
-            const exerciseName = exercise.name.toLowerCase();
-            for (const [muscleGroup, keywords] of Object.entries(MUSCLE_KEYWORDS)) {
-                if (keywords.some(keyword => exerciseName.includes(keyword))) {
-                    muscle = muscleGroup;
-                    break;
-                }
-            }
-        }
-
-        if (muscle) {
-            muscleSets[muscle] = (muscleSets[muscle] || 0) + exercise.sets.length;
-        }
-    });
-
-    return muscleSets;
+    // Use new weighted muscle sets calculation
+    // This accounts for exercises that work multiple muscle groups
+    return calculateWeightedMuscleSets(workout);
 };
 
 // Get muscle recovery status
@@ -242,10 +208,10 @@ export const getWeeklyVolume = (workouts) => {
     return weeklyVolume;
 };
 
-// Detect fatigue level
+// Detect fatigue level (ENHANCED - uses systemic stress)
 export const getFatigueLevel = (workouts) => {
     const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
-    if (regularWorkouts.length === 0) return { level: 'low', consecutiveDays: 0, recommendation: 'ready' };
+    if (regularWorkouts.length === 0) return { level: 'low', consecutiveDays: 0, recommendation: 'ready', systemicStress: 0 };
 
     // Get last 7 days
     const last7Days = regularWorkouts.filter(w => {
@@ -276,18 +242,24 @@ export const getFatigueLevel = (workouts) => {
         return sum + totalSets;
     }, 0) / (last7Days.length || 1);
 
+    // NEW: Calculate systemic stress (CNS fatigue)
+    const avgSystemicStress = last7Days.reduce((sum, w) => {
+        return sum + calculateSystemicStress(w);
+    }, 0) / (last7Days.length || 1);
+
     let level = 'low';
     let recommendation = 'ready';
 
-    if (consecutiveDays >= 5 || avgSetsPerWorkout > 30) {
+    // Enhanced fatigue detection using systemic stress
+    if (consecutiveDays >= 5 || avgSetsPerWorkout > 30 || avgSystemicStress > 70) {
         level = 'high';
         recommendation = 'rest';
-    } else if (consecutiveDays >= 3 || avgSetsPerWorkout > 20) {
+    } else if (consecutiveDays >= 3 || avgSetsPerWorkout > 20 || avgSystemicStress > 50) {
         level = 'moderate';
         recommendation = 'light';
     }
 
-    return { level, consecutiveDays, avgSetsPerWorkout, recommendation };
+    return { level, consecutiveDays, avgSetsPerWorkout, systemicStress: avgSystemicStress, recommendation };
 };
 
 // Get last rest day quality
@@ -329,8 +301,8 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
     // 1. INJURY RISK ASSESSMENT
     const injuryRisk = assessInjuryRisk(workouts);
 
-    // 2. READINESS & DIFFICULTY CALCULATION
-    const readinessScore = calculateReadinessScore(workouts);
+    // 2. READINESS & DIFFICULTY CALCULATION (ENHANCED - uses systemic readiness)
+    const readinessScore = getSystemicReadiness(workouts, 7); // Use new systemic readiness
     const difficultyLevel = determineDifficultyLevel(readinessScore);
 
     // Get all analysis data
