@@ -59,6 +59,20 @@ const WorkoutCard = ({ workout, onClick }) => {
             )}
           </div>
         </div>
+        
+        {/* Action Buttons - Mobile Only */}
+        <div className="flex md:hidden flex-col gap-1.5 ml-2 flex-shrink-0">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(workout);
+            }}
+            className="action-button p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors active:scale-95"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     ) : (
       <div className="flex items-start justify-between">
@@ -94,6 +108,30 @@ const WorkoutCard = ({ workout, onClick }) => {
               </span>
             )}
           </div>
+        </div>
+        
+        {/* Action Buttons - Mobile Only */}
+        <div className="flex md:hidden flex-col gap-1.5 ml-2 flex-shrink-0">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(workout);
+            }}
+            className="action-button p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors active:scale-95"
+            title="Edit"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(workout);
+            }}
+            className="action-button p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors active:scale-95"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
     )}
@@ -638,6 +676,8 @@ const History = () => {
                       key={workout?.id || `workout-${group}-${idx}`}
                       workout={workout}
                       onClick={() => handleViewDetails(workout)}
+                      onEdit={handleEditWorkout}
+                      onDelete={handleDeleteWorkout}
                     />
                   ))}
                 </div>
@@ -651,6 +691,8 @@ const History = () => {
                   key={workout?.id || `workout-flat-${idx}`}
                   workout={workout}
                   onClick={() => handleViewDetails(workout)}
+                  onEdit={handleEditWorkout}
+                  onDelete={handleDeleteWorkout}
                 />
               ))}
             </div>
