@@ -435,32 +435,29 @@ const History = () => {
             </div>
 
             {/* Controls Toolbar */}
-            <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
+            <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar items-center">
               {/* Type Filter */}
               <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
-                  className="appearance-none pl-9 pr-8 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50"
-                />
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
+                  className="h-10 appearance-none pl-9 pr-8 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50"
+                >
+                  <option value="all">All Types</option>
+                  <option value="workout">Workouts</option>
+                  <option value="rest_day">Rest Days</option>
+                </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 pointer-events-none" />
-                <div className="absolute inset-0 pointer-events-none flex items-center pl-9">
-                  {/* Invisible text to set width + absolute rendering for the dropdown effect */}
-                  <span className="opacity-0">{filterType === 'all' ? 'All Types' : filterType === 'workout' ? 'Workouts' : 'Rest Days'}</span>
-                </div>
-                {/* Actual options */}
-                <option value="all">All Types</option>
-                <option value="workout">Workouts</option>
-                <option value="rest_day">Rest Days</option>
               </div>
 
               {/* Sort Dropdown */}
               <div className="relative min-w-[140px]">
+                <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full appearance-none pl-9 pr-8 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50"
+                  className="h-10 w-full appearance-none pl-9 pr-8 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50"
                 >
                   <option value="date-desc">Newest First</option>
                   <option value="date-asc">Oldest First</option>
@@ -469,16 +466,15 @@ const History = () => {
                   <option value="duration-desc">Duration (High-Low)</option>
                   <option value="volume-desc">Volume (High-Low)</option>
                 </select>
-                <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 pointer-events-none" />
               </div>
 
               {/* Group Toggle */}
               <button
                 onClick={() => setGroupByDate(!groupByDate)}
-                className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${groupByDate
-                  ? 'bg-primary-50 border-primary-200 text-primary-700'
-                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                className={`flex h-10 items-center gap-2 px-3 border rounded-lg text-sm font-medium transition-colors ${groupByDate
+                    ? 'bg-primary-50 border-primary-200 text-primary-700'
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 title="Toggle date grouping"
               >
