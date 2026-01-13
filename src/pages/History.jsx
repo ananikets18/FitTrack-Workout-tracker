@@ -19,6 +19,9 @@ const History = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [workoutToDelete, setWorkoutToDelete] = useState(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportPeriod, setExportPeriod] = useState('all');
+  const [exportDate, setExportDate] = useState(new Date().toISOString().split('T')[0]);
 
   const filteredWorkouts = workouts.filter(workout => {
     if (workout.type === 'rest_day') {
@@ -61,6 +64,13 @@ const History = () => {
       return;
     }
 
+    // For JSON, open the date range modal
+    if (format === 'json') {
+      setIsExportModalOpen(true);
+      return;
+    }
+
+    // For CSV and Excel, export directly
     let success = false;
     switch (format) {
       case 'csv':
@@ -68,9 +78,6 @@ const History = () => {
         break;
       case 'excel':
         success = exportToExcel(workouts);
-        break;
-      case 'json':
-        success = exportToJSON(workouts);
         break;
       default:
         break;
@@ -80,6 +87,23 @@ const History = () => {
       toast.success(`Exported successfully as ${format.toUpperCase()}!`);
     } else {
       toast.error('Export failed. Please try again.');
+    }
+  };
+
+  const handleConfirmExport = () => {
+    const dateRange = exportPeriod === 'all' ? null : {
+      period: exportPeriod,
+      date: exportDate
+    };
+
+    const success = exportToJSON(workouts, dateRange);
+
+    if (success) {
+      const periodText = exportPeriod === 'all' ? 'all workouts' : `${exportPeriod} workouts`;
+      toast.success(`Exported ${periodText} successfully!`);
+      setIsExportModalOpen(false);
+    } else {
+      toast.error('No workouts found in the selected date range');
     }
   };
 
@@ -596,6 +620,118 @@ const History = () => {
         cancelText="Cancel"
         variant="danger"
       />
+
+      {/* JSON Export Modal with Date Range Selection */}
+      <Modal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Workouts (JSON)"
+        size="md"
+      >
+        <div className="space-y-6">
+          <div>
+            <p className="text-sm text-gray-600 mb-4">
+              Select the time period for your workout data export
+            </p>
+
+            {/* Period Selection */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-900">
+                Export Period
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setExportPeriod('all')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'all'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  All Workouts
+                </button>
+                <button
+                  onClick={() => setExportPeriod('day')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'day'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  Single Day
+                </button>
+                <button
+                  onClick={() => setExportPeriod('week')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'week'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  Week
+                </button>
+                <button
+                  onClick={() => setExportPeriod('month')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'month'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  Month
+                </button>
+                <button
+                  onClick={() => setExportPeriod('year')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all col-span-2 ${exportPeriod === 'year'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  Year
+                </button>
+              </div>
+            </div>
+
+            {/* Date Picker - Only show when not "all" */}
+            {exportPeriod !== 'all' && (
+              <div className="mt-4">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Reference Date
+                </label>
+                <input
+                  type="date"
+                  value={exportDate}
+                  onChange={(e) => setExportDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  {exportPeriod === 'day' && 'Export workouts from this specific day'}
+                  {exportPeriod === 'week' && 'Export workouts from the week containing this date (Mon-Sun)'}
+                  {exportPeriod === 'month' && 'Export workouts from the month containing this date'}
+                  {exportPeriod === 'year' && 'Export workouts from the year containing this date'}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-3 pt-4 border-t">
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => setIsExportModalOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleConfirmExport}
+              className="flex-1"
+            >
+              <FileJson className="w-4 h-4 mr-2" />
+              Export JSON
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
