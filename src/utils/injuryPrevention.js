@@ -1,5 +1,9 @@
 import { differenceInDays, subWeeks } from 'date-fns';
 import { calculateMuscleSets } from './smartRecommendations';
+import {
+    calculateSystemicStress,
+    getIntensityMultiplier
+} from './intensityClassification';
 
 // ============================================
 // INJURY PREVENTION SYSTEM
@@ -193,7 +197,7 @@ export const detectConsecutiveDays = (workouts) => {
     return warnings;
 };
 
-// Calculate overall fatigue score
+// Calculate overall fatigue score (ENHANCED - uses systemic stress)
 export const calculateFatigueScore = (workouts) => {
     const last7Days = workouts.filter(w => {
         const daysSince = differenceInDays(new Date(), new Date(w.date));
@@ -204,11 +208,11 @@ export const calculateFatigueScore = (workouts) => {
 
     let fatigueScore = 0;
 
-    // Factor 1: Number of workouts (max 40 points)
+    // Factor 1: Number of workouts (max 30 points - reduced from 40)
     const workoutCount = last7Days.filter(w => w.type !== 'rest_day').length;
-    fatigueScore += Math.min(40, workoutCount * 8);
+    fatigueScore += Math.min(30, workoutCount * 6);
 
-    // Factor 2: Average sets per workout (max 30 points)
+    // Factor 2: Average sets per workout (max 25 points - reduced from 30)
     const avgSets = last7Days
         .filter(w => w.type !== 'rest_day')
         .reduce((sum, w) => {
@@ -216,15 +220,22 @@ export const calculateFatigueScore = (workouts) => {
             return sum + totalSets;
         }, 0) / (workoutCount || 1);
 
-    fatigueScore += Math.min(30, avgSets * 1.5);
+    fatigueScore += Math.min(25, avgSets * 1.25);
 
-    // Factor 3: Rest day quality (max 30 points)
+    // Factor 3: Systemic (CNS) Stress (NEW - max 25 points)
+    const avgSystemicStress = last7Days
+        .filter(w => w.type !== 'rest_day')
+        .reduce((sum, w) => sum + calculateSystemicStress(w), 0) / (workoutCount || 1);
+
+    fatigueScore += Math.min(25, avgSystemicStress / 4); // Scale 0-100 stress to 0-25 points
+
+    // Factor 4: Rest day quality (max 20 points - reduced from 30)
     const restDays = last7Days.filter(w => w.type === 'rest_day');
     if (restDays.length === 0) {
-        fatigueScore += 30; // No rest = high fatigue
+        fatigueScore += 20; // No rest = high fatigue
     } else {
         const avgRestQuality = restDays.reduce((sum, r) => sum + (r.recoveryQuality || 3), 0) / restDays.length;
-        fatigueScore += Math.round((5 - avgRestQuality) * 6); // Lower quality = higher fatigue
+        fatigueScore += Math.round((5 - avgRestQuality) * 4); // Lower quality = higher fatigue
     }
 
     return Math.min(100, Math.round(fatigueScore));
@@ -244,12 +255,24 @@ export const assessInjuryRisk = (workouts) => {
         ...consecutiveWarnings
     ];
 
-    // Calculate overall risk score
-    const maxRiskScore = allWarnings.length > 0
-        ? Math.max(...allWarnings.map(w => w.riskScore))
+    const fatigueScore = calculateFatigueScore(workouts);
+
+    // NEW: Weight risk score by exercise intensity
+    const intensityAdjustedRisk = allWarnings.map(warning => {
+        if (warning.exercise) {
+            const intensityMultiplier = getIntensityMultiplier(warning.exercise);
+            return {
+                ...warning,
+                riskScore: Math.round(warning.riskScore * intensityMultiplier)
+            };
+        }
+        return warning;
+    });
+
+    const maxRiskScore = intensityAdjustedRisk.length > 0
+        ? Math.max(...intensityAdjustedRisk.map(w => w.riskScore))
         : 0;
 
-    const fatigueScore = calculateFatigueScore(workouts);
     const overallRisk = Math.round((maxRiskScore * 0.7) + (fatigueScore * 0.3));
 
     // Determine risk level
