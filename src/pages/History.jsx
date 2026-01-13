@@ -22,35 +22,35 @@ const WorkoutCard = ({ workout, onClick }) => {
   <Card hover onClick={onClick}>
     {workout.type === 'rest_day' ? (
       <div className="flex items-start justify-between">
-        <div className="flex items-start space-x-3 flex-1">
-          <div className="bg-purple-100 rounded-xl p-3 flex-shrink-0">
-            <Hotel className="w-6 h-6 text-purple-600 " />
+        <div className="flex items-start space-x-2 md:space-x-3 flex-1">
+          <div className="bg-purple-100 rounded-xl p-2 md:p-3 flex-shrink-0">
+            <Hotel className="w-5 h-5 md:w-6 md:h-6 text-purple-600 " />
           </div>
-          <div className="flex-1">
-            <h3 className="text-xl font-semibold text-gray-900 ">Rest Day</h3>
-            <div className="flex items-center space-x-2 mt-2 text-gray-600 ">
-              <Calendar className="w-4 h-4" />
-              <span className="text-sm">{formatDate(workout.date)}</span>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg md:text-xl font-semibold text-gray-900 ">Rest Day</h3>
+            <div className="flex items-center space-x-2 mt-1 md:mt-2 text-gray-600 ">
+              <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
+              <span className="text-xs md:text-sm">{formatDate(workout.date)}</span>
             </div>
-            <div className="flex items-center space-x-3 mt-3">
+            <div className="flex items-center space-x-2 md:space-x-3 mt-2 md:mt-3">
               <div className="flex items-center space-x-1">
-                <span className="text-sm text-gray-600 ">Recovery:</span>
+                <span className="text-xs md:text-sm text-gray-600 ">Recovery:</span>
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-4 h-4 ${i < (workout.recoveryQuality || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
+                      className={`w-3.5 h-3.5 md:w-4 md:h-4 ${i < (workout.recoveryQuality || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
                     />
                   ))}
                 </div>
               </div>
             </div>
             {workout.activities?.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2 md:mt-3">
                 {workout.activities.map((activity, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full"
+                    className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full"
                   >
                     {activity ? activity.replace('_', ' ') : 'Unknown'}
                   </span>
@@ -62,34 +62,34 @@ const WorkoutCard = ({ workout, onClick }) => {
       </div>
     ) : (
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 ">{workout.name || 'Unnamed Workout'}</h3>
-          <div className="flex items-center space-x-2 mt-2 text-gray-600 ">
-            <Calendar className="w-4 h-4" />
-            <span className="text-sm">{formatDate(workout.date)}</span>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg md:text-xl font-semibold text-gray-900 truncate">{workout.name || 'Unnamed Workout'}</h3>
+          <div className="flex items-center space-x-2 mt-1 md:mt-2 text-gray-600 ">
+            <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
+            <span className="text-xs md:text-sm">{formatDate(workout.date)}</span>
           </div>
-          <div className="flex items-center space-x-4 mt-3 text-sm text-gray-600 ">
+          <div className="flex items-center space-x-2 md:space-x-4 mt-2 md:mt-3 text-xs md:text-sm text-gray-600 flex-wrap">
             <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>{calculateTotalSets(workout)} sets</span>
             {workout.duration && workout.duration > 0 && (
               <>
-                <span>•</span>
+                <span className="hidden sm:inline">•</span>
                 <span>{workout.duration} min</span>
               </>
             )}
           </div>
-          <div className="flex flex-wrap gap-2 mt-3">
+          <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2 md:mt-3">
             {workout.exercises?.slice(0, 3).map((ex, idx) => (
               <span
                 key={idx}
-                className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full"
+                className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full truncate max-w-[120px] md:max-w-none"
               >
                 {ex?.name || 'Unknown Exercise'}
               </span>
             ))}
             {workout.exercises?.length > 3 && (
-              <span className="px-2 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full">
+              <span className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full">
                 +{workout.exercises.length - 3} more
               </span>
             )}
@@ -667,101 +667,104 @@ const History = () => {
           size="lg"
         >
           {selectedWorkout.type === 'rest_day' ? (
-            <div className="space-y-6">
-              {/* Rest Day Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 ">Date</p>
-                  <p className="font-semibold text-gray-900 ">{formatDate(selectedWorkout.date)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 ">Recovery Quality</p>
-                  <div className="flex items-center space-x-1 mt-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-5 h-5 ${i < (selectedWorkout.recoveryQuality || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
-                      />
-                    ))}
+            <>
+              <div className="space-y-6 pb-20 md:pb-6">
+                {/* Rest Day Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 ">Date</p>
+                    <p className="font-semibold text-gray-900 ">{formatDate(selectedWorkout.date)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 ">Recovery Quality</p>
+                    <div className="flex items-center space-x-1 mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 ${i < (selectedWorkout.recoveryQuality || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
+
+                {/* Active Recovery Activities */}
+                {selectedWorkout.activities && selectedWorkout.activities.length > 0 && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-3">Active Recovery Activities</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedWorkout.activities.map((activity, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-2 text-sm font-semibold bg-purple-100 text-purple-700 rounded-lg"
+                        >
+                          {activity ? activity.replace('_', ' ') : 'Unknown'}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Notes */}
+                {selectedWorkout.notes && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Notes</p>
+                    <p className="p-3 bg-gray-50 rounded-lg text-gray-900 ">{selectedWorkout.notes}</p>
+                  </div>
+                )}
               </div>
 
-              {/* Active Recovery Activities */}
-              {selectedWorkout.activities && selectedWorkout.activities.length > 0 && (
-                <div>
-                  <p className="text-sm text-gray-600 mb-3">Active Recovery Activities</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedWorkout.activities.map((activity, idx) => (
-                      <span
-                        key={idx}
-                        className="px-3 py-2 text-sm font-semibold bg-purple-100 text-purple-700 rounded-lg"
-                      >
-                        {activity ? activity.replace('_', ' ') : 'Unknown'}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Notes */}
-              {selectedWorkout.notes && (
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Notes</p>
-                  <p className="p-3 bg-gray-50 rounded-lg text-gray-900 ">{selectedWorkout.notes}</p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex space-x-3 pt-4">
+              {/* Action Buttons - Sticky on Mobile */}
+              <div className="fixed md:relative bottom-0 left-0 right-0 p-4 md:p-0 bg-white md:bg-transparent border-t md:border-t-0 border-gray-200 md:mt-4">
                 <Button
                   variant="danger"
                   size="md"
                   onClick={() => handleDeleteWorkout(selectedWorkout)}
-                  className="flex-1"
+                  className="w-full"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
                 </Button>
               </div>
-            </div>
+            </>
           ) : (
-            <div className="space-y-6">
-              {/* Workout Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 ">Date</p>
-                  <p className="font-semibold text-gray-900 ">{formatDate(selectedWorkout.date)}</p>
+            <>
+              <div className="space-y-6 pb-24 md:pb-6">
+                {/* Workout Info */}
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 ">Date</p>
+                    <p className="font-semibold text-gray-900 text-sm md:text-base">{formatDate(selectedWorkout.date)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 ">Duration</p>
+                    <p className="font-semibold text-gray-900 text-sm md:text-base">
+                      {selectedWorkout.duration && selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 ">Total Exercises</p>
+                    <p className="font-semibold text-gray-900 text-sm md:text-base">{selectedWorkout.exercises?.length || 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 ">Total Sets</p>
+                    <p className="font-semibold text-gray-900 text-sm md:text-base">{calculateTotalSets(selectedWorkout)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600 ">Duration</p>
-                  <p className="font-semibold text-gray-900 ">
-                    {selectedWorkout.duration && selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 ">Total Exercises</p>
-                  <p className="font-semibold text-gray-900 ">{selectedWorkout.exercises?.length || 0}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 ">Total Sets</p>
-                  <p className="font-semibold text-gray-900 ">{calculateTotalSets(selectedWorkout)}</p>
-                </div>
-              </div>
 
-              {/* Notes */}
-              {selectedWorkout.notes && (
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Notes</p>
-                  <p className="p-3 bg-gray-50 rounded-lg text-gray-900 ">{selectedWorkout.notes}</p>
-                </div>
-              )}
+                {/* Notes */}
+                {selectedWorkout.notes && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Notes</p>
+                    <p className="p-3 bg-gray-50 rounded-lg text-gray-900 text-sm md:text-base">{selectedWorkout.notes}</p>
+                  </div>
+                )}
 
-              {/* Exercises */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Exercises</h3>
-                <div className="space-y-4">
-                  {selectedWorkout.exercises?.map((exercise) => {
+                {/* Exercises */}
+                <div>
+                  <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Exercises</h3>
+                  <div className="space-y-3 md:space-y-4">
+                    {selectedWorkout.exercises?.map((exercise) => {
                     if (!exercise) return null;
                     const exerciseVolume = calculateExerciseVolume(exercise);
                     const weights = Array.isArray(exercise.sets) ? exercise.sets.map(s => s?.weight || 0) : [0];
@@ -770,18 +773,18 @@ const History = () => {
                     const isCardioOrBodyweight = exercise.category === 'cardio' || maxWeight === 0;
 
                     return (
-                      <div key={exercise.id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-start justify-between mb-3">
+                      <div key={exercise.id} className="border border-gray-200 rounded-lg p-3 md:p-4">
+                        <div className="flex items-start justify-between mb-2 md:mb-3">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900">{exercise.name}</h4>
+                            <h4 className="font-semibold text-gray-900 text-sm md:text-base">{exercise.name}</h4>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <span className="inline-block px-2 py-1 text-xs font-semibold text-primary-600 bg-primary-50 rounded-full">
+                              <span className="inline-block px-2 py-0.5 md:py-1 text-xs font-semibold text-primary-600 bg-primary-50 rounded-full">
                                 {exercise.category}
                               </span>
                               {!isCardioOrBodyweight && (
                                 <>
                                   <span className="text-xs text-gray-600">
-                                    Volume: {kgToTons(exerciseVolume)}T ({exerciseVolume}kg)
+                                    Vol: {kgToTons(exerciseVolume)}T
                                   </span>
                                   <span className="text-xs text-gray-600">
                                     Max: {maxWeight}kg
@@ -790,7 +793,7 @@ const History = () => {
                               )}
                               {isCardioOrBodyweight && (
                                 <span className="text-xs text-gray-600">
-                                  Duration/Bodyweight
+                                  Duration/BW
                                 </span>
                               )}
                             </div>
@@ -816,7 +819,7 @@ const History = () => {
                           {isCardioOrBodyweight ? (
                             // Cardio/Bodyweight display
                             <>
-                              <div className="grid grid-cols-3 gap-2 text-sm font-semibold text-gray-700">
+                              <div className="grid grid-cols-3 gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700">
                                 <div>Set</div>
                                 <div>Duration/Reps</div>
                                 <div className="text-right">Status</div>
@@ -826,15 +829,15 @@ const History = () => {
                                 return (
                                 <div
                                   key={index}
-                                  className={`grid grid-cols-3 gap-2 text-sm ${set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
-                                    } py-2 px-2 rounded`}
+                                  className={`grid grid-cols-3 gap-1 md:gap-2 text-xs md:text-sm ${set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
+                                    } py-1.5 md:py-2 px-1.5 md:px-2 rounded`}
                                 >
                                   <div className="font-medium">{index + 1}</div>
-                                  <div className="font-semibold">
-                                    {exercise.category === 'cardio' ? `${set.duration || 0} mins` : `${set.reps || 0} reps`}
+                                  <div className="font-semibold truncate">
+                                    {exercise.category === 'cardio' ? `${set.duration || 0}m` : `${set.reps || 0} reps`}
                                   </div>
                                   <div className="text-right text-xs">
-                                    {set.completed ? '✓ Done' : '-'}
+                                    {set.completed ? '✓' : '-'}
                                   </div>
                                 </div>
                               )})}
@@ -842,11 +845,11 @@ const History = () => {
                           ) : (
                             // Weight training display
                             <>
-                              <div className="grid grid-cols-4 gap-2 text-sm font-semibold text-gray-700">
+                              <div className="grid grid-cols-4 gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700">
                                 <div>Set</div>
                                 <div>Weight × Reps</div>
-                                <div className="text-right">Volume</div>
-                                <div className="text-right">Status</div>
+                                <div className="text-right">Vol</div>
+                                <div className="text-right">✓</div>
                               </div>
                               {Array.isArray(exercise.sets) && exercise.sets.map((set, index) => {
                                 if (!set) return null;
@@ -854,14 +857,14 @@ const History = () => {
                                 return (
                                   <div
                                     key={index}
-                                    className={`grid grid-cols-4 gap-2 text-sm ${set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
-                                      } py-2 px-2 rounded`}
+                                    className={`grid grid-cols-4 gap-1 md:gap-2 text-xs md:text-sm ${set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
+                                      } py-1.5 md:py-2 px-1.5 md:px-2 rounded`}
                                   >
                                     <div className="font-medium">{index + 1}</div>
-                                    <div className="font-semibold">{set.weight || 0}kg × {set.reps || 0}</div>
-                                    <div className="text-right font-medium">{setVolume}kg</div>
+                                    <div className="font-semibold truncate">{set.weight || 0}×{set.reps || 0}</div>
+                                    <div className="text-right font-medium truncate">{setVolume}</div>
                                     <div className="text-right text-xs">
-                                      {set.completed ? '✓ Done' : '-'}
+                                      {set.completed ? '✓' : '-'}
                                     </div>
                                   </div>
                                 );
@@ -871,7 +874,7 @@ const History = () => {
                         </div>
 
                         {exercise.notes && (
-                          <p className="text-sm text-gray-600 mt-3 p-2 bg-amber-50 border border-amber-200 rounded">
+                          <p className="text-xs md:text-sm text-gray-600 mt-2 md:mt-3 p-2 bg-amber-50 border border-amber-200 rounded">
                             📝 {exercise.notes}
                           </p>
                         )}
@@ -880,9 +883,11 @@ const History = () => {
                   })}
                 </div>
               </div>
+            </div>
 
-              {/* Actions */}
-              <div className="flex space-x-2 pt-4 border-t ">
+            {/* Actions - Sticky on Mobile */}
+            <div className="fixed md:relative bottom-0 left-0 right-0 p-3 md:p-0 bg-white md:bg-transparent border-t md:border-t-0 border-gray-200 shadow-lg md:shadow-none md:mt-6">
+              <div className="flex gap-2 md:gap-3 max-w-2xl mx-auto">
                 <Button
                   variant="primary"
                   size="sm"
@@ -890,7 +895,8 @@ const History = () => {
                   className="flex-1"
                 >
                   <Edit className="w-4 h-4 mr-1" />
-                  Edit
+                  <span className="hidden sm:inline">Edit</span>
+                  <span className="sm:hidden">Edit</span>
                 </Button>
                 <Button
                   variant="danger"
@@ -899,10 +905,12 @@ const History = () => {
                   className="flex-1"
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
-                  Delete
+                  <span className="hidden sm:inline">Delete</span>
+                  <span className="sm:hidden">Delete</span>
                 </Button>
               </div>
             </div>
+          </>
           )}
         </Modal>
       )}
