@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkouts } from '../context/WorkoutContext';
 import Card from '../components/common/Card';
@@ -171,6 +171,16 @@ const History = () => {
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   const [muscleGroupFilter, setMuscleGroupFilter] = useState('all'); // 'all', 'chest', 'back', 'shoulders', 'legs', 'arms', 'core'
+
+  // Sync selectedWorkout with workouts array when it updates (e.g., after editing)
+  useEffect(() => {
+    if (selectedWorkout && selectedWorkout.id) {
+      const updatedWorkout = workouts.find(w => w.id === selectedWorkout.id);
+      if (updatedWorkout) {
+        setSelectedWorkout(updatedWorkout);
+      }
+    }
+  }, [workouts, selectedWorkout]);
 
 
   // Helper function to calculate total volume for a workout
