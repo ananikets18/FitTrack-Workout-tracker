@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkouts } from '../context/WorkoutContext';
 import Card from '../components/common/Card';
@@ -6,16 +6,36 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import { Plus, Trash2, Check, X, Save } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const WorkoutLog = () => {
   const navigate = useNavigate();
-  const { addWorkout } = useWorkouts();
+  const { addWorkout, updateWorkout, currentWorkout, clearCurrentWorkout } = useWorkouts();
 
+  const [workoutId, setWorkoutId] = useState(null);
   const [workoutName, setWorkoutName] = useState('');
   const [exercises, setExercises] = useState([]);
   const [duration, setDuration] = useState('');
   const [notes, setNotes] = useState('');
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
+
+  // Load currentWorkout when editing
+  useEffect(() => {
+    if (currentWorkout) {
+      setWorkoutId(currentWorkout.id);
+      setWorkoutName(currentWorkout.name || '');
+      setExercises(currentWorkout.exercises || []);
+      setDuration(currentWorkout.duration?.toString() || '');
+      setNotes(currentWorkout.notes || '');
+    }
+  }, [currentWorkout]);
+
+  // Clear currentWorkout when component unmounts
+  useEffect(() => {
+    return () => {
+      clearCurrentWorkout();
+    };
+  }, [clearCurrentWorkout]);
 
   // Exercise form state
   const [newExercise, setNewExercise] = useState({
@@ -97,42 +117,57 @@ const WorkoutLog = () => {
     }));
   };
 
-  const handleSaveWorkout = () => {
+  const handleSaveWorkout = async () => {
     if (!workoutName.trim()) {
-      alert('Please enter a workout name');
+      toast.error('Please enter a workout name');
       return;
     }
 
     if (exercises.length === 0) {
-      alert('Please add at least one exercise');
+      toast.error('Please add at least one exercise');
       return;
     }
 
     const workout = {
       name: workoutName,
-      date: new Date().toISOString(),
+      date: workoutId ? currentWorkout.date : new Date().toISOString(), // Preserve original date when editing
       exercises,
       duration: parseInt(duration) || 0,
       notes,
     };
 
-    addWorkout(workout);
-    navigate('/history');
+    try {
+      if (workoutId) {
+        // Update existing workout
+        await updateWorkout({ ...workout, id: workoutId });
+        toast.success('Workout updated!');
+      } else {
+        // Create new workout
+        await addWorkout(workout);
+        toast.success('Workout saved!');
+      }
+      navigate('/history');
+    } catch (error) {
+      console.error('Error saving workout:', error);
+      toast.error(workoutId ? 'Failed to update workout' : 'Failed to save workout');
+    }
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Log Workout</h1>
+        <h1 className="text-3xl font-bold text-gray-900">
+          {workoutId ? 'Edit Workout' : 'Log Workout'}
+        </h1>
         <div className="space-x-2">
-          <Button variant="secondary" onClick={() => navigate('/')}>
+          <Button variant="secondary" onClick={() => navigate('/history')}>
             <X className="w-5 h-5 mr-2" />
             Cancel
           </Button>
           <Button onClick={handleSaveWorkout}>
             <Save className="w-5 h-5 mr-2" />
-            Save Workout
+            {workoutId ? 'Update Workout' : 'Save Workout'}
           </Button>
         </div>
       </div>
@@ -220,8 +255,8 @@ const WorkoutLog = () => {
                             <button
                               onClick={() => handleToggleSet(exercise.id, index)}
                               className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${set.completed
-                                  ? 'bg-green-500 border-green-500'
-                                  : 'border-gray-300 hover:border-primary-500'
+                                ? 'bg-green-500 border-green-500'
+                                : 'border-gray-300 hover:border-primary-500'
                                 }`}
                             >
                               {set.completed && <Check className="w-4 h-4 text-white" />}
@@ -248,8 +283,8 @@ const WorkoutLog = () => {
                             <button
                               onClick={() => handleToggleSet(exercise.id, index)}
                               className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${set.completed
-                                  ? 'bg-green-500 border-green-500'
-                                  : 'border-gray-300 hover:border-primary-500'
+                                ? 'bg-green-500 border-green-500'
+                                : 'border-gray-300 hover:border-primary-500'
                                 }`}
                             >
                               {set.completed && <Check className="w-4 h-4 text-white" />}

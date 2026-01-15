@@ -109,6 +109,7 @@ export const db = {
                 exercise_id: exerciseData.id,
                 reps: set.reps,
                 weight: set.weight,
+                duration: set.duration, // Add duration for cardio exercises
                 completed: set.completed || false,
                 order: setIndex,
               }))
@@ -167,6 +168,7 @@ export const db = {
                 exercise_id: exerciseData.id,
                 reps: set.reps,
                 weight: set.weight,
+                duration: set.duration, // Add duration for cardio exercises
                 completed: set.completed || false,
                 order: setIndex,
               }))
@@ -370,6 +372,7 @@ export const transformWorkoutFromDB = (workout) => {
           .map((set) => ({
             reps: set.reps,
             weight: set.weight,
+            duration: set.duration, // Include duration for cardio exercises
             completed: set.completed,
           })) || [],
       })) || [],
