@@ -4,14 +4,14 @@ import { useWorkouts } from '../context/WorkoutContext';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import BottomSheet from '../components/common/BottomSheet';
-import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  isSameMonth, 
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
   isToday,
   isFuture,
   addMonths,
@@ -42,7 +42,7 @@ const Calendar = () => {
     const dayWorkouts = workoutsByDate[dateKey] || [];
     const regularWorkouts = dayWorkouts.filter(w => w.type !== 'rest_day');
     const restDays = dayWorkouts.filter(w => w.type === 'rest_day');
-    
+
     return {
       count: regularWorkouts.length,
       hasRestDay: restDays.length > 0,
@@ -82,9 +82,9 @@ const Calendar = () => {
     const isCurrentMonth = isSameMonth(date, currentMonth);
     const isTodayDate = isToday(date);
     const isFutureDate = isFuture(date) && !isTodayDate;
-    
+
     let className = 'aspect-square rounded-xl flex flex-col items-center justify-center text-sm font-medium transition-all cursor-pointer ';
-    
+
     // Base styling
     if (!isCurrentMonth) {
       className += 'text-gray-300 ';
@@ -97,17 +97,30 @@ const Calendar = () => {
       className += 'ring-2 ring-primary-500 ';
     }
 
-    // Workout density colors
+    // Workout density colors - gradient scale for 1-9+ exercises
     if (density.hasRestDay && density.count === 0) {
       className += 'bg-purple-100 hover:bg-purple-200 ';
     } else if (density.count === 0) {
       className += 'hover:bg-gray-100 ';
     } else if (density.count === 1) {
-      className += 'bg-green-100 hover:bg-green-200 ';
+      className += 'bg-green-50 hover:bg-green-100 ';
     } else if (density.count === 2) {
+      className += 'bg-green-100 hover:bg-green-200 ';
+    } else if (density.count === 3) {
+      className += 'bg-green-200 hover:bg-green-300 ';
+    } else if (density.count === 4) {
       className += 'bg-green-300 hover:bg-green-400 ';
+    } else if (density.count === 5) {
+      className += 'bg-green-400 hover:bg-green-500 text-white ';
+    } else if (density.count === 6) {
+      className += 'bg-green-500 hover:bg-green-600 text-white ';
+    } else if (density.count === 7) {
+      className += 'bg-green-600 hover:bg-green-700 text-white ';
+    } else if (density.count === 8) {
+      className += 'bg-green-700 hover:bg-green-800 text-white ';
     } else {
-      className += 'bg-green-500 text-white hover:bg-green-600 ';
+      // 9+ exercises
+      className += 'bg-green-800 hover:bg-green-900 text-white ring-2 ring-yellow-400 ';
     }
 
     // Future dates
@@ -132,23 +145,40 @@ const Calendar = () => {
 
       {/* Legend */}
       <Card>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Legend</h3>
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-green-100 border border-green-200 "></div>
-            <span className="text-gray-600 ">1 Workout</span>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Intensity Scale</h3>
+        <div className="space-y-3">
+          {/* Gradient Bar */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 font-medium w-8">Low</span>
+            <div className="flex-1 h-8 rounded-lg overflow-hidden flex">
+              <div className="flex-1 bg-green-50"></div>
+              <div className="flex-1 bg-green-100"></div>
+              <div className="flex-1 bg-green-200"></div>
+              <div className="flex-1 bg-green-300"></div>
+              <div className="flex-1 bg-green-400"></div>
+              <div className="flex-1 bg-green-500"></div>
+              <div className="flex-1 bg-green-600"></div>
+              <div className="flex-1 bg-green-700"></div>
+              <div className="flex-1 bg-green-800"></div>
+            </div>
+            <span className="text-xs text-gray-500 font-medium w-8 text-right">High</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-green-300 border border-green-400 "></div>
-            <span className="text-gray-600 ">2 Workouts</span>
+
+          {/* Labels */}
+          <div className="flex items-center justify-between text-xs text-gray-600">
+            <span>1 exercise</span>
+            <span>3 exercises</span>
+            <span>5 exercises</span>
+            <span>7 exercises</span>
+            <span>9+ exercises</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-green-500 border border-green-600"></div>
-            <span className="text-gray-600 ">3+ Workouts</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-purple-100 border border-purple-200 "></div>
-            <span className="text-gray-600 ">Rest Day</span>
+
+          {/* Rest Day Indicator */}
+          <div className="flex items-center space-x-2 pt-2 border-t">
+            <div className="w-6 h-6 rounded bg-purple-100 border border-purple-200 flex items-center justify-center">
+              <Hotel className="w-3 h-3 text-purple-600" />
+            </div>
+            <span className="text-gray-600 text-sm">Rest Day</span>
           </div>
         </div>
       </Card>
@@ -163,7 +193,7 @@ const Calendar = () => {
           >
             <ChevronLeft className="w-6 h-6 text-gray-600 " />
           </button>
-          
+
           <div className="flex items-center space-x-3">
             <h2 className="text-2xl font-bold text-gray-900 ">
               {format(currentMonth, 'MMMM yyyy')}
@@ -279,11 +309,10 @@ const Calendar = () => {
         {selectedDate && (
           <div className="space-y-4">
             {selectedDate.workouts.map((workout, idx) => (
-              <div key={idx} className={`rounded-xl p-4 space-y-3 ${
-                workout.type === 'rest_day' 
-                  ? 'bg-purple-50 border-2 border-purple-200 ' 
+              <div key={idx} className={`rounded-xl p-4 space-y-3 ${workout.type === 'rest_day'
+                  ? 'bg-purple-50 border-2 border-purple-200 '
                   : 'bg-gray-50 '
-              }`}>
+                }`}>
                 {workout.type === 'rest_day' ? (
                   <>
                     <div className="flex items-start justify-between">
