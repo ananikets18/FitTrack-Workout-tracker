@@ -24,3 +24,4 @@ src/
 ├── utils/       # Helpers & validation
 └── data/        # Exercise database
 ```
+new advanced readme have to add here and reupate this readme with that context.
