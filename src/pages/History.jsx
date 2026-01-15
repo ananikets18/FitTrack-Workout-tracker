@@ -6,12 +6,12 @@ import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import SkeletonCard from '../components/common/SkeletonCard';
 import ConfirmDialog from '../components/common/ConfirmDialog';
-import { formatDate, calculateTotalSets, calculateExerciseVolume, kgToTons, getProgressiveOverload, calculateTotalVolume, calculateStreak, generateInsights, calculateTotalActivity, getActivityBreakdown } from '../utils/calculations';
+import { formatDate, calculateTotalSets, calculateExerciseVolume, kgToTons, getProgressiveOverload } from '../utils/calculations';
 import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExcel } from '../utils/exportUtils';
-import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown, ChevronUp, BarChart3, Lightbulb, X, Dumbbell, Activity } from 'lucide-react';
+import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { calculateWeightedMuscleSets } from '../utils/exerciseMuscleMapping';
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, subDays, subWeeks, subMonths } from 'date-fns';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, subDays } from 'date-fns';
 // Sub-component for individual workout card
 const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
   // Safety check for null/undefined workout
@@ -172,9 +172,6 @@ const History = () => {
   const [customEndDate, setCustomEndDate] = useState('');
   const [muscleGroupFilter, setMuscleGroupFilter] = useState('all'); // 'all', 'chest', 'back', 'shoulders', 'legs', 'arms', 'core'
 
-  // NEW: UI state for collapsible sections
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [showInsights, setShowInsights] = useState(true);
 
   // Helper function to calculate total volume for a workout
   const calculateWorkoutVolume = (workout) => {
@@ -344,61 +341,6 @@ const History = () => {
     });
     return groups;
   })() : null;
-
-  // NEW: Calculate analytics (memoized for performance)
-  const analytics = useMemo(() => {
-    const regularWorkouts = filteredWorkouts.filter(w => w.type !== 'rest_day');
-    const restDays = filteredWorkouts.filter(w => w.type === 'rest_day');
-
-    // Current streak (from all workouts, not just filtered)
-    const streak = calculateStreak(workouts);
-
-    // Total volume
-    const totalVolume = regularWorkouts.reduce((sum, w) => sum + calculateWorkoutVolume(w), 0);
-
-    // Total activity points
-    const totalActivity = regularWorkouts.reduce((sum, w) => sum + calculateTotalActivity(w), 0);
-
-    // Workout frequency
-    const workoutCount = regularWorkouts.length;
-    const restDayCount = restDays.length;
-
-    // Average duration
-    const workoutsWithDuration = regularWorkouts.filter(w => w.duration > 0);
-    const avgDuration = workoutsWithDuration.length > 0
-      ? Math.round(workoutsWithDuration.reduce((sum, w) => sum + w.duration, 0) / workoutsWithDuration.length)
-      : 0;
-
-    // Muscle group distribution
-    const muscleDistribution = {};
-    regularWorkouts.forEach(workout => {
-      const muscleSets = calculateWeightedMuscleSets(workout);
-      Object.entries(muscleSets).forEach(([muscle, sets]) => {
-        muscleDistribution[muscle] = (muscleDistribution[muscle] || 0) + sets;
-      });
-    });
-
-    // Find most trained muscle group
-    const mostTrainedMuscle = Object.entries(muscleDistribution)
-      .sort((a, b) => b[1] - a[1])[0];
-
-    return {
-      streak,
-      totalVolume,
-      totalActivity,
-      workoutCount,
-      restDayCount,
-      avgDuration,
-      muscleDistribution,
-      mostTrainedMuscle
-    };
-  }, [filteredWorkouts, workouts]);
-
-  // NEW: Generate smart insights (memoized)
-  const insights = useMemo(() => {
-    return generateInsights(filteredWorkouts);
-  }, [filteredWorkouts]);
-
 
   const handleViewDetails = (workout) => {
     if (!workout) {
@@ -688,149 +630,6 @@ const History = () => {
           )}
         </div>
       </div>
-
-      {/* NEW: Quick Analytics Section (Collapsible) */}
-      {filteredWorkouts.length > 0 && (
-        <Card className="overflow-hidden">
-          <button
-            onClick={() => setShowAnalytics(!showAnalytics)}
-            className="w-full flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-primary-600" />
-              <h2 className="text-base md:text-lg font-semibold text-gray-900">Quick Analytics</h2>
-              <span className="text-xs text-gray-500">({filteredWorkouts.length} workouts)</span>
-            </div>
-            {showAnalytics ? (
-              <ChevronUp className="w-5 h-5 text-gray-400" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-gray-400" />
-            )}
-          </button>
-
-          {showAnalytics && (
-            <div className="p-3 md:p-4 pt-0 border-t">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                {/* Streak Card */}
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-3 md:p-4 rounded-lg border border-orange-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xl md:text-2xl">🔥</span>
-                    <span className="text-xs text-orange-700 font-medium">Streak</span>
-                  </div>
-                  <p className="text-2xl md:text-3xl font-bold text-orange-900">{analytics.streak}</p>
-                  <p className="text-xs text-orange-600 mt-1">days</p>
-                </div>
-
-                {/* Volume Card */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 md:p-4 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Dumbbell className="w-4 h-4 md:w-5 md:h-5 text-blue-700" />
-                    <span className="text-xs text-blue-700 font-medium">Volume</span>
-                  </div>
-                  <p className="text-2xl md:text-3xl font-bold text-blue-900">{kgToTons(analytics.totalVolume)}</p>
-                  <p className="text-xs text-blue-600 mt-1">tons</p>
-                </div>
-
-                {/* Activity Points Card */}
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-3 md:p-4 rounded-lg border border-purple-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Activity className="w-4 h-4 md:w-5 md:h-5 text-purple-700" />
-                    <span className="text-xs text-purple-700 font-medium">Activity</span>
-                  </div>
-                  <p className="text-2xl md:text-3xl font-bold text-purple-900">{Math.round(analytics.totalActivity).toLocaleString()}</p>
-                  <p className="text-xs text-purple-600 mt-1">points</p>
-                </div>
-
-                {/* Workouts Card */}
-                <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 md:p-4 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Calendar className="w-4 h-4 md:w-5 md:h-5 text-green-700" />
-                    <span className="text-xs text-green-700 font-medium">Workouts</span>
-                  </div>
-                  <p className="text-2xl md:text-3xl font-bold text-green-900">{analytics.workoutCount}</p>
-                  <p className="text-xs text-green-600 mt-1">{analytics.restDayCount} rest days</p>
-                </div>
-
-                {/* Average Duration */}
-                {analytics.avgDuration > 0 && (
-                  <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 p-3 md:p-4 rounded-lg border border-cyan-200">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xl md:text-2xl">⏱️</span>
-                      <span className="text-xs text-cyan-700 font-medium">Avg Duration</span>
-                    </div>
-                    <p className="text-2xl md:text-3xl font-bold text-cyan-900">{analytics.avgDuration}</p>
-                    <p className="text-xs text-cyan-600 mt-1">minutes</p>
-                  </div>
-                )}
-
-                {/* Most Trained Muscle */}
-                {analytics.mostTrainedMuscle && (
-                  <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-3 md:p-4 rounded-lg border border-indigo-200">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xl md:text-2xl">💪</span>
-                      <span className="text-xs text-indigo-700 font-medium">Top Muscle</span>
-                    </div>
-                    <p className="text-lg md:text-xl font-bold text-indigo-900 capitalize">{analytics.mostTrainedMuscle[0]}</p>
-                    <p className="text-xs text-indigo-600 mt-1">{Math.round(analytics.mostTrainedMuscle[1])} sets</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* NEW: Smart Insights Section (Collapsible) */}
-      {insights.length > 0 && (
-        <Card className="overflow-hidden">
-          <button
-            onClick={() => setShowInsights(!showInsights)}
-            className="w-full flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Lightbulb className="w-5 h-5 text-amber-600" />
-              <h2 className="text-base md:text-lg font-semibold text-gray-900">Smart Insights</h2>
-              <span className="text-xs text-gray-500">({insights.length})</span>
-            </div>
-            {showInsights ? (
-              <ChevronUp className="w-5 h-5 text-gray-400" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-gray-400" />
-            )}
-          </button>
-
-          {showInsights && (
-            <div className="p-3 md:p-4 pt-0 border-t">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {insights.map((insight, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-3 rounded-lg border-2 bg-gradient-to-br ${insight.color === 'orange' ? 'from-orange-50 to-orange-100 border-orange-200' :
-                        insight.color === 'blue' ? 'from-blue-50 to-blue-100 border-blue-200' :
-                          insight.color === 'green' ? 'from-green-50 to-green-100 border-green-200' :
-                            insight.color === 'purple' ? 'from-purple-50 to-purple-100 border-purple-200' :
-                              insight.color === 'red' ? 'from-red-50 to-red-100 border-red-200' :
-                                insight.color === 'indigo' ? 'from-indigo-50 to-indigo-100 border-indigo-200' :
-                                  insight.color === 'teal' ? 'from-teal-50 to-teal-100 border-teal-200' :
-                                    insight.color === 'cyan' ? 'from-cyan-50 to-cyan-100 border-cyan-200' :
-                                      insight.color === 'pink' ? 'from-pink-50 to-pink-100 border-pink-200' :
-                                        'from-gray-50 to-gray-100 border-gray-200'
-                      }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      <span className="text-2xl flex-shrink-0">{insight.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 text-sm md:text-base">{insight.title}</h3>
-                        <p className="text-xs md:text-sm text-gray-700 mt-1">{insight.message}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </Card>
-      )}
 
       {/* Search and Filters */}
       <div className="space-y-3">
