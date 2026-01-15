@@ -97,30 +97,65 @@ const Calendar = () => {
       className += 'ring-2 ring-primary-500 ';
     }
 
-    // Workout density colors - gradient scale for 1-9+ exercises
+    // Dynamic workout density colors based on actual data
     if (density.hasRestDay && density.count === 0) {
       className += 'bg-purple-100 hover:bg-purple-200 ';
     } else if (density.count === 0) {
       className += 'hover:bg-gray-100 ';
-    } else if (density.count === 1) {
-      className += 'bg-green-50 hover:bg-green-100 ';
-    } else if (density.count === 2) {
-      className += 'bg-green-100 hover:bg-green-200 ';
-    } else if (density.count === 3) {
-      className += 'bg-green-200 hover:bg-green-300 ';
-    } else if (density.count === 4) {
-      className += 'bg-green-300 hover:bg-green-400 ';
-    } else if (density.count === 5) {
-      className += 'bg-green-400 hover:bg-green-500 text-white ';
-    } else if (density.count === 6) {
-      className += 'bg-green-500 hover:bg-green-600 text-white ';
-    } else if (density.count === 7) {
-      className += 'bg-green-600 hover:bg-green-700 text-white ';
-    } else if (density.count === 8) {
-      className += 'bg-green-700 hover:bg-green-800 text-white ';
+    } else if (intensityStats.hasData) {
+      // Use dynamic scaling based on user's actual range
+      const { min, max } = intensityStats;
+      const range = max - min;
+
+      // Calculate intensity level (0-8) based on position in user's range
+      let intensityLevel;
+      if (range === 0) {
+        intensityLevel = 4; // Middle intensity if all workouts are the same
+      } else {
+        const normalizedPosition = (density.count - min) / range;
+        intensityLevel = Math.round(normalizedPosition * 8);
+      }
+
+      // Apply color based on intensity level
+      const colorClasses = [
+        'bg-green-50 hover:bg-green-100',           // 0 - Lightest
+        'bg-green-100 hover:bg-green-200',          // 1
+        'bg-green-200 hover:bg-green-300',          // 2
+        'bg-green-300 hover:bg-green-400',          // 3
+        'bg-green-400 hover:bg-green-500 text-white', // 4 - Start white text
+        'bg-green-500 hover:bg-green-600 text-white', // 5
+        'bg-green-600 hover:bg-green-700 text-white', // 6
+        'bg-green-700 hover:bg-green-800 text-white', // 7
+        'bg-green-800 hover:bg-green-900 text-white'  // 8 - Darkest
+      ];
+
+      className += colorClasses[intensityLevel] + ' ';
+
+      // Special highlight for peak days (9+ exercises or max in range)
+      if (density.count >= 9 || (density.count === max && max >= 7)) {
+        className += 'ring-2 ring-yellow-400 ring-offset-1 ';
+      }
     } else {
-      // 9+ exercises
-      className += 'bg-green-800 hover:bg-green-900 text-white ring-2 ring-yellow-400 ';
+      // Fallback to static scale if no data
+      if (density.count === 1) {
+        className += 'bg-green-50 hover:bg-green-100 ';
+      } else if (density.count === 2) {
+        className += 'bg-green-100 hover:bg-green-200 ';
+      } else if (density.count === 3) {
+        className += 'bg-green-200 hover:bg-green-300 ';
+      } else if (density.count === 4) {
+        className += 'bg-green-300 hover:bg-green-400 ';
+      } else if (density.count === 5) {
+        className += 'bg-green-400 hover:bg-green-500 text-white ';
+      } else if (density.count === 6) {
+        className += 'bg-green-500 hover:bg-green-600 text-white ';
+      } else if (density.count === 7) {
+        className += 'bg-green-600 hover:bg-green-700 text-white ';
+      } else if (density.count === 8) {
+        className += 'bg-green-700 hover:bg-green-800 text-white ';
+      } else {
+        className += 'bg-green-800 hover:bg-green-900 text-white ring-2 ring-yellow-400 ';
+      }
     }
 
     // Future dates

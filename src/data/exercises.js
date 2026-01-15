@@ -336,7 +336,6 @@ export const exerciseLibrary = {
     'Spin Bike',
     'Air Bike',
     'Assault Bike',
-    'Cardio - Bike',
     // Rowing
     'Rowing',
     'Rowing Machine',
@@ -352,8 +351,7 @@ export const exerciseLibrary = {
     'High Knees',
     'Jumping Jacks',
     'Box Jumps',
-    'Battle Ropes',
-    'Cardio - Treadmill'
+    'Battle Ropes'
   ],
   other: [
     'Farmers Walk',

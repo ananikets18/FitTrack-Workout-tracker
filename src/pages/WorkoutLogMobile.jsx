@@ -88,7 +88,7 @@ const WorkoutLogMobile = () => {
   const [newExercise, setNewExercise] = useState({
     name: '',
     category: 'chest',
-    sets: [{ reps: 10, weight: 0, completed: false }],
+    sets: [{ reps: 10, weight: 0, duration: 30, completed: false }],
     notes: '',
   });
 
@@ -152,7 +152,7 @@ const WorkoutLogMobile = () => {
     const lastSet = newExercise.sets[newExercise.sets.length - 1];
     setNewExercise({
       ...newExercise,
-      sets: [...newExercise.sets, { reps: lastSet.reps, weight: lastSet.weight, duration: lastSet.duration || '', completed: false }],
+      sets: [...newExercise.sets, { reps: lastSet.reps, weight: lastSet.weight, duration: lastSet.duration || 30, completed: false }],
     });
     vibrate(30);
   };
@@ -203,7 +203,7 @@ const WorkoutLogMobile = () => {
     setNewExercise({
       name: '',
       category: 'chest',
-      sets: [{ reps: 10, weight: 0, duration: '', completed: false }],
+      sets: [{ reps: 10, weight: 0, duration: 30, completed: false }],
       notes: '',
     });
   };
