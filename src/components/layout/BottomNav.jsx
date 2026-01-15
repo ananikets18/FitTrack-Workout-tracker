@@ -1,13 +1,17 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Plus, History, BarChart3, CalendarDays } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
-import { motion } from 'framer-motion';
+import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { lightHaptic, mediumHaptic } from '../../utils/haptics';
+import { useState, useEffect } from 'react';
 
 
 
 const BottomNav = () => {
   const location = useLocation();
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const { scrollY } = useScroll();
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
@@ -30,9 +34,44 @@ const BottomNav = () => {
     }
   };
 
+  // Handle scroll direction
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = lastScrollY;
+
+    // Show nav when at top of page
+    if (latest < 50) {
+      setIsVisible(true);
+    }
+    // Hide when scrolling down, show when scrolling up
+    else if (latest > previous && latest > 100) {
+      setIsVisible(false);
+    } else if (latest < previous) {
+      setIsVisible(true);
+    }
+
+    setLastScrollY(latest);
+  });
+
+  // Reset visibility on route change
+  useEffect(() => {
+    setIsVisible(true);
+  }, [location.pathname]);
+
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50 shadow-lifted">
+    <motion.nav
+      className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe z-50 shadow-lifted"
+      initial={{ y: 0 }}
+      animate={{
+        y: isVisible ? 0 : 100,
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        mass: 0.8
+      }}
+    >
       <div className="flex items-center justify-around px-2 h-16">
         {/* eslint-disable-next-line no-unused-vars */}
         {navItems.map(({ path, label, icon: NavIcon, primary }) => {
@@ -80,7 +119,7 @@ const BottomNav = () => {
           );
         })}
       </div>
-    </nav>
+    </motion.nav>
 
   );
 };
