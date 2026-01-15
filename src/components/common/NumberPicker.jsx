@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Minus, Plus } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
@@ -15,6 +15,11 @@ const NumberPicker = ({
   className = ''
 }) => {
   const [inputValue, setInputValue] = useState(value || 0);
+
+  // Sync internal state with prop changes
+  useEffect(() => {
+    setInputValue(value || 0);
+  }, [value]);
 
   const handleIncrement = () => {
     const newValue = Math.min(max, (inputValue || 0) + step);
