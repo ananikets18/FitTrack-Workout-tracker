@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkouts } from '../context/WorkoutContext';
 import Card from '../components/common/Card';
@@ -6,10 +6,12 @@ import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import SkeletonCard from '../components/common/SkeletonCard';
 import ConfirmDialog from '../components/common/ConfirmDialog';
-import { formatDate, calculateTotalSets, calculateExerciseVolume, kgToTons, getProgressiveOverload } from '../utils/calculations';
+import { formatDate, calculateTotalSets, calculateExerciseVolume, kgToTons, getProgressiveOverload, calculateTotalVolume, calculateStreak, generateInsights, calculateTotalActivity, getActivityBreakdown } from '../utils/calculations';
 import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExcel } from '../utils/exportUtils';
-import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown } from 'lucide-react';
+import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown, ChevronUp, BarChart3, Lightbulb, X, Dumbbell, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { calculateWeightedMuscleSets } from '../utils/exerciseMuscleMapping';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, subDays, subWeeks, subMonths } from 'date-fns';
 // Sub-component for individual workout card
 const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
   // Safety check for null/undefined workout
@@ -17,131 +19,131 @@ const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
     console.warn('WorkoutCard received null/undefined workout');
     return null;
   }
-  
+
   const handleCardClick = (e) => {
     if (!e.target.closest('.action-button')) {
       onClick?.();
     }
   };
-  
+
   return (
-  <Card hover onClick={handleCardClick} className="p-3 md:p-4">
-    {workout.type === 'rest_day' ? (
-      <div className="flex items-start justify-between">
-        <div className="flex items-start space-x-2 md:space-x-3 flex-1">
-          <div className="bg-purple-100 rounded-xl p-2 md:p-3 flex-shrink-0">
-            <Hotel className="w-5 h-5 md:w-6 md:h-6 text-purple-600 " />
+    <Card hover onClick={handleCardClick} className="p-3 md:p-4">
+      {workout.type === 'rest_day' ? (
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-2 md:space-x-3 flex-1">
+            <div className="bg-purple-100 rounded-xl p-2 md:p-3 flex-shrink-0">
+              <Hotel className="w-5 h-5 md:w-6 md:h-6 text-purple-600 " />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 ">Rest Day</h3>
+              <div className="flex items-center space-x-2 mt-1 md:mt-2 text-gray-600 ">
+                <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
+                <span className="text-xs md:text-sm">{formatDate(workout.date)}</span>
+              </div>
+              <div className="flex items-center space-x-2 md:space-x-3 mt-2 md:mt-3">
+                <div className="flex items-center space-x-1">
+                  <span className="text-xs md:text-sm text-gray-600 ">Recovery:</span>
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-3.5 h-3.5 md:w-4 md:h-4 ${i < (workout.recoveryQuality || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              {workout.activities?.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2 md:mt-3">
+                  {workout.activities.map((activity, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full"
+                    >
+                      {activity ? activity.replace('_', ' ') : 'Unknown'}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Action Buttons - Mobile Only */}
+          <div className="flex md:hidden flex-col gap-1.5 ml-2 flex-shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(workout);
+              }}
+              className="action-button p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors active:scale-95"
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg md:text-xl font-semibold text-gray-900 ">Rest Day</h3>
+            <h3 className="text-lg md:text-xl font-semibold text-gray-900 truncate">{workout.name || 'Unnamed Workout'}</h3>
             <div className="flex items-center space-x-2 mt-1 md:mt-2 text-gray-600 ">
               <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
               <span className="text-xs md:text-sm">{formatDate(workout.date)}</span>
             </div>
-            <div className="flex items-center space-x-2 md:space-x-3 mt-2 md:mt-3">
-              <div className="flex items-center space-x-1">
-                <span className="text-xs md:text-sm text-gray-600 ">Recovery:</span>
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-3.5 h-3.5 md:w-4 md:h-4 ${i < (workout.recoveryQuality || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
-                    />
-                  ))}
-                </div>
-              </div>
+            <div className="flex items-center space-x-2 md:space-x-4 mt-2 md:mt-3 text-xs md:text-sm text-gray-600 flex-wrap">
+              <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
+              <span className="hidden sm:inline">•</span>
+              <span>{calculateTotalSets(workout)} sets</span>
+              {workout.duration && workout.duration > 0 && (
+                <>
+                  <span className="hidden sm:inline">•</span>
+                  <span>{workout.duration} min</span>
+                </>
+              )}
             </div>
-            {workout.activities?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2 md:mt-3">
-                {workout.activities.map((activity, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full"
-                  >
-                    {activity ? activity.replace('_', ' ') : 'Unknown'}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2 md:mt-3">
+              {workout.exercises?.slice(0, 3).map((ex, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full truncate max-w-[120px] md:max-w-none"
+                >
+                  {ex?.name || 'Unknown Exercise'}
+                </span>
+              ))}
+              {workout.exercises?.length > 3 && (
+                <span className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full">
+                  +{workout.exercises.length - 3} more
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons - Mobile Only */}
+          <div className="flex md:hidden flex-col gap-1.5 ml-2 flex-shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(workout);
+              }}
+              className="action-button p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors active:scale-95"
+              title="Edit"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(workout);
+              }}
+              className="action-button p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors active:scale-95"
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
         </div>
-        
-        {/* Action Buttons - Mobile Only */}
-        <div className="flex md:hidden flex-col gap-1.5 ml-2 flex-shrink-0">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(workout);
-            }}
-            className="action-button p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors active:scale-95"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    ) : (
-      <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg md:text-xl font-semibold text-gray-900 truncate">{workout.name || 'Unnamed Workout'}</h3>
-          <div className="flex items-center space-x-2 mt-1 md:mt-2 text-gray-600 ">
-            <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
-            <span className="text-xs md:text-sm">{formatDate(workout.date)}</span>
-          </div>
-          <div className="flex items-center space-x-2 md:space-x-4 mt-2 md:mt-3 text-xs md:text-sm text-gray-600 flex-wrap">
-            <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
-            <span className="hidden sm:inline">•</span>
-            <span>{calculateTotalSets(workout)} sets</span>
-            {workout.duration && workout.duration > 0 && (
-              <>
-                <span className="hidden sm:inline">•</span>
-                <span>{workout.duration} min</span>
-              </>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2 md:mt-3">
-            {workout.exercises?.slice(0, 3).map((ex, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full truncate max-w-[120px] md:max-w-none"
-              >
-                {ex?.name || 'Unknown Exercise'}
-              </span>
-            ))}
-            {workout.exercises?.length > 3 && (
-              <span className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full">
-                +{workout.exercises.length - 3} more
-              </span>
-            )}
-          </div>
-        </div>
-        
-        {/* Action Buttons - Mobile Only */}
-        <div className="flex md:hidden flex-col gap-1.5 ml-2 flex-shrink-0">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(workout);
-            }}
-            className="action-button p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors active:scale-95"
-            title="Edit"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(workout);
-            }}
-            className="action-button p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors active:scale-95"
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    )}
-  </Card>
+      )}
+    </Card>
   );
 };
 
@@ -164,6 +166,16 @@ const History = () => {
   const [sortBy, setSortBy] = useState('date-desc'); // 'date-desc', 'date-asc', 'name-asc', 'name-desc', 'duration-desc', 'volume-desc'
   const [groupByDate, setGroupByDate] = useState(true); // Toggle for date grouping
 
+  // NEW: Enhanced filtering states
+  const [dateRange, setDateRange] = useState('all'); // 'all', '7days', '30days', 'thisWeek', 'thisMonth', 'custom'
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [muscleGroupFilter, setMuscleGroupFilter] = useState('all'); // 'all', 'chest', 'back', 'shoulders', 'legs', 'arms', 'core'
+
+  // NEW: UI state for collapsible sections
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showInsights, setShowInsights] = useState(true);
+
   // Helper function to calculate total volume for a workout
   const calculateWorkoutVolume = (workout) => {
     if (!workout || workout.type === 'rest_day' || !workout.exercises || !Array.isArray(workout.exercises)) return 0;
@@ -177,21 +189,63 @@ const History = () => {
     }
   };
 
-  // Filter workouts by type and search term
+  // NEW: Helper function to check if workout is within date range
+  const isWorkoutInDateRange = (workout) => {
+    const workoutDate = new Date(workout.date);
+    const now = new Date();
+
+    switch (dateRange) {
+      case 'all':
+        return true;
+      case '7days':
+        return workoutDate >= subDays(now, 7);
+      case '30days':
+        return workoutDate >= subDays(now, 30);
+      case 'thisWeek':
+        return isWithinInterval(workoutDate, { start: startOfWeek(now), end: endOfWeek(now) });
+      case 'thisMonth':
+        return isWithinInterval(workoutDate, { start: startOfMonth(now), end: endOfMonth(now) });
+      case 'custom':
+        if (!customStartDate || !customEndDate) return true;
+        const start = new Date(customStartDate);
+        const end = new Date(customEndDate);
+        return isWithinInterval(workoutDate, { start, end });
+      default:
+        return true;
+    }
+  };
+
+  // NEW: Helper function to check if workout targets muscle group
+  const workoutTargetsMuscleGroup = (workout, muscleGroup) => {
+    if (muscleGroup === 'all') return true;
+    if (workout.type === 'rest_day') return false;
+
+    const muscleSets = calculateWeightedMuscleSets(workout);
+    // Check if muscle group has significant contribution (>= 1 set)
+    return (muscleSets[muscleGroup] || 0) >= 1;
+  };
+
+  // Filter workouts by type, search term, date range, and muscle group
   const filteredWorkouts = workouts.filter(workout => {
     // Filter by type
     if (filterType === 'workout' && workout.type === 'rest_day') return false;
     if (filterType === 'rest_day' && workout.type !== 'rest_day') return false;
 
+    // Filter by date range
+    if (!isWorkoutInDateRange(workout)) return false;
+
+    // Filter by muscle group
+    if (!workoutTargetsMuscleGroup(workout, muscleGroupFilter)) return false;
+
     // Filter by search term
     if (workout.type === 'rest_day') {
       const matchesNotes = workout.notes?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
-      const matchesActivities = Array.isArray(workout.activities) && 
+      const matchesActivities = Array.isArray(workout.activities) &&
         workout.activities.some(activity => activity?.toLowerCase().includes(searchTerm.toLowerCase()));
       return matchesNotes || matchesActivities;
     }
     const matchesName = workout.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
-    const matchesExercises = Array.isArray(workout.exercises) && 
+    const matchesExercises = Array.isArray(workout.exercises) &&
       workout.exercises.some(ex => ex?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesName || matchesExercises;
   });
@@ -234,7 +288,7 @@ const History = () => {
         }
 
         const date = new Date(workout.date);
-        
+
         // Check if date is valid
         if (isNaN(date.getTime())) {
           console.warn('Invalid workout date:', workout.date);
@@ -290,6 +344,61 @@ const History = () => {
     });
     return groups;
   })() : null;
+
+  // NEW: Calculate analytics (memoized for performance)
+  const analytics = useMemo(() => {
+    const regularWorkouts = filteredWorkouts.filter(w => w.type !== 'rest_day');
+    const restDays = filteredWorkouts.filter(w => w.type === 'rest_day');
+
+    // Current streak (from all workouts, not just filtered)
+    const streak = calculateStreak(workouts);
+
+    // Total volume
+    const totalVolume = regularWorkouts.reduce((sum, w) => sum + calculateWorkoutVolume(w), 0);
+
+    // Total activity points
+    const totalActivity = regularWorkouts.reduce((sum, w) => sum + calculateTotalActivity(w), 0);
+
+    // Workout frequency
+    const workoutCount = regularWorkouts.length;
+    const restDayCount = restDays.length;
+
+    // Average duration
+    const workoutsWithDuration = regularWorkouts.filter(w => w.duration > 0);
+    const avgDuration = workoutsWithDuration.length > 0
+      ? Math.round(workoutsWithDuration.reduce((sum, w) => sum + w.duration, 0) / workoutsWithDuration.length)
+      : 0;
+
+    // Muscle group distribution
+    const muscleDistribution = {};
+    regularWorkouts.forEach(workout => {
+      const muscleSets = calculateWeightedMuscleSets(workout);
+      Object.entries(muscleSets).forEach(([muscle, sets]) => {
+        muscleDistribution[muscle] = (muscleDistribution[muscle] || 0) + sets;
+      });
+    });
+
+    // Find most trained muscle group
+    const mostTrainedMuscle = Object.entries(muscleDistribution)
+      .sort((a, b) => b[1] - a[1])[0];
+
+    return {
+      streak,
+      totalVolume,
+      totalActivity,
+      workoutCount,
+      restDayCount,
+      avgDuration,
+      muscleDistribution,
+      mostTrainedMuscle
+    };
+  }, [filteredWorkouts, workouts]);
+
+  // NEW: Generate smart insights (memoized)
+  const insights = useMemo(() => {
+    return generateInsights(filteredWorkouts);
+  }, [filteredWorkouts]);
+
 
   const handleViewDetails = (workout) => {
     if (!workout) {
@@ -420,7 +529,7 @@ const History = () => {
     }
 
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
-    
+
     if (!fileExtension) {
       toast.error('Unable to determine file type');
       e.target.value = '';
@@ -580,6 +689,149 @@ const History = () => {
         </div>
       </div>
 
+      {/* NEW: Quick Analytics Section (Collapsible) */}
+      {filteredWorkouts.length > 0 && (
+        <Card className="overflow-hidden">
+          <button
+            onClick={() => setShowAnalytics(!showAnalytics)}
+            className="w-full flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary-600" />
+              <h2 className="text-base md:text-lg font-semibold text-gray-900">Quick Analytics</h2>
+              <span className="text-xs text-gray-500">({filteredWorkouts.length} workouts)</span>
+            </div>
+            {showAnalytics ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+
+          {showAnalytics && (
+            <div className="p-3 md:p-4 pt-0 border-t">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                {/* Streak Card */}
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-3 md:p-4 rounded-lg border border-orange-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xl md:text-2xl">🔥</span>
+                    <span className="text-xs text-orange-700 font-medium">Streak</span>
+                  </div>
+                  <p className="text-2xl md:text-3xl font-bold text-orange-900">{analytics.streak}</p>
+                  <p className="text-xs text-orange-600 mt-1">days</p>
+                </div>
+
+                {/* Volume Card */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 md:p-4 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Dumbbell className="w-4 h-4 md:w-5 md:h-5 text-blue-700" />
+                    <span className="text-xs text-blue-700 font-medium">Volume</span>
+                  </div>
+                  <p className="text-2xl md:text-3xl font-bold text-blue-900">{kgToTons(analytics.totalVolume)}</p>
+                  <p className="text-xs text-blue-600 mt-1">tons</p>
+                </div>
+
+                {/* Activity Points Card */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-3 md:p-4 rounded-lg border border-purple-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Activity className="w-4 h-4 md:w-5 md:h-5 text-purple-700" />
+                    <span className="text-xs text-purple-700 font-medium">Activity</span>
+                  </div>
+                  <p className="text-2xl md:text-3xl font-bold text-purple-900">{Math.round(analytics.totalActivity).toLocaleString()}</p>
+                  <p className="text-xs text-purple-600 mt-1">points</p>
+                </div>
+
+                {/* Workouts Card */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 md:p-4 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar className="w-4 h-4 md:w-5 md:h-5 text-green-700" />
+                    <span className="text-xs text-green-700 font-medium">Workouts</span>
+                  </div>
+                  <p className="text-2xl md:text-3xl font-bold text-green-900">{analytics.workoutCount}</p>
+                  <p className="text-xs text-green-600 mt-1">{analytics.restDayCount} rest days</p>
+                </div>
+
+                {/* Average Duration */}
+                {analytics.avgDuration > 0 && (
+                  <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 p-3 md:p-4 rounded-lg border border-cyan-200">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl md:text-2xl">⏱️</span>
+                      <span className="text-xs text-cyan-700 font-medium">Avg Duration</span>
+                    </div>
+                    <p className="text-2xl md:text-3xl font-bold text-cyan-900">{analytics.avgDuration}</p>
+                    <p className="text-xs text-cyan-600 mt-1">minutes</p>
+                  </div>
+                )}
+
+                {/* Most Trained Muscle */}
+                {analytics.mostTrainedMuscle && (
+                  <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-3 md:p-4 rounded-lg border border-indigo-200">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl md:text-2xl">💪</span>
+                      <span className="text-xs text-indigo-700 font-medium">Top Muscle</span>
+                    </div>
+                    <p className="text-lg md:text-xl font-bold text-indigo-900 capitalize">{analytics.mostTrainedMuscle[0]}</p>
+                    <p className="text-xs text-indigo-600 mt-1">{Math.round(analytics.mostTrainedMuscle[1])} sets</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* NEW: Smart Insights Section (Collapsible) */}
+      {insights.length > 0 && (
+        <Card className="overflow-hidden">
+          <button
+            onClick={() => setShowInsights(!showInsights)}
+            className="w-full flex items-center justify-between p-3 md:p-4 hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-amber-600" />
+              <h2 className="text-base md:text-lg font-semibold text-gray-900">Smart Insights</h2>
+              <span className="text-xs text-gray-500">({insights.length})</span>
+            </div>
+            {showInsights ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+
+          {showInsights && (
+            <div className="p-3 md:p-4 pt-0 border-t">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {insights.map((insight, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-lg border-2 bg-gradient-to-br ${insight.color === 'orange' ? 'from-orange-50 to-orange-100 border-orange-200' :
+                        insight.color === 'blue' ? 'from-blue-50 to-blue-100 border-blue-200' :
+                          insight.color === 'green' ? 'from-green-50 to-green-100 border-green-200' :
+                            insight.color === 'purple' ? 'from-purple-50 to-purple-100 border-purple-200' :
+                              insight.color === 'red' ? 'from-red-50 to-red-100 border-red-200' :
+                                insight.color === 'indigo' ? 'from-indigo-50 to-indigo-100 border-indigo-200' :
+                                  insight.color === 'teal' ? 'from-teal-50 to-teal-100 border-teal-200' :
+                                    insight.color === 'cyan' ? 'from-cyan-50 to-cyan-100 border-cyan-200' :
+                                      insight.color === 'pink' ? 'from-pink-50 to-pink-100 border-pink-200' :
+                                        'from-gray-50 to-gray-100 border-gray-200'
+                      }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className="text-2xl flex-shrink-0">{insight.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-sm md:text-base">{insight.title}</h3>
+                        <p className="text-xs md:text-sm text-gray-700 mt-1">{insight.message}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
       {/* Search and Filters */}
       <div className="space-y-3">
         <Card>
@@ -645,6 +897,115 @@ const History = () => {
               </button>
             </div>
           </div>
+        </Card>
+
+        {/* NEW: Enhanced Filters Card */}
+        <Card>
+          <div className="flex flex-col md:flex-row gap-3">
+            {/* Date Range Filter */}
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Date Range</label>
+              <div className="flex gap-2">
+                <select
+                  value={dateRange}
+                  onChange={(e) => setDateRange(e.target.value)}
+                  className="flex-1 h-9 px-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                >
+                  <option value="all">All Time</option>
+                  <option value="7days">Last 7 Days</option>
+                  <option value="30days">Last 30 Days</option>
+                  <option value="thisWeek">This Week</option>
+                  <option value="thisMonth">This Month</option>
+                  <option value="custom">Custom Range</option>
+                </select>
+                {dateRange !== 'all' && (
+                  <button
+                    onClick={() => setDateRange('all')}
+                    className="px-2 h-9 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                    title="Clear date filter"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Custom Date Range Inputs */}
+              {dateRange === 'custom' && (
+                <div className="flex gap-2 mt-2">
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Start date"
+                  />
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="End date"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Muscle Group Filter */}
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Muscle Group</label>
+              <div className="flex gap-2">
+                <select
+                  value={muscleGroupFilter}
+                  onChange={(e) => setMuscleGroupFilter(e.target.value)}
+                  className="flex-1 h-9 px-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm capitalize"
+                >
+                  <option value="all">All Muscles</option>
+                  <option value="chest">Chest</option>
+                  <option value="back">Back</option>
+                  <option value="shoulders">Shoulders</option>
+                  <option value="legs">Legs</option>
+                  <option value="arms">Arms</option>
+                  <option value="core">Core</option>
+                </select>
+                {muscleGroupFilter !== 'all' && (
+                  <button
+                    onClick={() => setMuscleGroupFilter('all')}
+                    className="px-2 h-9 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                    title="Clear muscle filter"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Active Filters Summary */}
+          {(dateRange !== 'all' || muscleGroupFilter !== 'all' || filterType !== 'all' || searchTerm) && (
+            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
+              <span className="text-xs font-semibold text-gray-600">Active Filters:</span>
+              {dateRange !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                  📅 {dateRange === 'custom' ? 'Custom Range' : dateRange.replace(/([A-Z])/g, ' $1').trim()}
+                </span>
+              )}
+              {muscleGroupFilter !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded capitalize">
+                  💪 {muscleGroupFilter}
+                </span>
+              )}
+              {filterType !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded capitalize">
+                  🏋️ {filterType.replace('_', ' ')}
+                </span>
+              )}
+              {searchTerm && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded">
+                  🔍 "{searchTerm}"
+                </span>
+              )}
+            </div>
+          )}
         </Card>
       </div>
 
@@ -752,85 +1113,85 @@ const History = () => {
             <div className="space-y-4 md:space-y-6">
               {/* Rest Day Info */}
               <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600 ">Date</p>
-                    <p className="font-semibold text-gray-900 ">{formatDate(selectedWorkout.date)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 ">Recovery Quality</p>
-                    <div className="flex items-center space-x-1 mt-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-5 h-5 ${i < (selectedWorkout.recoveryQuality || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
-                        />
-                      ))}
-                    </div>
+                <div>
+                  <p className="text-sm text-gray-600 ">Date</p>
+                  <p className="font-semibold text-gray-900 ">{formatDate(selectedWorkout.date)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 ">Recovery Quality</p>
+                  <div className="flex items-center space-x-1 mt-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-5 h-5 ${i < (selectedWorkout.recoveryQuality || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
+                      />
+                    ))}
                   </div>
                 </div>
-
-                {/* Active Recovery Activities */}
-                {selectedWorkout.activities && selectedWorkout.activities.length > 0 && (
-                  <div>
-                    <p className="text-sm text-gray-600 mb-3">Active Recovery Activities</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedWorkout.activities.map((activity, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-2 text-sm font-semibold bg-purple-100 text-purple-700 rounded-lg"
-                        >
-                          {activity ? activity.replace('_', ' ') : 'Unknown'}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Notes */}
-                {selectedWorkout.notes && (
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Notes</p>
-                    <p className="p-3 bg-gray-50 rounded-lg text-gray-900 ">{selectedWorkout.notes}</p>
-                  </div>
-                )}
               </div>
+
+              {/* Active Recovery Activities */}
+              {selectedWorkout.activities && selectedWorkout.activities.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-3">Active Recovery Activities</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedWorkout.activities.map((activity, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-2 text-sm font-semibold bg-purple-100 text-purple-700 rounded-lg"
+                      >
+                        {activity ? activity.replace('_', ' ') : 'Unknown'}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
+              {selectedWorkout.notes && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Notes</p>
+                  <p className="p-3 bg-gray-50 rounded-lg text-gray-900 ">{selectedWorkout.notes}</p>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="space-y-4 md:space-y-6">
               {/* Workout Info */}
               <div className="grid grid-cols-2 gap-2.5 md:gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600 ">Date</p>
-                    <p className="font-semibold text-gray-900 text-sm md:text-base">{formatDate(selectedWorkout.date)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 ">Duration</p>
-                    <p className="font-semibold text-gray-900 text-sm md:text-base">
-                      {selectedWorkout.duration && selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 ">Total Exercises</p>
-                    <p className="font-semibold text-gray-900 text-sm md:text-base">{selectedWorkout.exercises?.length || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 ">Total Sets</p>
-                    <p className="font-semibold text-gray-900 text-sm md:text-base">{calculateTotalSets(selectedWorkout)}</p>
-                  </div>
-                </div>
-
-                {/* Notes */}
-                {selectedWorkout.notes && (
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Notes</p>
-                    <p className="p-3 bg-gray-50 rounded-lg text-gray-900 text-sm md:text-base">{selectedWorkout.notes}</p>
-                  </div>
-                )}
-
-                {/* Exercises */}
                 <div>
-                  <h3 className="text-sm md:text-lg font-semibold text-gray-900 mb-2.5 md:mb-4">Exercises</h3>
-                  <div className="space-y-2.5 md:space-y-4">
-                    {selectedWorkout.exercises?.map((exercise) => {
+                  <p className="text-sm text-gray-600 ">Date</p>
+                  <p className="font-semibold text-gray-900 text-sm md:text-base">{formatDate(selectedWorkout.date)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 ">Duration</p>
+                  <p className="font-semibold text-gray-900 text-sm md:text-base">
+                    {selectedWorkout.duration && selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 ">Total Exercises</p>
+                  <p className="font-semibold text-gray-900 text-sm md:text-base">{selectedWorkout.exercises?.length || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 ">Total Sets</p>
+                  <p className="font-semibold text-gray-900 text-sm md:text-base">{calculateTotalSets(selectedWorkout)}</p>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedWorkout.notes && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Notes</p>
+                  <p className="p-3 bg-gray-50 rounded-lg text-gray-900 text-sm md:text-base">{selectedWorkout.notes}</p>
+                </div>
+              )}
+
+              {/* Exercises */}
+              <div>
+                <h3 className="text-sm md:text-lg font-semibold text-gray-900 mb-2.5 md:mb-4">Exercises</h3>
+                <div className="space-y-2.5 md:space-y-4">
+                  {selectedWorkout.exercises?.map((exercise) => {
                     if (!exercise) return null;
                     const exerciseVolume = calculateExerciseVolume(exercise);
                     const weights = Array.isArray(exercise.sets) ? exercise.sets.map(s => s?.weight || 0) : [0];
@@ -893,20 +1254,21 @@ const History = () => {
                               {Array.isArray(exercise.sets) && exercise.sets.map((set, index) => {
                                 if (!set) return null;
                                 return (
-                                <div
-                                  key={index}
-                                  className={`grid grid-cols-3 gap-1 md:gap-2 text-xs md:text-sm ${set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
-                                    } py-1.5 md:py-2 px-1.5 md:px-2 rounded`}
-                                >
-                                  <div className="font-medium">{index + 1}</div>
-                                  <div className="font-semibold truncate">
-                                    {exercise.category === 'cardio' ? `${set.duration || 0}m` : `${set.reps || 0} reps`}
+                                  <div
+                                    key={index}
+                                    className={`grid grid-cols-3 gap-1 md:gap-2 text-xs md:text-sm ${set.completed ? 'text-gray-900 bg-green-50' : 'text-gray-600'
+                                      } py-1.5 md:py-2 px-1.5 md:px-2 rounded`}
+                                  >
+                                    <div className="font-medium">{index + 1}</div>
+                                    <div className="font-semibold truncate">
+                                      {exercise.category === 'cardio' ? `${set.duration || 0}m` : `${set.reps || 0} reps`}
+                                    </div>
+                                    <div className="text-right text-xs">
+                                      {set.completed ? '✓' : '-'}
+                                    </div>
                                   </div>
-                                  <div className="text-right text-xs">
-                                    {set.completed ? '✓' : '-'}
-                                  </div>
-                                </div>
-                              )})}
+                                )
+                              })}
                             </>
                           ) : (
                             // Weight training display
