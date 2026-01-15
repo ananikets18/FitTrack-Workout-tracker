@@ -133,6 +133,53 @@ const Calendar = () => {
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  // Smart legend calculation - analyze actual workout data
+  const getIntensityStats = () => {
+    const counts = workouts
+      .filter(w => w.type !== 'rest_day')
+      .map(w => {
+        const dateKey = format(new Date(w.date), 'yyyy-MM-dd');
+        const dayWorkouts = workoutsByDate[dateKey] || [];
+        return dayWorkouts.filter(dw => dw.type !== 'rest_day').length;
+      });
+
+    if (counts.length === 0) {
+      return { min: 0, max: 9, avg: 0, hasData: false };
+    }
+
+    const min = Math.min(...counts);
+    const max = Math.max(...counts);
+    const avg = Math.round(counts.reduce((a, b) => a + b, 0) / counts.length);
+
+    return { min, max, avg, hasData: true };
+  };
+
+  const intensityStats = getIntensityStats();
+
+  // Generate dynamic gradient stops based on actual data
+  const getGradientStops = () => {
+    if (!intensityStats.hasData) {
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    }
+
+    const { min, max } = intensityStats;
+    const range = max - min;
+
+    if (range <= 3) {
+      // Small range - show fine-grained scale
+      return Array.from({ length: max - min + 1 }, (_, i) => min + i);
+    } else if (range <= 6) {
+      // Medium range - show every level
+      return Array.from({ length: max - min + 1 }, (_, i) => min + i);
+    } else {
+      // Large range - show key points
+      const step = Math.ceil(range / 5);
+      return [min, min + step, min + step * 2, min + step * 3, min + step * 4, max];
+    }
+  };
+
+  const gradientStops = getGradientStops();
+
   return (
     <div className="space-y-6 pb-safe">
       {/* Header */}
@@ -143,44 +190,85 @@ const Calendar = () => {
         </div>
       </div>
 
-      {/* Legend */}
+      {/* Smart Dynamic Legend */}
       <Card>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Intensity Scale</h3>
-        <div className="space-y-3">
-          {/* Gradient Bar */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 font-medium w-8">Low</span>
-            <div className="flex-1 h-8 rounded-lg overflow-hidden flex">
-              <div className="flex-1 bg-green-50"></div>
-              <div className="flex-1 bg-green-100"></div>
-              <div className="flex-1 bg-green-200"></div>
-              <div className="flex-1 bg-green-300"></div>
-              <div className="flex-1 bg-green-400"></div>
-              <div className="flex-1 bg-green-500"></div>
-              <div className="flex-1 bg-green-600"></div>
-              <div className="flex-1 bg-green-700"></div>
-              <div className="flex-1 bg-green-800"></div>
+        <div className="flex items-start justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-700">Workout Intensity</h3>
+          {intensityStats.hasData && (
+            <div className="text-xs text-gray-500">
+              <span className="font-medium">Avg: {intensityStats.avg}</span>
+              <span className="mx-1">•</span>
+              <span>Peak: {intensityStats.max}</span>
             </div>
-            <span className="text-xs text-gray-500 font-medium w-8 text-right">High</span>
-          </div>
-
-          {/* Labels */}
-          <div className="flex items-center justify-between text-xs text-gray-600">
-            <span>1 exercise</span>
-            <span>3 exercises</span>
-            <span>5 exercises</span>
-            <span>7 exercises</span>
-            <span>9+ exercises</span>
-          </div>
-
-          {/* Rest Day Indicator */}
-          <div className="flex items-center space-x-2 pt-2 border-t">
-            <div className="w-6 h-6 rounded bg-purple-100 border border-purple-200 flex items-center justify-center">
-              <Hotel className="w-3 h-3 text-purple-600" />
-            </div>
-            <span className="text-gray-600 text-sm">Rest Day</span>
-          </div>
+          )}
         </div>
+
+        {intensityStats.hasData ? (
+          <div className="space-y-3">
+            {/* Dynamic Gradient Bar */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 font-medium w-12">{intensityStats.min}</span>
+              <div className="flex-1 h-8 rounded-lg overflow-hidden flex shadow-inner">
+                {gradientStops.map((stop, idx) => {
+                  const intensity = Math.min(Math.round((stop / 9) * 8), 8);
+                  const colors = [
+                    'bg-green-50',
+                    'bg-green-100',
+                    'bg-green-200',
+                    'bg-green-300',
+                    'bg-green-400',
+                    'bg-green-500',
+                    'bg-green-600',
+                    'bg-green-700',
+                    'bg-green-800'
+                  ];
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex-1 ${colors[intensity]} transition-all`}
+                      title={`${stop} exercise${stop !== 1 ? 's' : ''}`}
+                    ></div>
+                  );
+                })}
+              </div>
+              <span className="text-xs text-gray-500 font-medium w-12 text-right">{intensityStats.max}+</span>
+            </div>
+
+            {/* Dynamic Labels */}
+            <div className="flex items-center justify-between text-xs text-gray-600">
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-green-100"></span>
+                Light
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-green-400"></span>
+                Moderate
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-green-700"></span>
+                Intense
+              </span>
+              {intensityStats.max >= 9 && (
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-green-800 ring-2 ring-yellow-400"></span>
+                  Beast Mode
+                </span>
+              )}
+            </div>
+
+            {/* Rest Day Indicator */}
+            <div className="flex items-center space-x-2 pt-2 border-t">
+              <div className="w-6 h-6 rounded bg-purple-100 border border-purple-200 flex items-center justify-center">
+                <Hotel className="w-3 h-3 text-purple-600" />
+              </div>
+              <span className="text-gray-600 text-sm">Rest Day</span>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-6 text-gray-500">
+            <p className="text-sm">Start logging workouts to see your intensity scale!</p>
+          </div>
+        )}
       </Card>
 
       {/* Calendar */}
@@ -310,8 +398,8 @@ const Calendar = () => {
           <div className="space-y-4">
             {selectedDate.workouts.map((workout, idx) => (
               <div key={idx} className={`rounded-xl p-4 space-y-3 ${workout.type === 'rest_day'
-                  ? 'bg-purple-50 border-2 border-purple-200 '
-                  : 'bg-gray-50 '
+                ? 'bg-purple-50 border-2 border-purple-200 '
+                : 'bg-gray-50 '
                 }`}>
                 {workout.type === 'rest_day' ? (
                   <>
