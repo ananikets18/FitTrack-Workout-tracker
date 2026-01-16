@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Plus, History, BarChart3, CalendarDays } from 'lucide-react';
+import { Home, Plus, History, BarChart3, CalendarDays, Activity } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { lightHaptic, mediumHaptic } from '../../utils/haptics';
@@ -15,7 +15,7 @@ const BottomNav = () => {
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
-    { path: '/calendar', label: 'Calendar', icon: CalendarDays },
+    { path: '/health', label: 'Health', icon: Activity },
     { path: '/log', label: 'Log', icon: Plus, primary: true },
     { path: '/history', label: 'History', icon: History },
     { path: '/stats', label: 'Stats', icon: BarChart3 },
