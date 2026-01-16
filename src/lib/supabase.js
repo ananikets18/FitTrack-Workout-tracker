@@ -19,13 +19,52 @@ if (supabaseUrl && !supabaseUrl.startsWith('https://')) {
   throw new Error('Invalid Supabase URL format');
 }
 
-// Create Supabase client
+// Custom storage adapter with error handling
+const createSafeStorage = () => {
+  try {
+    // Test if localStorage is available and working
+    const testKey = '__supabase_test__';
+    window.localStorage.setItem(testKey, 'test');
+    window.localStorage.removeItem(testKey);
+    return window.localStorage;
+  } catch (error) {
+    console.warn('localStorage not available, using in-memory storage:', error);
+    // Fallback to in-memory storage
+    const memoryStorage = new Map();
+    return {
+      getItem: (key) => memoryStorage.get(key) || null,
+      setItem: (key, value) => memoryStorage.set(key, value),
+      removeItem: (key) => memoryStorage.delete(key),
+    };
+  }
+};
+
+// Create Supabase client with safe storage
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storage: window.localStorage,
+    storage: createSafeStorage(),
+    // Add storage key to avoid conflicts
+    storageKey: 'fittrack-auth',
+    // Disable flow type detection to avoid potential issues
+    flowType: 'pkce',
+  },
+  // Add global options for better error handling
+  global: {
+    headers: {
+      'X-Client-Info': 'fittrack-web',
+    },
+  },
+  db: {
+    schema: 'public',
+  },
+  // Disable realtime if it causes issues
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
   },
 });
 
