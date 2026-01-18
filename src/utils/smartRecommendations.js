@@ -10,6 +10,8 @@ import {
     getSystemicReadiness,
     calculateSystemicStress
 } from './intensityClassification';
+import { checkNutritionAdequacy } from './nutritionChecker';
+import { analyzeBodyComposition } from './bodyCompositionAnalyzer';
 
 // ============================================
 // INTELLIGENT WORKOUT RECOMMENDATION SYSTEM
@@ -279,7 +281,7 @@ export const getLastRestDayQuality = (workouts) => {
 // MAIN RECOMMENDATION ENGINE
 // ============================================
 
-export const getSmartRecommendation = (workouts, userPreferences = {}) => {
+export const getSmartRecommendation = (workouts, userPreferences = {}, sleepLogs = [], nutritionLogs = [], measurements = [], userProfile = {}) => {
     if (!workouts || workouts.length < 2) {
         return {
             workout: null,
@@ -288,7 +290,9 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
             alternatives: [],
             injuryRisk: null,
             readinessScore: null,
-            progressiveOverload: null
+            progressiveOverload: null,
+            nutritionWarnings: [],
+            bodyComposition: null
         };
     }
 
@@ -298,12 +302,18 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
     // ADVANCED INTELLIGENCE ANALYSIS
     // ============================================
 
-    // 1. INJURY RISK ASSESSMENT
-    const injuryRisk = assessInjuryRisk(workouts);
+    // 1. INJURY RISK ASSESSMENT (ENHANCED with sleep data)
+    const injuryRisk = assessInjuryRisk(workouts, sleepLogs);
 
-    // 2. READINESS & DIFFICULTY CALCULATION (ENHANCED - uses systemic readiness)
-    const readinessScore = getSystemicReadiness(workouts, 7); // Use new systemic readiness
+    // 2. READINESS & DIFFICULTY CALCULATION (ENHANCED with sleep data)
+    const readinessScore = calculateReadinessScore(workouts, sleepLogs);
     const difficultyLevel = determineDifficultyLevel(readinessScore);
+
+    // 3. NUTRITION ANALYSIS (NEW)
+    const nutritionWarnings = checkNutritionAdequacy(nutritionLogs, userProfile, workouts);
+
+    // 4. BODY COMPOSITION ANALYSIS (NEW)
+    const bodyComposition = analyzeBodyComposition(measurements, workouts, nutritionLogs, userProfile);
 
     // Get all analysis data
     const muscleRecovery = getMuscleRecoveryStatus(workouts);
@@ -542,7 +552,11 @@ export const getSmartRecommendation = (workouts, userPreferences = {}) => {
         difficultyLevel,
         workoutAdjustment,
         progressiveOverload: overloadRecommendations.slice(0, 3), // Top 3 exercises
-        recoveryWork: injuryRisk.warnings.length > 0 ? suggestRecoveryWork(injuryRisk.warnings) : null
+        recoveryWork: injuryRisk.warnings.length > 0 ? suggestRecoveryWork(injuryRisk.warnings) : null,
+
+        // NEW: Nutrition & Body Composition
+        nutritionWarnings,
+        bodyComposition
     };
 };
 

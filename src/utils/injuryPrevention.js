@@ -197,8 +197,8 @@ export const detectConsecutiveDays = (workouts) => {
     return warnings;
 };
 
-// Calculate overall fatigue score (ENHANCED - uses systemic stress)
-export const calculateFatigueScore = (workouts) => {
+// Calculate overall fatigue score (ENHANCED - uses systemic stress and sleep data)
+export const calculateFatigueScore = (workouts, sleepLogs = []) => {
     const last7Days = workouts.filter(w => {
         const daysSince = differenceInDays(new Date(), new Date(w.date));
         return daysSince <= 7;
@@ -208,11 +208,11 @@ export const calculateFatigueScore = (workouts) => {
 
     let fatigueScore = 0;
 
-    // Factor 1: Number of workouts (max 30 points - reduced from 40)
+    // Factor 1: Number of workouts (max 25 points - reduced to make room for sleep)
     const workoutCount = last7Days.filter(w => w.type !== 'rest_day').length;
-    fatigueScore += Math.min(30, workoutCount * 6);
+    fatigueScore += Math.min(25, workoutCount * 5);
 
-    // Factor 2: Average sets per workout (max 25 points - reduced from 30)
+    // Factor 2: Average sets per workout (max 20 points)
     const avgSets = last7Days
         .filter(w => w.type !== 'rest_day')
         .reduce((sum, w) => {
@@ -220,22 +220,40 @@ export const calculateFatigueScore = (workouts) => {
             return sum + totalSets;
         }, 0) / (workoutCount || 1);
 
-    fatigueScore += Math.min(25, avgSets * 1.25);
+    fatigueScore += Math.min(20, avgSets * 1.0);
 
-    // Factor 3: Systemic (CNS) Stress (NEW - max 25 points)
+    // Factor 3: Systemic (CNS) Stress (max 20 points)
     const avgSystemicStress = last7Days
         .filter(w => w.type !== 'rest_day')
         .reduce((sum, w) => sum + calculateSystemicStress(w), 0) / (workoutCount || 1);
 
-    fatigueScore += Math.min(25, avgSystemicStress / 4); // Scale 0-100 stress to 0-25 points
+    fatigueScore += Math.min(20, avgSystemicStress / 5);
 
-    // Factor 4: Rest day quality (max 20 points - reduced from 30)
-    const restDays = last7Days.filter(w => w.type === 'rest_day');
-    if (restDays.length === 0) {
-        fatigueScore += 20; // No rest = high fatigue
+    // Factor 4: Sleep Quality (NEW - max 25 points)
+    // Poor sleep = higher fatigue
+    if (sleepLogs && sleepLogs.length > 0) {
+        const recentSleep = sleepLogs.slice(0, 7);
+        const avgSleepHours = recentSleep.reduce((sum, log) => sum + parseFloat(log.hours_slept), 0) / recentSleep.length;
+        const avgSleepQuality = recentSleep.reduce((sum, log) => sum + log.quality, 0) / recentSleep.length;
+
+        // Poor sleep increases fatigue
+        const sleepFatigue = (8 - avgSleepHours) * 3 + (5 - avgSleepQuality) * 2;
+        fatigueScore += Math.max(0, Math.min(25, sleepFatigue));
     } else {
-        const avgRestQuality = restDays.reduce((sum, r) => sum + (r.recoveryQuality || 3), 0) / restDays.length;
-        fatigueScore += Math.round((5 - avgRestQuality) * 4); // Lower quality = higher fatigue
+        // Fallback to rest day quality (max 20 points)
+        const restDays = last7Days.filter(w => w.type === 'rest_day');
+        if (restDays.length === 0) {
+            fatigueScore += 20; // No rest = high fatigue
+        } else {
+            const avgRestQuality = restDays.reduce((sum, r) => sum + (r.recoveryQuality || 3), 0) / restDays.length;
+            fatigueScore += Math.round((5 - avgRestQuality) * 4); // Lower quality = higher fatigue
+        }
+    }
+
+    // Factor 5: Consecutive training days (max 10 points)
+    const consecutiveDays = detectConsecutiveDays(workouts);
+    if (consecutiveDays.length > 0) {
+        fatigueScore += Math.min(10, consecutiveDays[0].consecutiveDays * 2);
     }
 
     return Math.min(100, Math.round(fatigueScore));

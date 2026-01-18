@@ -75,25 +75,72 @@ const DIFFICULTY_LEVELS = {
     }
 };
 
+// Placeholder for calculateSleepDebt - assuming it's defined elsewhere or will be added
+const calculateSleepDebt = (sleepLogs) => {
+    // This is a simplified placeholder. A real implementation would calculate
+    // average sleep over a period vs. ideal, and sum up deficits.
+    if (!sleepLogs || sleepLogs.length === 0) return 0;
+
+    const idealSleepHours = 8; // Example ideal sleep
+    let totalDebt = 0;
+    const recentSleeps = sleepLogs.slice(0, 7); // Consider last 7 days
+
+    for (const log of recentSleeps) {
+        const hoursSlept = parseFloat(log.hours_slept);
+        if (hoursSlept < idealSleepHours) {
+            totalDebt += (idealSleepHours - hoursSlept);
+        }
+    }
+    return totalDebt;
+};
+
 // Calculate readiness score (0-100)
-export const calculateReadinessScore = (workouts) => {
+// Enhanced to use sleep data when available
+export const calculateReadinessScore = (workouts, sleepLogs = []) => {
     if (!workouts || workouts.length === 0) return 75; // Default moderate readiness
 
     let readinessScore = 0;
 
-    // Factor 1: Rest Day Quality (35% weight)
-    const lastRestDay = workouts.find(w => w.type === 'rest_day');
-    if (lastRestDay) {
-        const restQuality = lastRestDay.recoveryQuality || 3;
-        const daysSinceRest = differenceInDays(new Date(), new Date(lastRestDay.date));
+    // Factor 1: Sleep Quality (40% weight) - ENHANCED with sleep data
+    // Falls back to rest day quality if no sleep data available
+    if (sleepLogs && sleepLogs.length > 0) {
+        // Use actual sleep data (most recent)
+        const lastSleep = sleepLogs[0];
+        const sleepHours = parseFloat(lastSleep.hours_slept);
+        const sleepQuality = lastSleep.quality; // 1-5 scale
 
-        // Recent rest day (within 2 days) has more impact
-        const recencyMultiplier = daysSinceRest <= 2 ? 1.0 : 0.7;
-        const restScore = READINESS_FACTORS.restQuality.scale[restQuality] * 100 * recencyMultiplier;
-        readinessScore += restScore * READINESS_FACTORS.restQuality.weight;
+        // Sleep hours factor (8 hours = 100%, max 120% for 9+ hours)
+        const sleepHoursFactor = Math.min(sleepHours / 8, 1.2);
+
+        // Sleep quality factor (1-5 scale normalized)
+        const sleepQualityFactor = sleepQuality / 5;
+
+        // Combined sleep score (60% hours, 40% quality)
+        const sleepScore = (sleepHoursFactor * 0.6 + sleepQualityFactor * 0.4) * 100;
+        readinessScore += sleepScore * 0.40; // 40% weight for sleep
+
+        // Check for sleep debt (last 7 days)
+        const sleepDebt = calculateSleepDebt(sleepLogs);
+        if (sleepDebt > 5) {
+            // Significant sleep debt - reduce readiness
+            const debtPenalty = Math.min(20, sleepDebt * 2);
+            readinessScore -= debtPenalty;
+        }
     } else {
-        // No rest day found = moderate readiness
-        readinessScore += 75 * READINESS_FACTORS.restQuality.weight;
+        // Fallback to rest day quality (35% weight)
+        const lastRestDay = workouts.find(w => w.type === 'rest_day');
+        if (lastRestDay) {
+            const restQuality = lastRestDay.recoveryQuality || 3;
+            const daysSinceRest = differenceInDays(new Date(), new Date(lastRestDay.date));
+
+            // Recent rest day (within 2 days) has more impact
+            const recencyMultiplier = daysSinceRest <= 2 ? 1.0 : 0.7;
+            const restScore = READINESS_FACTORS.restQuality.scale[restQuality] * 100 * recencyMultiplier;
+            readinessScore += restScore * READINESS_FACTORS.restQuality.weight;
+        } else {
+            // No rest day found = moderate readiness
+            readinessScore += 75 * READINESS_FACTORS.restQuality.weight;
+        }
     }
 
     // Factor 2: Fatigue Level (30% weight)
@@ -211,15 +258,15 @@ export const adjustWorkout = (workout, difficultyLevel) => {
 };
 
 // Get workout adjustment recommendation
-export const getWorkoutAdjustment = (workout, workouts) => {
-    const readinessScore = calculateReadinessScore(workouts);
+export const getWorkoutAdjustment = (workout, workouts, sleepLogs = []) => {
+    const readinessScore = calculateReadinessScore(workouts, sleepLogs);
     const difficultyLevel = determineDifficultyLevel(readinessScore);
     const adjustment = DIFFICULTY_LEVELS[difficultyLevel];
 
     const adjustedWorkout = adjustWorkout(workout, difficultyLevel);
 
     // Generate explanation
-    const explanation = generateAdjustmentExplanation(readinessScore, difficultyLevel, workouts);
+    const explanation = generateAdjustmentExplanation(readinessScore, difficultyLevel, workouts, sleepLogs);
 
     return {
         readinessScore,
@@ -232,7 +279,7 @@ export const getWorkoutAdjustment = (workout, workouts) => {
 };
 
 // Generate human-readable explanation
-const generateAdjustmentExplanation = (readinessScore, difficultyLevel, workouts) => {
+const generateAdjustmentExplanation = (readinessScore, difficultyLevel, workouts, sleepLogs = []) => {
     const explanation = {
         summary: '',
         factors: [],
@@ -252,22 +299,44 @@ const generateAdjustmentExplanation = (readinessScore, difficultyLevel, workouts
         explanation.summary = '😴 Very low readiness - deload recommended for recovery.';
     }
 
-    // Contributing factors
-    const lastRestDay = workouts.find(w => w.type === 'rest_day');
-    if (lastRestDay) {
-        const quality = lastRestDay.recoveryQuality || 3;
-        const daysSince = differenceInDays(new Date(), new Date(lastRestDay.date));
+    // Contributing factors - ENHANCED with sleep data
+    if (sleepLogs && sleepLogs.length > 0) {
+        const lastSleep = sleepLogs[0];
+        const sleepHours = parseFloat(lastSleep.hours_slept);
+        const sleepQuality = lastSleep.quality;
 
-        if (quality >= 4) {
-            explanation.factors.push(`✨ Excellent rest quality (${quality}⭐)`);
-        } else if (quality <= 2) {
-            explanation.factors.push(`😴 Poor rest quality (${quality}⭐)`);
+        // Add sleep-specific factors
+        if (sleepHours >= 8 && sleepQuality >= 4) {
+            explanation.factors.push(`😴 Excellent sleep (${sleepHours}h, quality: ${sleepQuality}/5)`);
+        } else if (sleepHours < 6 || sleepQuality <= 2) {
+            explanation.factors.push(`⚠️ Poor sleep (${sleepHours}h, quality: ${sleepQuality}/5)`);
+        } else {
+            explanation.factors.push(`😴 Sleep: ${sleepHours}h (quality: ${sleepQuality}/5)`);
         }
 
-        if (daysSince === 0) {
-            explanation.factors.push('🛌 Just took a rest day');
-        } else if (daysSince >= 5) {
-            explanation.factors.push(`⏰ ${daysSince} days since last rest`);
+        // Check for sleep debt
+        const sleepDebt = calculateSleepDebt(sleepLogs);
+        if (sleepDebt > 5) {
+            explanation.factors.push(`💤 Sleep debt: ${sleepDebt.toFixed(1)} hours`);
+        }
+    } else {
+        // Fallback to rest day quality
+        const lastRestDay = workouts.find(w => w.type === 'rest_day');
+        if (lastRestDay) {
+            const quality = lastRestDay.recoveryQuality || 3;
+            const daysSince = differenceInDays(new Date(), new Date(lastRestDay.date));
+
+            if (quality >= 4) {
+                explanation.factors.push(`✨ Excellent rest quality (${quality}⭐)`);
+            } else if (quality <= 2) {
+                explanation.factors.push(`😴 Poor rest quality (${quality}⭐)`);
+            }
+
+            if (daysSince === 0) {
+                explanation.factors.push('🛌 Just took a rest day');
+            } else if (daysSince >= 5) {
+                explanation.factors.push(`⏰ ${daysSince} days since last rest`);
+            }
         }
     }
 
