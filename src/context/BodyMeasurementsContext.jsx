@@ -34,11 +34,20 @@ export const BodyMeasurementsProvider = ({ children }) => {
                 .eq('user_id', user.id)
                 .order('date', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                // Silently handle if table doesn't exist
+                if (error.code === 'PGRST301' || error.code === '42P01' || error.message?.includes('does not exist')) {
+                    console.warn('Body measurements feature not available yet');
+                    setMeasurements([]);
+                    return;
+                }
+                throw error;
+            }
             setMeasurements(data || []);
         } catch (error) {
             console.error('Error fetching body measurements:', error);
-            toast.error('Failed to load body measurements');
+            setMeasurements([]);
+            // Don't show error toast for missing table
         } finally {
             setLoading(false);
         }
@@ -58,7 +67,14 @@ export const BodyMeasurementsProvider = ({ children }) => {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                // Handle missing table
+                if (error.code === 'PGRST301' || error.code === '42P01' || error.message?.includes('does not exist')) {
+                    toast.error('Body measurements tracking is not available yet');
+                    return null;
+                }
+                throw error;
+            }
 
             setMeasurements(prev => [data, ...prev]);
             toast.success('Measurement logged!');

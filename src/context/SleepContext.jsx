@@ -34,11 +34,20 @@ export const SleepProvider = ({ children }) => {
                 .eq('user_id', user.id)
                 .order('date', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                // Silently handle if table doesn't exist
+                if (error.code === 'PGRST301' || error.code === '42P01' || error.message?.includes('does not exist')) {
+                    console.warn('Sleep tracking feature not available yet');
+                    setSleepLogs([]);
+                    return;
+                }
+                throw error;
+            }
             setSleepLogs(data || []);
         } catch (error) {
             console.error('Error fetching sleep logs:', error);
-            toast.error('Failed to load sleep data');
+            setSleepLogs([]);
+            // Don't show error toast for missing table
         } finally {
             setLoading(false);
         }
@@ -58,7 +67,14 @@ export const SleepProvider = ({ children }) => {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                // Handle missing table
+                if (error.code === 'PGRST301' || error.code === '42P01' || error.message?.includes('does not exist')) {
+                    toast.error('Sleep tracking is not available yet');
+                    return null;
+                }
+                throw error;
+            }
 
             setSleepLogs(prev => [data, ...prev]);
             toast.success('Sleep logged!');

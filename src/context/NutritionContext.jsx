@@ -36,11 +36,20 @@ export const NutritionProvider = ({ children }) => {
                 .order('created_at', { ascending: false })
                 .limit(days * 5); // Approximate: 5 entries per day max
 
-            if (error) throw error;
+            if (error) {
+                // Silently handle if table doesn't exist
+                if (error.code === 'PGRST301' || error.code === '42P01' || error.message?.includes('does not exist')) {
+                    console.warn('Nutrition tracking feature not available yet');
+                    setNutritionLogs([]);
+                    return;
+                }
+                throw error;
+            }
             setNutritionLogs(data || []);
         } catch (error) {
             console.error('Error fetching nutrition logs:', error);
-            toast.error('Failed to load nutrition data');
+            setNutritionLogs([]);
+            // Don't show error toast for missing table
         } finally {
             setLoading(false);
         }
@@ -60,7 +69,14 @@ export const NutritionProvider = ({ children }) => {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                // Handle missing table
+                if (error.code === 'PGRST301' || error.code === '42P01' || error.message?.includes('does not exist')) {
+                    toast.error('Nutrition tracking is not available yet');
+                    return null;
+                }
+                throw error;
+            }
 
             setNutritionLogs(prev => [data, ...prev]);
             toast.success('Nutrition logged!');
