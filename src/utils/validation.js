@@ -54,7 +54,7 @@ export const validateSet = (set) => {
   const weight = sanitizeNumber(set.weight, 0, 9999);
   const duration = set.duration !== undefined && set.duration !== null && set.duration !== ''
     ? sanitizeNumber(set.duration, 0, 999)
-    : undefined;
+    : null;
 
   return {
     isValid: reps >= 0 && weight >= 0,
@@ -125,7 +125,7 @@ export const sanitizeWorkout = (workout) => {
     id: workout.id || crypto.randomUUID(),
     name: sanitizeString(workout.name, 100),
     date: workout.date || new Date().toISOString(),
-    duration: workout.duration ? sanitizeNumber(workout.duration, 0, 999) : '',
+    duration: workout.duration ? sanitizeNumber(workout.duration, 0, 999) : null,
     notes: sanitizeString(workout.notes || '', 1000),
     exercises: Array.isArray(workout.exercises)
       ? workout.exercises.map(exercise => ({

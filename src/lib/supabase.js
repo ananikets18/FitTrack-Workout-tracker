@@ -146,9 +146,9 @@ export const db = {
             .insert(
               exercise.sets.map((set, setIndex) => ({
                 exercise_id: exerciseData.id,
-                reps: set.reps,
-                weight: set.weight,
-                duration: set.duration, // Add duration for cardio exercises
+                reps: set.reps || 0,
+                weight: set.weight || 0,
+                duration: set.duration !== undefined &amp;&amp; set.duration !== null &amp;&amp; set.duration !== '' ? set.duration : null,
                 completed: set.completed || false,
                 order: setIndex,
               }))
@@ -205,9 +205,9 @@ export const db = {
             .insert(
               exercise.sets.map((set, setIndex) => ({
                 exercise_id: exerciseData.id,
-                reps: set.reps,
-                weight: set.weight,
-                duration: set.duration, // Add duration for cardio exercises
+                reps: set.reps || 0,
+                weight: set.weight || 0,
+                duration: set.duration !== undefined &amp;&amp; set.duration !== null &amp;&amp; set.duration !== '' ? set.duration : null,
                 completed: set.completed || false,
                 order: setIndex,
               }))
@@ -471,8 +471,8 @@ export const transformWorkoutFromDB = (workout) => {
         sets: exercise.sets
           ?.sort((a, b) => a.order - b.order)
           .map((set) => ({
-            reps: set.reps,
-            weight: set.weight,
+            reps: set.reps || 0,
+            weight: set.weight || 0,
             duration: set.duration, // Include duration for cardio exercises
             completed: set.completed,
           })) || [],
