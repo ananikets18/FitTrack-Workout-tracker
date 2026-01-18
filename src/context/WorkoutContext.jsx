@@ -230,24 +230,25 @@ export const WorkoutProvider = ({ children }) => {
   // Water intake methods
   const addWaterIntake = async (amount) => {
     const today = new Date().toISOString().split('T')[0];
-    
+
     // Reset if it's a new day
     if (state.waterIntake.date !== today) {
       dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
     }
-    
+
     const newAmount = Math.max(0, state.waterIntake.amount + amount); // Prevent negative values
     const waterData = { date: today, amount: newAmount };
-    
+
     dispatch({ type: ACTIONS.SET_WATER_INTAKE, payload: waterData });
-    
+
     // Save to Supabase if user is logged in
     if (user) {
       try {
         await supabase.upsertWaterIntake(user.id, today, newAmount);
       } catch (error) {
-        console.error('Error saving water intake to Supabase:', error);
-        toast.error('Failed to save water intake');
+        // Silently handle - water intake table might not exist yet
+        console.warn('Water intake save skipped:', error.message);
+        // Don't show error toast to avoid confusing users
       }
     } else {
       // Save to localStorage for guests
@@ -263,12 +264,13 @@ export const WorkoutProvider = ({ children }) => {
     const today = new Date().toISOString().split('T')[0];
     const waterData = { date: today, amount: 0 };
     dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
-    
+
     if (user) {
       try {
         await supabase.upsertWaterIntake(user.id, today, 0);
       } catch (error) {
-        console.error('Error resetting water intake in Supabase:', error);
+        // Silently handle - water intake table might not exist yet
+        console.warn('Water intake reset skipped:', error.message);
       }
     } else {
       try {
@@ -294,7 +296,9 @@ export const WorkoutProvider = ({ children }) => {
             dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
           }
         } catch (error) {
-          console.error('Error loading water intake from Supabase:', error);
+          // Silently handle errors - water intake table might not exist yet
+          // This prevents breaking the app if the feature isn't fully deployed
+          console.warn('Water intake feature not available:', error.message);
           dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
         }
       } else {
@@ -303,7 +307,7 @@ export const WorkoutProvider = ({ children }) => {
           const saved = localStorage.getItem('waterIntake_guest');
           if (saved) {
             const waterData = JSON.parse(saved);
-            
+
             // Reset if saved data is from a previous day
             if (waterData.date !== today) {
               dispatch({ type: ACTIONS.RESET_WATER_INTAKE });

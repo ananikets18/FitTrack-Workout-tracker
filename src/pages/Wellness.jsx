@@ -38,8 +38,8 @@ const Wellness = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 px-4 md:px-6 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${isActive
-                                        ? `border-${tab.color}-600 text-${tab.color}-600`
-                                        : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                                    ? `border-${tab.color}-600 text-${tab.color}-600`
+                                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
                                     }`}
                             >
                                 <Icon className="w-5 h-5" />
@@ -51,8 +51,12 @@ const Wellness = () => {
             </div>
 
             {/* Tab Content */}
-            <div>
-                {activeTab === 'calendar' && <Calendar />}
+            <div className="min-h-[400px]">
+                {activeTab === 'calendar' && (
+                    <div className="wellness-calendar-wrapper">
+                        <Calendar />
+                    </div>
+                )}
                 {activeTab === 'sleep' && <SleepTracker />}
                 {activeTab === 'measurements' && <BodyMeasurementsTracker />}
                 {activeTab === 'nutrition' && (
