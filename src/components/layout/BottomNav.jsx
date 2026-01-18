@@ -15,7 +15,7 @@ const BottomNav = () => {
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
-    { path: '/health', label: 'Health', icon: Activity },
+    { path: '/wellness', label: 'Wellness', icon: Activity },
     { path: '/log', label: 'Log', icon: Plus, primary: true },
     { path: '/history', label: 'History', icon: History },
     { path: '/stats', label: 'Stats', icon: BarChart3 },
