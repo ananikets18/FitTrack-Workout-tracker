@@ -130,10 +130,10 @@ const BodyMeasurementsTracker = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        <Scale className="w-6 h-6 text-purple-600" />
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                         Body Measurements
                     </h2>
                     {latestMeasurement && (
@@ -151,9 +151,10 @@ const BodyMeasurementsTracker = () => {
                         </p>
                     )}
                 </div>
-                <Button onClick={() => setIsModalOpen(true)}>
+                <Button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto">
                     <Plus className="w-5 h-5 mr-2" />
-                    Log Measurement
+                    <span className="hidden sm:inline">Log Measurement</span>
+                    <span className="sm:hidden">Log</span>
                 </Button>
             </div>
 
@@ -210,64 +211,68 @@ const BodyMeasurementsTracker = () => {
             ) : (
                 <Card>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Measurement History</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-gray-200">
-                                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Date</th>
-                                    <th className="text-right py-2 px-3 text-sm font-semibold text-gray-700">Weight</th>
-                                    <th className="text-right py-2 px-3 text-sm font-semibold text-gray-700">BF%</th>
-                                    <th className="text-right py-2 px-3 text-sm font-semibold text-gray-700">Chest</th>
-                                    <th className="text-right py-2 px-3 text-sm font-semibold text-gray-700">Waist</th>
-                                    <th className="text-right py-2 px-3 text-sm font-semibold text-gray-700">Arms</th>
-                                    <th className="text-right py-2 px-3 text-sm font-semibold text-gray-700">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {measurements.slice(0, 20).map((m) => (
-                                    <tr key={m.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                        <td className="py-3 px-3 text-sm text-gray-900">
-                                            {new Date(m.date).toLocaleDateString('en-US', {
-                                                month: 'short',
-                                                day: 'numeric',
-                                                year: 'numeric'
-                                            })}
-                                        </td>
-                                        <td className="py-3 px-3 text-sm text-right font-semibold text-gray-900">
-                                            {m.weight ? `${m.weight} kg` : '-'}
-                                        </td>
-                                        <td className="py-3 px-3 text-sm text-right text-gray-700">
-                                            {m.body_fat_percentage ? `${m.body_fat_percentage}%` : '-'}
-                                        </td>
-                                        <td className="py-3 px-3 text-sm text-right text-gray-700">
-                                            {m.chest ? `${m.chest} cm` : '-'}
-                                        </td>
-                                        <td className="py-3 px-3 text-sm text-right text-gray-700">
-                                            {m.waist ? `${m.waist} cm` : '-'}
-                                        </td>
-                                        <td className="py-3 px-3 text-sm text-right text-gray-700">
-                                            {m.left_arm || m.right_arm ? `${m.left_arm || m.right_arm} cm` : '-'}
-                                        </td>
-                                        <td className="py-3 px-3 text-right">
-                                            <div className="flex justify-end gap-1">
-                                                <button
-                                                    onClick={() => handleEdit(m)}
-                                                    className="p-1.5 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(m.id)}
-                                                    className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
+                    <div className="overflow-x-auto -mx-4 sm:mx-0">
+                        <div className="inline-block min-w-full align-middle">
+                            <table className="min-w-full">
+                                <thead>
+                                    <tr className="border-b border-gray-200">
+                                        <th className="text-left py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Date</th>
+                                        <th className="text-right py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Weight</th>
+                                        <th className="hidden md:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap">BF%</th>
+                                        <th className="hidden lg:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Chest</th>
+                                        <th className="hidden lg:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Waist</th>
+                                        <th className="hidden lg:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Arms</th>
+                                        <th className="text-right py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {measurements.slice(0, 20).map((m) => (
+                                        <tr key={m.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                            <td className="py-3 px-2 sm:px-3 text-xs sm:text-sm text-gray-900 whitespace-nowrap">
+                                                {new Date(m.date).toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: window.innerWidth < 640 ? '2-digit' : 'numeric'
+                                                })}
+                                            </td>
+                                            <td className="py-3 px-2 sm:px-3 text-xs sm:text-sm text-right font-semibold text-gray-900 whitespace-nowrap">
+                                                {m.weight ? `${m.weight} kg` : '-'}
+                                            </td>
+                                            <td className="hidden md:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap">
+                                                {m.body_fat_percentage ? `${m.body_fat_percentage}%` : '-'}
+                                            </td>
+                                            <td className="hidden lg:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap">
+                                                {m.chest ? `${m.chest} cm` : '-'}
+                                            </td>
+                                            <td className="hidden lg:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap">
+                                                {m.waist ? `${m.waist} cm` : '-'}
+                                            </td>
+                                            <td className="hidden lg:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap">
+                                                {m.left_arm || m.right_arm ? `${m.left_arm || m.right_arm} cm` : '-'}
+                                            </td>
+                                            <td className="py-3 px-2 sm:px-3 text-right whitespace-nowrap">
+                                                <div className="flex justify-end gap-1">
+                                                    <button
+                                                        onClick={() => handleEdit(m)}
+                                                        className="p-1.5 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                                                        aria-label="Edit measurement"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(m.id)}
+                                                        className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                        aria-label="Delete measurement"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </Card>
             )}
