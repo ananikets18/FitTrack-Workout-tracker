@@ -327,8 +327,42 @@ export const db = {
     return data;
   },
 
+  // Feature availability cache
+  _waterIntakeAvailable: null,
+
+  // Check if water intake feature is available
+  async checkWaterIntakeAvailable(userId) {
+    // Return cached result if we've already checked
+    if (this._waterIntakeAvailable !== null) {
+      return this._waterIntakeAvailable;
+    }
+
+    try {
+      // Try a simple query to check if table exists and is accessible
+      const { error } = await supabase
+        .from('water_intake')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+
+      // If no error or just "no rows" error, table is available
+      this._waterIntakeAvailable = !error || error.code === 'PGRST116';
+      return this._waterIntakeAvailable;
+    } catch (error) {
+      // Table doesn't exist or not accessible
+      this._waterIntakeAvailable = false;
+      return false;
+    }
+  },
+
   // Water Intake
   async getWaterIntake(userId, date) {
+    // Check if feature is available first
+    const isAvailable = await this.checkWaterIntakeAvailable(userId);
+    if (!isAvailable) {
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('water_intake')
       .select('*')
@@ -339,12 +373,22 @@ export const db = {
     if (error) {
       // If no record exists yet, return null (not an error)
       if (error.code === 'PGRST116') return null;
+      // If table access error, mark as unavailable
+      if (error.code === 'PGRST301' || error.code === '42P01') {
+        this._waterIntakeAvailable = false;
+      }
       throw error;
     }
     return data;
   },
 
   async upsertWaterIntake(userId, date, amount) {
+    // Check if feature is available first
+    const isAvailable = await this.checkWaterIntakeAvailable(userId);
+    if (!isAvailable) {
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('water_intake')
       .upsert({
@@ -358,11 +402,23 @@ export const db = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // If table access error, mark as unavailable
+      if (error.code === 'PGRST301' || error.code === '42P01') {
+        this._waterIntakeAvailable = false;
+      }
+      throw error;
+    }
     return data;
   },
 
   async getWaterIntakeHistory(userId, limit = 30) {
+    // Check if feature is available first
+    const isAvailable = await this.checkWaterIntakeAvailable(userId);
+    if (!isAvailable) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('water_intake')
       .select('*')
@@ -370,7 +426,13 @@ export const db = {
       .order('date', { ascending: false })
       .limit(limit);
 
-    if (error) throw error;
+    if (error) {
+      // If table access error, mark as unavailable
+      if (error.code === 'PGRST301' || error.code === '42P01') {
+        this._waterIntakeAvailable = false;
+      }
+      throw error;
+    }
     return data || [];
   },
 };
