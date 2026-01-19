@@ -12,6 +12,7 @@ import Button from '../components/common/Button';
 import RestDayModal from '../components/common/RestDayModal';
 import AchievementsAccordion from '../components/common/AchievementsAccordion';
 import SetupWizard from '../components/SetupWizard';
+import AIWorkoutCoach from '../components/AIWorkoutCoach';
 
 import SkeletonCard from '../components/common/SkeletonCard';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
@@ -197,7 +198,7 @@ const Home = () => {
                 <div className="text-xs font-bold text-gray-900">+250ml</div>
                 <div className="text-[10px] text-gray-500">Glass</div>
               </motion.button>
-              
+
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => addWaterIntake(500)}
@@ -207,7 +208,7 @@ const Home = () => {
                 <div className="text-xs font-bold text-gray-900">+500ml</div>
                 <div className="text-[10px] text-gray-500">Bottle</div>
               </motion.button>
-              
+
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => addWaterIntake(750)}
@@ -217,7 +218,7 @@ const Home = () => {
                 <div className="text-xs font-bold text-gray-900">+750ml</div>
                 <div className="text-[10px] text-gray-500">Large</div>
               </motion.button>
-              
+
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => addWaterIntake(-250)}
@@ -240,13 +241,23 @@ const Home = () => {
                 <span className="text-sm font-bold text-green-700">🎉 Daily goal achieved! Great job!</span>
               </motion.div>
             )}
-            
+
             {waterIntake.amount < 1000 && waterIntake.amount > 0 && (
               <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
                 <span className="text-xs text-yellow-700">💧 Keep drinking! You\'re just getting started.</span>
               </div>
             )}
           </Card>
+        </motion.div>
+      )}
+
+      {/* AI Workout Coach */}
+      {!isLoading && workouts.length >= 2 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <AIWorkoutCoach />
         </motion.div>
       )}
 
