@@ -3,7 +3,7 @@
 // ============================================
 // Generates natural language explanations for workout predictions
 
-const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent';
+const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 /**
  * Generate workout explanation using Google Gemini
@@ -73,7 +73,7 @@ export const generateWorkoutExplanation = async (context, apiKey) => {
         return {
             success: true,
             explanation: explanation.trim(),
-            model: 'gemini-1.5-flash-latest',
+            model: 'gemini-1.5-flash',
             tokensUsed: data.usageMetadata?.totalTokenCount || 0
         };
 
