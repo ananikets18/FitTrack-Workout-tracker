@@ -87,14 +87,14 @@ const AIWorkoutCoach = () => {
     };
 
     return (
-        <Card className="ai-workout-coach">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold flex items-center gap-2">
+        <Card className="ai-workout-coach bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-5">
+                <h3 className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
                     🤖 AI Workout Coach
                 </h3>
                 <button
                     onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                    className="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                    className="text-lg p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
                     title="Configure API Key"
                 >
                     ⚙️
@@ -103,15 +103,15 @@ const AIWorkoutCoach = () => {
 
             {/* API Key Configuration */}
             {showApiKeyInput && (
-                <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <h4 className="font-semibold mb-2">Google Gemini API Key</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                <div className="mb-5 p-5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border-2 border-indigo-200 dark:border-indigo-800">
+                    <h4 className="font-bold mb-2 text-gray-900 dark:text-white">Google Gemini API Key</h4>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
                         Get your free API key from{' '}
                         <a
                             href="https://ai.google.dev"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
+                            className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
                         >
                             ai.google.dev
                         </a>
@@ -122,7 +122,7 @@ const AIWorkoutCoach = () => {
                             value={apiKey}
                             onChange={(e) => setApiKey(e.target.value)}
                             placeholder="AIza..."
-                            className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                            className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 outline-none"
                         />
                         <Button onClick={saveApiKey} disabled={!apiKey}>
                             Save
@@ -138,18 +138,19 @@ const AIWorkoutCoach = () => {
 
             {/* Generate Button */}
             {!prediction && (
-                <div className="text-center py-8">
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <div className="text-center py-10">
+                    <p className="text-gray-700 dark:text-gray-300 mb-6 text-lg font-medium">
                         Get AI-powered workout predictions based on your last 10 days of training
                     </p>
                     <Button
                         onClick={generatePrediction}
                         disabled={loading || workouts.length < 2}
+                        className="text-lg px-8 py-3"
                     >
                         {loading ? '🔮 Analyzing...' : '🎯 Predict My Next Workout'}
                     </Button>
                     {workouts.length < 2 && (
-                        <p className="text-sm text-gray-500 mt-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-3 font-medium">
                             Need at least 2 workouts to generate predictions
                         </p>
                     )}
@@ -158,8 +159,8 @@ const AIWorkoutCoach = () => {
 
             {/* Error Message */}
             {error && (
-                <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                    <p className="text-yellow-800 dark:text-yellow-200">{error}</p>
+                <div className="mb-5 p-4 bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-400 dark:border-yellow-600 rounded-xl">
+                    <p className="text-yellow-900 dark:text-yellow-100 font-semibold">{error}</p>
                 </div>
             )}
 
@@ -168,14 +169,15 @@ const AIWorkoutCoach = () => {
                 <div className="space-y-4">
                     {/* AI Explanation */}
                     {explanation && (
-                        <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="p-5 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl shadow-lg">
                             <div className="flex items-start gap-3">
-                                <span className="text-2xl">💬</span>
+                                <span className="text-3xl">💬</span>
                                 <div className="flex-1">
-                                    <h4 className="font-semibold mb-2 text-blue-900 dark:text-blue-100">
+                                    <h4 className="font-bold mb-3 text-white text-lg flex items-center gap-2">
                                         AI Coach Says:
+                                        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Powered by Gemini</span>
                                     </h4>
-                                    <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                                    <p className="text-white/95 whitespace-pre-line leading-relaxed text-base">
                                         {explanation}
                                     </p>
                                 </div>
@@ -184,11 +186,11 @@ const AIWorkoutCoach = () => {
                     )}
 
                     {/* Predicted Workout */}
-                    <div>
-                        <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-semibold text-lg">📋 Predicted Workout</h4>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
-                                Target: {prediction.prediction.targetMuscles.join(', ')}
+                    <div className="p-5 bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-bold text-lg text-gray-900 dark:text-white">📋 Predicted Workout</h4>
+                            <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full">
+                                {prediction.prediction.targetMuscles.join(', ')}
                             </span>
                         </div>
 
@@ -196,41 +198,41 @@ const AIWorkoutCoach = () => {
                             {prediction.prediction.exercises.map((exercise, index) => (
                                 <div
                                     key={index}
-                                    className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                                    className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors"
                                 >
-                                    <div className="flex items-start justify-between mb-2">
-                                        <h5 className="font-semibold">{exercise.name}</h5>
+                                    <div className="flex items-start justify-between mb-3">
+                                        <h5 className="font-bold text-gray-900 dark:text-white">{exercise.name}</h5>
                                         {exercise.overloadRecommendation && (
                                             <span
-                                                className={`text-xs px-2 py-1 rounded-full ${exercise.overloadRecommendation.action === 'increase_weight'
-                                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                                className={`text-xs font-semibold px-3 py-1 rounded-full ${exercise.overloadRecommendation.action === 'increase_weight'
+                                                    ? 'bg-green-500 text-white'
                                                     : exercise.overloadRecommendation.action === 'increase_reps'
-                                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                                                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                                        ? 'bg-blue-500 text-white'
+                                                        : 'bg-gray-500 text-white'
                                                     }`}
                                             >
-                                                {exercise.overloadRecommendation.action.replace('_', ' ')}
+                                                {exercise.overloadRecommendation.action.replace('_', ' ').toUpperCase()}
                                             </span>
                                         )}
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-2 text-sm">
-                                        <div>
-                                            <span className="text-gray-600 dark:text-gray-400">Sets:</span>
-                                            <span className="ml-1 font-semibold">{exercise.sets.length}</span>
+                                    <div className="grid grid-cols-3 gap-3 text-sm">
+                                        <div className="bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                                            <span className="text-gray-600 dark:text-gray-400 text-xs block mb-1">Sets</span>
+                                            <span className="font-bold text-gray-900 dark:text-white text-lg">{exercise.sets.length}</span>
                                         </div>
-                                        <div>
-                                            <span className="text-gray-600 dark:text-gray-400">Reps:</span>
-                                            <span className="ml-1 font-semibold">{exercise.sets[0]?.reps || 0}</span>
+                                        <div className="bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                                            <span className="text-gray-600 dark:text-gray-400 text-xs block mb-1">Reps</span>
+                                            <span className="font-bold text-gray-900 dark:text-white text-lg">{exercise.sets[0]?.reps || 0}</span>
                                         </div>
-                                        <div>
-                                            <span className="text-gray-600 dark:text-gray-400">Weight:</span>
-                                            <span className="ml-1 font-semibold">{exercise.sets[0]?.weight || 0} kg</span>
+                                        <div className="bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                                            <span className="text-gray-600 dark:text-gray-400 text-xs block mb-1">Weight</span>
+                                            <span className="font-bold text-gray-900 dark:text-white text-lg">{exercise.sets[0]?.weight || 0} kg</span>
                                         </div>
                                     </div>
 
                                     {exercise.overloadRecommendation?.message && (
-                                        <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                                        <p className="mt-3 text-sm text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20 p-2 rounded border-l-4 border-blue-500">
                                             💡 {exercise.overloadRecommendation.message}
                                         </p>
                                     )}
@@ -240,16 +242,18 @@ const AIWorkoutCoach = () => {
                     </div>
 
                     {/* Analysis Summary */}
-                    <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <h5 className="font-semibold mb-2 text-sm">📊 Analysis Summary</h5>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                                <span className="text-gray-600 dark:text-gray-400">Workouts Analyzed:</span>
-                                <span className="ml-1 font-semibold">{prediction.analysis.totalWorkoutsAnalyzed}</span>
+                    <div className="p-4 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border-2 border-gray-300 dark:border-gray-600">
+                        <h5 className="font-bold mb-3 text-gray-900 dark:text-white flex items-center gap-2">
+                            📊 Analysis Summary
+                        </h5>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border-2 border-gray-200 dark:border-gray-700">
+                                <span className="text-gray-600 dark:text-gray-400 text-xs block mb-1">Workouts Analyzed</span>
+                                <span className="font-bold text-gray-900 dark:text-white text-2xl">{prediction.analysis.totalWorkoutsAnalyzed}</span>
                             </div>
-                            <div>
-                                <span className="text-gray-600 dark:text-gray-400">Days Covered:</span>
-                                <span className="ml-1 font-semibold">{prediction.analysis.daysCovered}</span>
+                            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border-2 border-gray-200 dark:border-gray-700">
+                                <span className="text-gray-600 dark:text-gray-400 text-xs block mb-1">Days Covered</span>
+                                <span className="font-bold text-gray-900 dark:text-white text-2xl">{prediction.analysis.daysCovered}</span>
                             </div>
                         </div>
                     </div>
