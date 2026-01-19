@@ -31,6 +31,10 @@ export const generateWorkoutExplanation = async (context, apiKey) => {
     try {
         const prompt = buildPrompt(context.context);
 
+        // Create abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
         const response = await fetch(`${GEMINI_API_ENDPOINT}?key=${apiKey}`, {
             method: 'POST',
             headers: {
@@ -48,8 +52,11 @@ export const generateWorkoutExplanation = async (context, apiKey) => {
                     topP: 0.95,
                     maxOutputTokens: 500,
                 }
-            })
+            }),
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
@@ -73,9 +80,15 @@ export const generateWorkoutExplanation = async (context, apiKey) => {
     } catch (error) {
         console.error('Gemini API Error:', error);
 
+        // Provide user-friendly error messages
+        let errorMessage = error.message;
+        if (error.name === 'AbortError') {
+            errorMessage = 'Request timed out - using fallback explanation';
+        }
+
         return {
             success: false,
-            error: error.message,
+            error: errorMessage,
             fallbackExplanation: generateFallbackExplanation(context)
         };
     }

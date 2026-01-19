@@ -14,8 +14,16 @@ const AIWorkoutCoach = () => {
     const [showApiKeyInput, setShowApiKeyInput] = useState(false);
     const [apiKey, setApiKey] = useState('');
 
-    // Load API key from localStorage
+    // Load API key from environment or localStorage
     useEffect(() => {
+        // Priority 1: Environment variable
+        const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+        if (envKey) {
+            setApiKey(envKey);
+            return;
+        }
+
+        // Priority 2: localStorage
         const savedKey = localStorage.getItem('gemini_api_key');
         if (savedKey) {
             setApiKey(savedKey);
@@ -195,10 +203,10 @@ const AIWorkoutCoach = () => {
                                         {exercise.overloadRecommendation && (
                                             <span
                                                 className={`text-xs px-2 py-1 rounded-full ${exercise.overloadRecommendation.action === 'increase_weight'
-                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                                                        : exercise.overloadRecommendation.action === 'increase_reps'
-                                                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                                    : exercise.overloadRecommendation.action === 'increase_reps'
+                                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                                                     }`}
                                             >
                                                 {exercise.overloadRecommendation.action.replace('_', ' ')}

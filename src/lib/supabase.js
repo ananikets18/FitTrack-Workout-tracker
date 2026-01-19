@@ -148,7 +148,7 @@ export const db = {
                 exercise_id: exerciseData.id,
                 reps: set.reps || 0,
                 weight: set.weight || 0,
-                duration: set.duration !== undefined &amp;&amp; set.duration !== null &amp;&amp; set.duration !== '' ? set.duration : null,
+                duration: set.duration !== undefined && set.duration !== null && set.duration !== '' ? set.duration : null,
                 completed: set.completed || false,
                 order: setIndex,
               }))
@@ -207,7 +207,7 @@ export const db = {
                 exercise_id: exerciseData.id,
                 reps: set.reps || 0,
                 weight: set.weight || 0,
-                duration: set.duration !== undefined &amp;&amp; set.duration !== null &amp;&amp; set.duration !== '' ? set.duration : null,
+                duration: set.duration !== undefined && set.duration !== null && set.duration !== '' ? set.duration : null,
                 completed: set.completed || false,
                 order: setIndex,
               }))
@@ -480,4 +480,5 @@ export const transformWorkoutFromDB = (workout) => {
     createdAt: workout.created_at,
   };
 };
+
 

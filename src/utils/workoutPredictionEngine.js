@@ -15,11 +15,11 @@ import { checkOverloadReadiness } from './progressiveOverloadPredictor';
  */
 export const analyzeWorkoutHistory = (workouts, days = 10) => {
     const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
-    
+
     // Get workouts from last N days
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
-    
+
     const recentWorkouts = regularWorkouts.filter(w => {
         const workoutDate = new Date(w.date);
         return workoutDate >= cutoffDate;
@@ -48,12 +48,12 @@ export const analyzeWorkoutHistory = (workouts, days = 10) => {
         // Track exercises and their progression
         workout.exercises?.forEach(exercise => {
             const name = exercise.name;
-            
+
             if (!exerciseFrequency[name]) {
                 exerciseFrequency[name] = 0;
                 exerciseProgression[name] = [];
             }
-            
+
             exerciseFrequency[name]++;
 
             // Track sets, reps, and weights
@@ -105,7 +105,7 @@ export const predictNextWorkout = (workouts, analyzeDays = 10) => {
     Object.keys(muscleGroupFrequency).forEach(muscle => {
         // Find last time this muscle was trained
         let lastTrained = null;
-        
+
         for (const workout of recentWorkouts) {
             const muscles = detectMuscleGroups(workout);
             if (muscles.includes(muscle)) {
@@ -117,7 +117,7 @@ export const predictNextWorkout = (workouts, analyzeDays = 10) => {
         }
 
         const daysSince = lastTrained ? differenceInDays(today, lastTrained) : 999;
-        
+
         muscleRecoveryStatus[muscle] = {
             lastTrained,
             daysSince,
@@ -153,7 +153,7 @@ export const predictNextWorkout = (workouts, analyzeDays = 10) => {
     }
 
     // Build predicted workout with progressive overload
-    const predictedExercises = baseWorkout.exercises.map(exercise => {
+    const predictedExercises = (baseWorkout.exercises || []).map(exercise => {
         const name = exercise.name;
         const progression = exerciseProgression[name] || [];
 
@@ -161,10 +161,16 @@ export const predictNextWorkout = (workouts, analyzeDays = 10) => {
         const overloadCheck = checkOverloadReadiness(name, workouts);
 
         // Calculate predicted sets/reps/weight
-        const lastSets = exercise.sets;
+        const lastSets = exercise.sets || [];
+
+        if (lastSets.length === 0) {
+            // Skip exercises with no sets
+            return null;
+        }
+
         const predictedSets = lastSets.map((set, index) => {
             const recentSets = progression.slice(-3); // Last 3 instances
-            
+
             if (recentSets.length === 0) {
                 return { ...set };
             }
@@ -179,7 +185,7 @@ export const predictNextWorkout = (workouts, analyzeDays = 10) => {
             // Apply progressive overload if ready
             if (overloadCheck.ready && overloadCheck.suggestion) {
                 const { action, newWeight, targetReps } = overloadCheck.suggestion;
-                
+
                 if (action === 'increase_weight') {
                     predictedWeight = newWeight;
                 } else if (action === 'increase_reps') {
@@ -204,7 +210,7 @@ export const predictNextWorkout = (workouts, analyzeDays = 10) => {
             overloadRecommendation: overloadCheck.suggestion || null,
             confidence: overloadCheck.suggestion?.confidence || 70
         };
-    });
+    }).filter(ex => ex !== null); // Remove null exercises
 
     return {
         success: true,
@@ -248,12 +254,23 @@ export const prepareLLMContext = (prediction, workouts) => {
         .map(w => ({
             date: new Date(w.date).toLocaleDateString(),
             name: w.name,
-            exercises: w.exercises?.map(ex => ({
-                name: ex.name,
-                sets: ex.sets.length,
-                avgWeight: Math.round(ex.sets.reduce((sum, s) => sum + (s.weight || 0), 0) / ex.sets.length),
-                avgReps: Math.round(ex.sets.reduce((sum, s) => sum + (s.reps || 0), 0) / ex.sets.length)
-            }))
+            exercises: w.exercises?.map(ex => {
+                const setsCount = ex.sets?.length || 0;
+                if (setsCount === 0) {
+                    return {
+                        name: ex.name,
+                        sets: 0,
+                        avgWeight: 0,
+                        avgReps: 0
+                    };
+                }
+                return {
+                    name: ex.name,
+                    sets: setsCount,
+                    avgWeight: Math.round(ex.sets.reduce((sum, s) => sum + (s.weight || 0), 0) / setsCount),
+                    avgReps: Math.round(ex.sets.reduce((sum, s) => sum + (s.reps || 0), 0) / setsCount)
+                };
+            })
         }));
 
     // Prepare prediction summary
