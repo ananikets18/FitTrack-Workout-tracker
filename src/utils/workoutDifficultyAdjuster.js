@@ -100,6 +100,9 @@ export const calculateReadinessScore = (workouts, sleepLogs = []) => {
     if (!workouts || workouts.length === 0) return 75; // Default moderate readiness
 
     let readinessScore = 0;
+    
+    // Declare lastRestDay at function scope so it's accessible throughout
+    const lastRestDay = workouts.find(w => w.type === 'rest_day');
 
     // Factor 1: Sleep Quality (40% weight) - ENHANCED with sleep data
     // Falls back to rest day quality if no sleep data available
@@ -128,7 +131,6 @@ export const calculateReadinessScore = (workouts, sleepLogs = []) => {
         }
     } else {
         // Fallback to rest day quality (35% weight)
-        const lastRestDay = workouts.find(w => w.type === 'rest_day');
         if (lastRestDay) {
             const restQuality = lastRestDay.recoveryQuality || 3;
             const daysSinceRest = differenceInDays(new Date(), new Date(lastRestDay.date));
