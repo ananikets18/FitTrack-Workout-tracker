@@ -1,77 +1,15 @@
 // ============================================
-// GOOGLE GEMINI AI SERVICE
+// GROQ AI SERVICE (OpenAI-Compatible)
 // ============================================
 // Generates natural language explanations for workout predictions
 
-const DEFAULT_GEMINI_MODEL = 'gemini-1.5-flash-latest';
-const FALLBACK_GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-pro'];
-const ENV_GEMINI_MODEL_ID = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_GEMINI_MODEL_ID : undefined;
-const GEMINI_MODEL_CHAIN = Array.from(
-    new Set([ENV_GEMINI_MODEL_ID || DEFAULT_GEMINI_MODEL, ...FALLBACK_GEMINI_MODELS])
-);
-
-const buildGeminiEndpoint = (modelId) => `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
-
-const isModelAvailabilityError = (error) => error?.status === 404 || error?.code === 'NOT_FOUND';
-
-const callGeminiModel = async (modelId, prompt, apiKey) => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-    try {
-        const response = await fetch(`${buildGeminiEndpoint(modelId)}?key=${apiKey}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
-                }],
-                generationConfig: {
-                    temperature: 0.7,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 500,
-                }
-            }),
-            signal: controller.signal
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            const error = new Error(errorData.error?.message || `API request failed: ${response.status}`);
-            error.status = response.status;
-            error.code = errorData.error?.status;
-            error.modelId = modelId;
-            throw error;
-        }
-
-        const data = await response.json();
-        const explanation = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (!explanation) {
-            const error = new Error('No explanation generated');
-            error.modelId = modelId;
-            throw error;
-        }
-
-        return {
-            explanation: explanation.trim(),
-            model: modelId,
-            tokensUsed: data.usageMetadata?.totalTokenCount || 0,
-        };
-    } finally {
-        clearTimeout(timeoutId);
-    }
-};
+const GROQ_API_BASE = 'https://api.groq.com/openai/v1';
+const DEFAULT_MODEL = 'llama3-70b-8192';
 
 /**
- * Generate workout explanation using Google Gemini
+ * Generate workout explanation using Groq (OpenAI-compatible)
  * @param {Object} context - Structured context from prepareLLMContext
- * @param {string} apiKey - Google Gemini API key
+ * @param {string} apiKey - Groq API key
  * @returns {Promise<Object>} Generated explanation
  */
 export const generateWorkoutExplanation = async (context, apiKey) => {
@@ -93,40 +31,60 @@ export const generateWorkoutExplanation = async (context, apiKey) => {
 
     try {
         const prompt = buildPrompt(context.context);
-        let lastError;
 
-        for (const modelId of GEMINI_MODEL_CHAIN) {
-            try {
-                const result = await callGeminiModel(modelId, prompt, apiKey);
-                return {
-                    success: true,
-                    explanation: result.explanation,
-                    model: result.model,
-                    tokensUsed: result.tokensUsed
-                };
-            } catch (error) {
-                lastError = error;
-                if (!isModelAvailabilityError(error)) {
-                    break;
-                }
-            }
+        // Create abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        const response = await fetch(`${GROQ_API_BASE}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: DEFAULT_MODEL,
+                messages: [
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 500,
+                top_p: 0.95
+            }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error?.message || `API request failed: ${response.status}`);
         }
 
-        if (lastError) {
-            throw lastError;
+        const data = await response.json();
+        const explanation = data.choices?.[0]?.message?.content;
+
+        if (!explanation) {
+            throw new Error('No explanation generated');
         }
 
-        throw new Error('Gemini request failed without a specific error.');
+        return {
+            success: true,
+            explanation: explanation.trim(),
+            model: data.model || DEFAULT_MODEL,
+            tokensUsed: data.usage?.total_tokens || 0
+        };
 
     } catch (error) {
-        console.error('Gemini API Error:', error);
+        console.error('AI API Error:', error);
 
         // Provide user-friendly error messages
         let errorMessage = error.message;
         if (error.name === 'AbortError') {
             errorMessage = 'Request timed out - using fallback explanation';
-        } else if (isModelAvailabilityError(error)) {
-            errorMessage = 'Selected Gemini model is unavailable for this API key. Enable the Generative Language API (gemini-1.5-flash or gemini-1.5-flash-latest) in Google AI Studio.';
         }
 
         return {
@@ -161,7 +119,7 @@ const buildPrompt = (context) => {
 
     // Format muscle recovery
     const recoveryInfo = Object.entries(muscleRecoveryStatus)
-        .filter(([_, status]) => status.needsTraining)
+        .filter(([, status]) => status.needsTraining)
         .map(([muscle, status]) => `${muscle} (${status.daysSince} days rest)`)
         .join(', ');
 
@@ -204,7 +162,7 @@ const generateFallbackExplanation = (context) => {
     const { predictionSummary, targetMuscles, muscleRecoveryStatus } = context.context;
 
     const musclesReady = Object.entries(muscleRecoveryStatus)
-        .filter(([_, status]) => status.needsTraining)
+        .filter(([, status]) => status.needsTraining)
         .map(([muscle]) => muscle);
 
     const totalExercises = predictionSummary.length;
@@ -236,9 +194,8 @@ const generateFallbackExplanation = (context) => {
  */
 export const validateApiKey = (apiKey) => {
     if (!apiKey || typeof apiKey !== 'string') return false;
-
-    // Gemini API keys typically start with "AIza" and are 39 characters
-    return apiKey.startsWith('AIza') && apiKey.length === 39;
+    // Groq API keys start with "gsk_" and are typically 56+ characters
+    return apiKey.startsWith('gsk_') && apiKey.length >= 40;
 };
 
 /**
@@ -248,18 +205,21 @@ export const validateApiKey = (apiKey) => {
  */
 export const testApiKey = async (apiKey) => {
     try {
-        const testModelId = GEMINI_MODEL_CHAIN[0];
-        const response = await fetch(`${buildGeminiEndpoint(testModelId)}?key=${apiKey}`, {
+        const response = await fetch(`${GROQ_API_BASE}/chat/completions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: 'Say "Hello" if you can read this.'
-                    }]
-                }]
+                model: DEFAULT_MODEL,
+                messages: [
+                    {
+                        role: 'user',
+                        content: 'Say "Hello" if you can read this.'
+                    }
+                ],
+                max_tokens: 10
             })
         });
 

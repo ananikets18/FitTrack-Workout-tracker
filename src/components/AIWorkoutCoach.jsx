@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useWorkouts } from '../context/WorkoutContext';
 import { predictNextWorkout, prepareLLMContext } from '../utils/workoutPredictionEngine';
-import { generateWorkoutExplanation } from '../utils/geminiService';
+import { generateWorkoutExplanation } from '../utils/geminiService'; // Now using Groq API
 import Card from './common/Card';
 import Button from './common/Button';
 
@@ -17,14 +17,14 @@ const AIWorkoutCoach = () => {
     // Load API key from environment or localStorage
     useEffect(() => {
         // Priority 1: Environment variable
-        const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+        const envKey = import.meta.env.VITE_GROQ_API_KEY;
         if (envKey) {
             setApiKey(envKey);
             return;
         }
 
         // Priority 2: localStorage
-        const savedKey = localStorage.getItem('gemini_api_key');
+        const savedKey = localStorage.getItem('groq_api_key');
         if (savedKey) {
             setApiKey(savedKey);
         }
@@ -60,7 +60,7 @@ const AIWorkoutCoach = () => {
                 setExplanation(explanationResult.fallbackExplanation);
 
                 if (!apiKey) {
-                    setError('💡 Tip: Add your Google Gemini API key for AI-powered explanations!');
+                    setError('💡 Tip: Add your Groq API key for AI-powered explanations!');
                 }
             }
 
@@ -74,14 +74,14 @@ const AIWorkoutCoach = () => {
 
     // Save API key
     const saveApiKey = () => {
-        localStorage.setItem('gemini_api_key', apiKey);
+        localStorage.setItem('groq_api_key', apiKey);
         setShowApiKeyInput(false);
         generatePrediction();
     };
 
     // Remove API key
     const removeApiKey = () => {
-        localStorage.removeItem('gemini_api_key');
+        localStorage.removeItem('groq_api_key');
         setApiKey('');
         setShowApiKeyInput(false);
     };
@@ -104,16 +104,16 @@ const AIWorkoutCoach = () => {
             {/* API Key Configuration */}
             {showApiKeyInput && (
                 <div className="mb-5 p-5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border-2 border-indigo-200 dark:border-indigo-800">
-                    <h4 className="font-bold mb-2 text-gray-900 dark:text-white">Google Gemini API Key</h4>
+                    <h4 className="font-bold mb-2 text-gray-900 dark:text-white">Groq API Key</h4>
                     <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
                         Get your free API key from{' '}
                         <a
-                            href="https://ai.google.dev"
+                            href="https://console.groq.com/keys"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
                         >
-                            ai.google.dev
+                            console.groq.com/keys
                         </a>
                     </p>
                     <div className="flex gap-2">
@@ -121,7 +121,7 @@ const AIWorkoutCoach = () => {
                             type="password"
                             value={apiKey}
                             onChange={(e) => setApiKey(e.target.value)}
-                            placeholder="AIza..."
+                            placeholder="gsk_..."
                             className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 outline-none"
                         />
                         <Button onClick={saveApiKey} disabled={!apiKey}>
@@ -175,7 +175,7 @@ const AIWorkoutCoach = () => {
                                 <div className="flex-1">
                                     <h4 className="font-bold mb-3 text-white text-lg flex items-center gap-2">
                                         AI Coach Says:
-                                        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Powered by Gemini</span>
+                                        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Powered by Groq</span>
                                     </h4>
                                     <p className="text-white/95 whitespace-pre-line leading-relaxed text-base">
                                         {explanation}
