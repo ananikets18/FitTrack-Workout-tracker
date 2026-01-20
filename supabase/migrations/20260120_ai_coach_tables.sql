@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS user_preferences (
         "recoveryDays": 2,
         "autoGenerate": false,
         "useGroqAI": true,
-        "model": "llama3-70b-8192"
+        "model": "llama-3.3-70b-versatile"
     }'::jsonb,
     theme VARCHAR(20) DEFAULT 'light',
     notifications_enabled BOOLEAN DEFAULT TRUE,

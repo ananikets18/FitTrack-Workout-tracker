@@ -21,7 +21,7 @@ export const AICoachProvider = ({ children }) => {
         recoveryDays: 2,
         autoGenerate: false,
         useGroqAI: true,
-        model: 'llama3-70b-8192'
+        model: 'llama-3.3-70b-versatile'
     });
     const [loading, setLoading] = useState(false);
 
@@ -75,7 +75,7 @@ export const AICoachProvider = ({ children }) => {
                 .single();
 
             if (error && error.code !== 'PGRST116') throw error;
-            
+
             if (data?.ai_coach_settings) {
                 setSettings(prev => ({ ...prev, ...data.ai_coach_settings }));
             }

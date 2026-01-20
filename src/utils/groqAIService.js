@@ -5,9 +5,9 @@
 
 const GROQ_API_BASE = 'https://api.groq.com/openai/v1';
 const MODELS = {
-    FAST: 'llama3-8b-8192',           // Fast, good for quick responses
-    BALANCED: 'llama3-70b-8192',      // Balanced speed and quality
-    ADVANCED: 'mixtral-8x7b-32768'    // Best quality, slower
+    FAST: 'llama-3.1-8b-instant',     // Fast, good for quick responses
+    BALANCED: 'llama-3.3-70b-versatile', // Balanced speed and quality (recommended)
+    ADVANCED: 'llama-3.1-70b-versatile'  // Best quality
 };
 
 /**
