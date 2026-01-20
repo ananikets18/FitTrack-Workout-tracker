@@ -11,24 +11,7 @@ const AIWorkoutCoach = () => {
     const [explanation, setExplanation] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [showApiKeyInput, setShowApiKeyInput] = useState(false);
-    const [apiKey, setApiKey] = useState('');
-
-    // Load API key from environment or localStorage
-    useEffect(() => {
-        // Priority 1: Environment variable
-        const envKey = import.meta.env.VITE_GROQ_API_KEY;
-        if (envKey) {
-            setApiKey(envKey);
-            return;
-        }
-
-        // Priority 2: localStorage
-        const savedKey = localStorage.getItem('groq_api_key');
-        if (savedKey) {
-            setApiKey(savedKey);
-        }
-    }, []);
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY || '';
 
     // Generate prediction
     const generatePrediction = async () => {
@@ -60,7 +43,7 @@ const AIWorkoutCoach = () => {
                 setExplanation(explanationResult.fallbackExplanation);
 
                 if (!apiKey) {
-                    setError('💡 Tip: Add your Groq API key for AI-powered explanations!');
+                    setError('⚙️ Configure VITE_GROQ_API_KEY in your environment to enable AI explanations');
                 }
             }
 
@@ -72,69 +55,13 @@ const AIWorkoutCoach = () => {
         }
     };
 
-    // Save API key
-    const saveApiKey = () => {
-        localStorage.setItem('groq_api_key', apiKey);
-        setShowApiKeyInput(false);
-        generatePrediction();
-    };
-
-    // Remove API key
-    const removeApiKey = () => {
-        localStorage.removeItem('groq_api_key');
-        setApiKey('');
-        setShowApiKeyInput(false);
-    };
-
     return (
         <Card className="ai-workout-coach bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-5">
                 <h3 className="text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
                     🤖 AI Workout Coach
                 </h3>
-                <button
-                    onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                    className="text-lg p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
-                    title="Configure API Key"
-                >
-                    ⚙️
-                </button>
             </div>
-
-            {/* API Key Configuration */}
-            {showApiKeyInput && (
-                <div className="mb-5 p-5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border-2 border-indigo-200 dark:border-indigo-800">
-                    <h4 className="font-bold mb-2 text-gray-900 dark:text-white">Groq API Key</h4>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                        Get your free API key from{' '}
-                        <a
-                            href="https://console.groq.com/keys"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
-                        >
-                            console.groq.com/keys
-                        </a>
-                    </p>
-                    <div className="flex gap-2">
-                        <input
-                            type="password"
-                            value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
-                            placeholder="gsk_..."
-                            className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-800 outline-none"
-                        />
-                        <Button onClick={saveApiKey} disabled={!apiKey}>
-                            Save
-                        </Button>
-                        {apiKey && (
-                            <Button onClick={removeApiKey} variant="secondary">
-                                Remove
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            )}
 
             {/* Generate Button */}
             {!prediction && (
