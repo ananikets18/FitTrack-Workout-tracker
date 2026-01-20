@@ -9,7 +9,22 @@ import { FiSettings, FiStar, FiDownload, FiClock, FiTrendingUp, FiCheckCircle } 
 
 const AIWorkoutCoachEnhanced = () => {
     const { workouts, addWorkout } = useWorkouts();
-    const { settings, savePrediction, toggleFavorite, updateSettings } = useAICoach();
+    const aiCoachContext = useAICoach();
+
+    // Default settings if context is not available
+    const defaultSettings = {
+        analyzeDays: 10,
+        recoveryDays: 2,
+        autoGenerate: false,
+        useGroqAI: true,
+        model: 'llama3-70b-8192'
+    };
+
+    const settings = aiCoachContext?.settings || defaultSettings;
+    const savePrediction = aiCoachContext?.savePrediction || (async () => ({ success: false }));
+    const toggleFavorite = aiCoachContext?.toggleFavorite || (async () => ({ success: false }));
+    const updateSettings = aiCoachContext?.updateSettings || (async () => ({ success: false }));
+
     const [prediction, setPrediction] = useState(null);
     const [explanation, setExplanation] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -341,10 +356,10 @@ const AIWorkoutCoachEnhanced = () => {
                                         {exercise.overloadRecommendation && (
                                             <span
                                                 className={`text-xs font-bold px-3 py-1.5 rounded-full ${exercise.overloadRecommendation.action === 'increase_weight'
-                                                        ? 'bg-green-500 text-white'
-                                                        : exercise.overloadRecommendation.action === 'increase_reps'
-                                                            ? 'bg-blue-500 text-white'
-                                                            : 'bg-gray-500 text-white'
+                                                    ? 'bg-green-500 text-white'
+                                                    : exercise.overloadRecommendation.action === 'increase_reps'
+                                                        ? 'bg-blue-500 text-white'
+                                                        : 'bg-gray-500 text-white'
                                                     }`}
                                             >
                                                 <FiTrendingUp className="inline mr-1" />
