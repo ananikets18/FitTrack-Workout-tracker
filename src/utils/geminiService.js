@@ -3,7 +3,8 @@
 // ============================================
 // Generates natural language explanations for workout predictions
 
-const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_MODEL_ID = 'gemini-1.5-flash-latest';
+const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_ID}:generateContent`;
 
 /**
  * Generate workout explanation using Google Gemini
@@ -60,7 +61,13 @@ export const generateWorkoutExplanation = async (context, apiKey) => {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error?.message || `API request failed: ${response.status}`);
+            let message = errorData.error?.message || `API request failed: ${response.status}`;
+
+            if (response.status === 404 || errorData.error?.status === 'NOT_FOUND') {
+                message = 'Selected Gemini model is unavailable for this API key. Enable the Generative Language API (gemini-1.5-flash-latest) in Google AI Studio.';
+            }
+
+            throw new Error(message);
         }
 
         const data = await response.json();
@@ -73,7 +80,7 @@ export const generateWorkoutExplanation = async (context, apiKey) => {
         return {
             success: true,
             explanation: explanation.trim(),
-            model: 'gemini-1.5-flash',
+            model: GEMINI_MODEL_ID,
             tokensUsed: data.usageMetadata?.totalTokenCount || 0
         };
 

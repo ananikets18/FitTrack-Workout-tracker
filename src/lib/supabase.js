@@ -368,7 +368,7 @@ export const db = {
       .select('*')
       .eq('user_id', userId)
       .eq('date', date)
-      .single();
+      .maybeSingle();
 
     if (error) {
       // If no record exists yet, return null (not an error)
