@@ -3,8 +3,70 @@
 // ============================================
 // Generates natural language explanations for workout predictions
 
-const GEMINI_MODEL_ID = 'gemini-1.5-flash-latest';
-const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_ID}:generateContent`;
+const DEFAULT_GEMINI_MODEL = 'gemini-1.5-flash-latest';
+const FALLBACK_GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-pro'];
+const ENV_GEMINI_MODEL_ID = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_GEMINI_MODEL_ID : undefined;
+const GEMINI_MODEL_CHAIN = Array.from(
+    new Set([ENV_GEMINI_MODEL_ID || DEFAULT_GEMINI_MODEL, ...FALLBACK_GEMINI_MODELS])
+);
+
+const buildGeminiEndpoint = (modelId) => `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`;
+
+const isModelAvailabilityError = (error) => error?.status === 404 || error?.code === 'NOT_FOUND';
+
+const callGeminiModel = async (modelId, prompt, apiKey) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+        const response = await fetch(`${buildGeminiEndpoint(modelId)}?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: prompt
+                    }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 500,
+                }
+            }),
+            signal: controller.signal
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const error = new Error(errorData.error?.message || `API request failed: ${response.status}`);
+            error.status = response.status;
+            error.code = errorData.error?.status;
+            error.modelId = modelId;
+            throw error;
+        }
+
+        const data = await response.json();
+        const explanation = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (!explanation) {
+            const error = new Error('No explanation generated');
+            error.modelId = modelId;
+            throw error;
+        }
+
+        return {
+            explanation: explanation.trim(),
+            model: modelId,
+            tokensUsed: data.usageMetadata?.totalTokenCount || 0,
+        };
+    } finally {
+        clearTimeout(timeoutId);
+    }
+};
 
 /**
  * Generate workout explanation using Google Gemini
@@ -31,58 +93,30 @@ export const generateWorkoutExplanation = async (context, apiKey) => {
 
     try {
         const prompt = buildPrompt(context.context);
+        let lastError;
 
-        // Create abort controller for timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
-        const response = await fetch(`${GEMINI_API_ENDPOINT}?key=${apiKey}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
-                }],
-                generationConfig: {
-                    temperature: 0.7,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 500,
+        for (const modelId of GEMINI_MODEL_CHAIN) {
+            try {
+                const result = await callGeminiModel(modelId, prompt, apiKey);
+                return {
+                    success: true,
+                    explanation: result.explanation,
+                    model: result.model,
+                    tokensUsed: result.tokensUsed
+                };
+            } catch (error) {
+                lastError = error;
+                if (!isModelAvailabilityError(error)) {
+                    break;
                 }
-            }),
-            signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            let message = errorData.error?.message || `API request failed: ${response.status}`;
-
-            if (response.status === 404 || errorData.error?.status === 'NOT_FOUND') {
-                message = 'Selected Gemini model is unavailable for this API key. Enable the Generative Language API (gemini-1.5-flash-latest) in Google AI Studio.';
             }
-
-            throw new Error(message);
         }
 
-        const data = await response.json();
-        const explanation = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (!explanation) {
-            throw new Error('No explanation generated');
+        if (lastError) {
+            throw lastError;
         }
 
-        return {
-            success: true,
-            explanation: explanation.trim(),
-            model: GEMINI_MODEL_ID,
-            tokensUsed: data.usageMetadata?.totalTokenCount || 0
-        };
+        throw new Error('Gemini request failed without a specific error.');
 
     } catch (error) {
         console.error('Gemini API Error:', error);
@@ -91,6 +125,8 @@ export const generateWorkoutExplanation = async (context, apiKey) => {
         let errorMessage = error.message;
         if (error.name === 'AbortError') {
             errorMessage = 'Request timed out - using fallback explanation';
+        } else if (isModelAvailabilityError(error)) {
+            errorMessage = 'Selected Gemini model is unavailable for this API key. Enable the Generative Language API (gemini-1.5-flash or gemini-1.5-flash-latest) in Google AI Studio.';
         }
 
         return {
@@ -212,7 +248,8 @@ export const validateApiKey = (apiKey) => {
  */
 export const testApiKey = async (apiKey) => {
     try {
-        const response = await fetch(`${GEMINI_API_ENDPOINT}?key=${apiKey}`, {
+        const testModelId = GEMINI_MODEL_CHAIN[0];
+        const response = await fetch(`${buildGeminiEndpoint(testModelId)}?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
