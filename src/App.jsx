@@ -7,6 +7,7 @@ import { PreferencesProvider } from './context/PreferencesContext';
 import { SleepProvider } from './context/SleepContext';
 import { NutritionProvider } from './context/NutritionContext';
 import { BodyMeasurementsProvider } from './context/BodyMeasurementsContext';
+import { AICoachProvider } from './context/AICoachContext';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import Layout from './components/layout/Layout';
@@ -37,98 +38,100 @@ function App() {
               <BodyMeasurementsProvider>
                 <TemplateProvider>
                   <WorkoutProvider>
-                    <Router>
-                      <Toaster
-                        position="top-center"
-                        toastOptions={{
-                          duration: 3000,
-                          style: {
-                            background: '#363636',
-                            color: '#fff',
-                            fontSize: '16px',
-                            padding: '16px',
-                            borderRadius: '12px',
-                          },
-                          success: {
-                            duration: 2000,
-                            iconTheme: {
-                              primary: '#10b981',
-                              secondary: '#fff',
-                            },
-                          },
-                          error: {
+                    <AICoachProvider>
+                      <Router>
+                        <Toaster
+                          position="top-center"
+                          toastOptions={{
                             duration: 3000,
-                            iconTheme: {
-                              primary: '#ef4444',
-                              secondary: '#fff',
+                            style: {
+                              background: '#363636',
+                              color: '#fff',
+                              fontSize: '16px',
+                              padding: '16px',
+                              borderRadius: '12px',
                             },
-                          },
-                        }}
-                      />
-
-                      <Routes>
-                        {/* Public Routes */}
-                        <Route
-                          path="/login"
-                          element={
-                            <Suspense fallback={<PageLoader />}>
-                              <Login />
-                            </Suspense>
-                          }
+                            success: {
+                              duration: 2000,
+                              iconTheme: {
+                                primary: '#10b981',
+                                secondary: '#fff',
+                              },
+                            },
+                            error: {
+                              duration: 3000,
+                              iconTheme: {
+                                primary: '#ef4444',
+                                secondary: '#fff',
+                              },
+                            },
+                          }}
                         />
 
-                        {/* Protected Routes */}
-                        <Route
-                          path="/"
-                          element={
-                            <ProtectedRoute>
-                              <Layout />
-                            </ProtectedRoute>
-                          }
-                        >
+                        <Routes>
+                          {/* Public Routes */}
                           <Route
-                            index
+                            path="/login"
                             element={
                               <Suspense fallback={<PageLoader />}>
-                                <Home />
+                                <Login />
                               </Suspense>
                             }
                           />
+
+                          {/* Protected Routes */}
                           <Route
-                            path="log"
+                            path="/"
                             element={
-                              <Suspense fallback={<PageLoader />}>
-                                <WorkoutLogMobile />
-                              </Suspense>
+                              <ProtectedRoute>
+                                <Layout />
+                              </ProtectedRoute>
                             }
-                          />
-                          <Route
-                            path="history"
-                            element={
-                              <Suspense fallback={<PageLoader />}>
-                                <History />
-                              </Suspense>
-                            }
-                          />
-                          <Route
-                            path="stats"
-                            element={
-                              <Suspense fallback={<PageLoader />}>
-                                <Statistics />
-                              </Suspense>
-                            }
-                          />
-                          <Route
-                            path="wellness"
-                            element={
-                              <Suspense fallback={<PageLoader />}>
-                                <Wellness />
-                              </Suspense>
-                            }
-                          />
-                        </Route>
-                      </Routes>
-                    </Router>
+                          >
+                            <Route
+                              index
+                              element={
+                                <Suspense fallback={<PageLoader />}>
+                                  <Home />
+                                </Suspense>
+                              }
+                            />
+                            <Route
+                              path="log"
+                              element={
+                                <Suspense fallback={<PageLoader />}>
+                                  <WorkoutLogMobile />
+                                </Suspense>
+                              }
+                            />
+                            <Route
+                              path="history"
+                              element={
+                                <Suspense fallback={<PageLoader />}>
+                                  <History />
+                                </Suspense>
+                              }
+                            />
+                            <Route
+                              path="stats"
+                              element={
+                                <Suspense fallback={<PageLoader />}>
+                                  <Statistics />
+                                </Suspense>
+                              }
+                            />
+                            <Route
+                              path="wellness"
+                              element={
+                                <Suspense fallback={<PageLoader />}>
+                                  <Wellness />
+                                </Suspense>
+                              }
+                            />
+                          </Route>
+                        </Routes>
+                      </Router>
+                    </AICoachProvider>
                   </WorkoutProvider>
                 </TemplateProvider>
               </BodyMeasurementsProvider>
