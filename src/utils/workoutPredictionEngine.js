@@ -1,5 +1,5 @@
 import { differenceInDays } from 'date-fns';
-import { detectMuscleGroups, calculateMuscleSets } from './smartRecommendations';
+import { detectMuscleGroups } from './smartRecommendations';
 import { checkOverloadReadiness } from './progressiveOverloadPredictor';
 
 // ============================================
@@ -96,7 +96,7 @@ export const predictNextWorkout = (workouts, analyzeDays = 10) => {
         };
     }
 
-    const { workouts: recentWorkouts, exerciseFrequency, muscleGroupFrequency, exerciseProgression } = analysis;
+    const { workouts: recentWorkouts, muscleGroupFrequency, exerciseProgression } = analysis;
 
     // Determine which muscle groups need training
     const muscleRecoveryStatus = {};
@@ -168,7 +168,7 @@ export const predictNextWorkout = (workouts, analyzeDays = 10) => {
             return null;
         }
 
-        const predictedSets = lastSets.map((set, index) => {
+        const predictedSets = lastSets.map((set) => {
             const recentSets = progression.slice(-3); // Last 3 instances
 
             if (recentSets.length === 0) {

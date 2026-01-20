@@ -96,7 +96,7 @@ export const generateWorkoutExplanation = async (context, apiKey) => {
 };
 
 /**
- * Build prompt for Gemini
+ * Build prompt for AI model
  * @param {Object} context - Workout context
  * @returns {string} Formatted prompt
  */

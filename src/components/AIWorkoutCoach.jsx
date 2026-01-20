@@ -50,7 +50,7 @@ const AIWorkoutCoach = () => {
             // Step 2: Prepare context for LLM
             const context = prepareLLMContext(predictionResult, workouts);
 
-            // Step 3: Generate explanation with Gemini
+            // Step 3: Generate explanation with Groq AI
             const explanationResult = await generateWorkoutExplanation(context, apiKey);
 
             if (explanationResult.success) {
