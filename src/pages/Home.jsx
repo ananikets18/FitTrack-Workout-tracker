@@ -12,7 +12,7 @@ import Button from '../components/common/Button';
 import RestDayModal from '../components/common/RestDayModal';
 import AchievementsAccordion from '../components/common/AchievementsAccordion';
 import SetupWizard from '../components/SetupWizard';
-import AIWorkoutCoachEnhanced from '../components/AIWorkoutCoachEnhanced';
+
 
 import SkeletonCard from '../components/common/SkeletonCard';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
@@ -251,15 +251,7 @@ const Home = () => {
         </motion.div>
       )}
 
-      {/* AI Workout Coach */}
-      {!isLoading && workouts.length >= 2 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <AIWorkoutCoachEnhanced />
-        </motion.div>
-      )}
+
 
       {/* Intelligent Recommendation Card */}
       {!isLoading && recommendation && (
