@@ -31,7 +31,7 @@ const AchievementsAccordion = () => {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden shadow-2xl"
+            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden shadow-card"
         >
             {/* Accordion Header - Always Visible */}
             <button
@@ -39,7 +39,7 @@ const AchievementsAccordion = () => {
                 className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-white/5 transition-colors"
             >
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl shadow-lg">
+                    <div className="p-2.5 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl shadow-card">
                         <Trophy className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     </div>
                     <div className="text-left">
@@ -59,7 +59,7 @@ const AchievementsAccordion = () => {
                         {recentUnlocked.map((achievement) => (
                             <div
                                 key={achievement.id}
-                                className={`w-10 h-10 rounded-full bg-gradient-to-br ${achievement.color} flex items-center justify-center text-xl shadow-md`}
+                                className={`w-10 h-10 rounded-full bg-gradient-to-br ${achievement.color} flex items-center justify-center text-xl shadow-card`}
                             >
                                 {achievement.icon}
                             </div>

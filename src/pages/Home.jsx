@@ -261,7 +261,7 @@ const Home = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-5 text-white shadow-lifted"
+              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-5 text-white"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
@@ -432,7 +432,7 @@ const Home = () => {
         >
           <Card elevated className="text-center py-12">
             <div className="max-w-md mx-auto space-y-4">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-primary shadow-lifted mb-2">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-primary  mb-2">
                 <Dumbbell className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 ">No workouts yet</h3>

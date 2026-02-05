@@ -151,7 +151,7 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
         // For cardio: track duration, for weights: track max weight
         const metric = isCardio
           ? exercise.sets.reduce((sum, s) => sum + (s.duration || 0), 0) // Total duration
-          : Math.max(...exercise.sets.map(s => s.weight || 0)); // Max weight
+          : Math.max(...exercise.sets.map(s => s.weight || 0), 0); // Max weight (0 prevents -Infinity)
 
         if (!exerciseProgress[exercise.name]) {
           exerciseProgress[exercise.name] = { records: [], isCardio };
