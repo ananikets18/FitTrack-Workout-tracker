@@ -14,7 +14,8 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
             const exercise = workout.exercises?.find(ex => ex.name === exerciseName);
             if (!exercise) return null;
 
-            const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+            const weights = exercise.sets.map(s => s.weight || 0).filter(w => w > 0);
+            const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
             const totalVolume = exercise.sets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
             const totalReps = exercise.sets.reduce((sum, set) => sum + set.reps, 0);
 
@@ -42,10 +43,13 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
     }
 
     // Calculate stats
-    const personalRecord = Math.max(...exerciseHistory.map(h => h.maxWeight));
+    const validWeights = exerciseHistory.map(h => h.maxWeight).filter(w => w > 0);
+    const personalRecord = validWeights.length > 0 ? Math.max(...validWeights) : 0;
     const totalVolume = exerciseHistory.reduce((sum, h) => sum + h.totalVolume, 0);
     const totalSessions = exerciseHistory.length;
-    const avgWeight = (exerciseHistory.reduce((sum, h) => sum + h.maxWeight, 0) / totalSessions).toFixed(1);
+    const avgWeight = validWeights.length > 0 
+        ? (validWeights.reduce((sum, w) => sum + w, 0) / validWeights.length).toFixed(1)
+        : '0.0';
 
     // Prepare chart data (reverse for chronological order)
     const chartData = [...exerciseHistory]

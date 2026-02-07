@@ -82,7 +82,8 @@ export const calculateActivityPoints = (exercise) => {
   if (!exercise?.sets) return 0;
 
   const isCardio = exercise.category === 'cardio';
-  const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+  const weights = exercise.sets.map(s => s.weight || 0).filter(w => w > 0);
+  const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
   const isBodyweight = maxWeight === 0 && !isCardio;
 
   if (isCardio) {
@@ -131,7 +132,8 @@ export const getActivityBreakdown = (workouts) => {
   regularWorkouts.forEach(workout => {
     workout.exercises?.forEach(exercise => {
       const isCardio = exercise.category === 'cardio';
-      const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+      const weights = exercise.sets.map(s => s.weight || 0).filter(w => w > 0);
+      const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
       const isBodyweight = maxWeight === 0 && !isCardio;
 
       const points = calculateActivityPoints(exercise);
@@ -219,8 +221,10 @@ export const getProgressiveOverload = (exerciseName, currentWorkout, workoutHist
     }
   } else {
     // For weight training: compare weight and reps
-    const currentMaxWeight = Math.max(...currentExercise.sets.map(s => s.weight || 0));
-    const previousMaxWeight = Math.max(...previousExercise.sets.map(s => s.weight || 0));
+    const currentWeights = currentExercise.sets.map(s => s.weight || 0).filter(w => w > 0);
+    const currentMaxWeight = currentWeights.length > 0 ? Math.max(...currentWeights) : 0;
+    const previousWeights = previousExercise.sets.map(s => s.weight || 0).filter(w => w > 0);
+    const previousMaxWeight = previousWeights.length > 0 ? Math.max(...previousWeights) : 0;
     const currentTotalReps = currentExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
     const previousTotalReps = previousExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
 
@@ -252,9 +256,10 @@ export const getPersonalRecords = (workouts) => {
 
   regularWorkouts.forEach(workout => {
     workout.exercises?.forEach(exercise => {
-      const maxWeight = Math.max(...exercise.sets.map(set => set.weight || 0));
+      const weights = exercise.sets.map(set => set.weight || 0).filter(w => w > 0);
+      const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
 
-      if (!records[exercise.name] || maxWeight > records[exercise.name]) {
+      if (maxWeight > 0 && (!records[exercise.name] || maxWeight > records[exercise.name])) {
         records[exercise.name] = maxWeight;
       }
     });
@@ -393,7 +398,8 @@ export const generateInsights = (workouts) => {
 
     recentWorkouts.forEach(workout => {
       workout.exercises?.forEach(exercise => {
-        const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+        const weights = exercise.sets.map(s => s.weight || 0).filter(w => w > 0);
+        const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
         if (!exerciseProgress[exercise.name]) {
           exerciseProgress[exercise.name] = { first: maxWeight, last: maxWeight, count: 0 };
         }
