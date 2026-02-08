@@ -41,7 +41,7 @@ const WorkoutLog = () => {
   const [newExercise, setNewExercise] = useState({
     name: '',
     category: 'chest',
-    sets: [{ reps: '', weight: '', duration: '', completed: false }],
+    sets: [{ reps: '', weight: '', duration: '', incline: '', speed: '', completed: false }],
     notes: '',
   });
 
@@ -52,7 +52,7 @@ const WorkoutLog = () => {
   const handleAddSet = () => {
     setNewExercise({
       ...newExercise,
-      sets: [...newExercise.sets, { reps: '', weight: '', duration: '', completed: false }],
+      sets: [...newExercise.sets, { reps: '', weight: '', duration: '', incline: '', speed: '', completed: false }],
     });
   };
 
@@ -76,6 +76,7 @@ const WorkoutLog = () => {
     }
 
     const isCardio = newExercise.category === 'cardio';
+    const isTreadmill = isCardio && newExercise.name.toLowerCase().includes('treadmill');
 
     const exercise = {
       id: crypto.randomUUID(),
@@ -85,6 +86,8 @@ const WorkoutLog = () => {
         reps: isCardio ? 0 : (parseInt(set.reps) || 0),
         weight: parseFloat(set.weight) || 0,
         duration: isCardio ? (parseInt(set.duration) || 0) : undefined,
+        incline: isTreadmill ? (parseFloat(set.incline) || 0) : undefined,
+        speed: isTreadmill ? (parseFloat(set.speed) || 0) : undefined,
         completed: set.completed,
       })),
       notes: newExercise.notes,
@@ -97,7 +100,7 @@ const WorkoutLog = () => {
     setNewExercise({
       name: '',
       category: 'chest',
-      sets: [{ reps: '', weight: '', duration: '', completed: false }],
+      sets: [{ reps: '', weight: '', duration: '', incline: '', speed: '', completed: false }],
       notes: '',
     });
   };
@@ -242,28 +245,63 @@ const WorkoutLog = () => {
                   {exercise.category === 'cardio' ? (
                     // Cardio display
                     <>
-                      <div className="grid grid-cols-3 gap-2 text-sm font-semibold text-gray-700">
-                        <div>Set</div>
-                        <div>Duration (mins)</div>
-                        <div className="text-center">Done</div>
-                      </div>
-                      {exercise.sets.map((set, index) => (
-                        <div key={index} className="grid grid-cols-3 gap-2 items-center">
-                          <div className="text-gray-600">{index + 1}</div>
-                          <div className="text-gray-900 font-semibold">{set.duration || 0}</div>
-                          <div className="flex justify-center">
-                            <button
-                              onClick={() => handleToggleSet(exercise.id, index)}
-                              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${set.completed
-                                ? 'bg-green-500 border-green-500'
-                                : 'border-gray-300 hover:border-primary-500'
-                                }`}
-                            >
-                              {set.completed && <Check className="w-4 h-4 text-white" />}
-                            </button>
+                      {exercise.name.toLowerCase().includes('treadmill') ? (
+                        // Treadmill-specific display
+                        <>
+                          <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-gray-700">
+                            <div>Set</div>
+                            <div>Duration (mins)</div>
+                            <div>Incline (%)</div>
+                            <div>Speed (km/h)</div>
+                            <div className="text-center">Done</div>
                           </div>
-                        </div>
-                      ))}
+                          {exercise.sets.map((set, index) => (
+                            <div key={index} className="grid grid-cols-5 gap-2 items-center">
+                              <div className="text-gray-600">{index + 1}</div>
+                              <div className="text-gray-900 font-semibold">{set.duration || 0}</div>
+                              <div className="text-gray-900 font-semibold">{set.incline || 0}</div>
+                              <div className="text-gray-900 font-semibold">{set.speed || 0}</div>
+                              <div className="flex justify-center">
+                                <button
+                                  onClick={() => handleToggleSet(exercise.id, index)}
+                                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${set.completed
+                                    ? 'bg-green-500 border-green-500'
+                                    : 'border-gray-300 hover:border-primary-500'
+                                    }`}
+                                >
+                                  {set.completed && <Check className="w-4 h-4 text-white" />}
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      ) : (
+                        // Regular cardio display
+                        <>
+                          <div className="grid grid-cols-3 gap-2 text-sm font-semibold text-gray-700">
+                            <div>Set</div>
+                            <div>Duration (mins)</div>
+                            <div className="text-center">Done</div>
+                          </div>
+                          {exercise.sets.map((set, index) => (
+                            <div key={index} className="grid grid-cols-3 gap-2 items-center">
+                              <div className="text-gray-600">{index + 1}</div>
+                              <div className="text-gray-900 font-semibold">{set.duration || 0}</div>
+                              <div className="flex justify-center">
+                                <button
+                                  onClick={() => handleToggleSet(exercise.id, index)}
+                                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${set.completed
+                                    ? 'bg-green-500 border-green-500'
+                                    : 'border-gray-300 hover:border-primary-500'
+                                    }`}
+                                >
+                                  {set.completed && <Check className="w-4 h-4 text-white" />}
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      )}
                     </>
                   ) : (
                     // Weight training display
@@ -350,13 +388,41 @@ const WorkoutLog = () => {
               {newExercise.sets.map((set, index) => {
                 const isCardio = newExercise.category === 'cardio';
                 const isCore = newExercise.category === 'core';
+                const isTreadmill = isCardio && newExercise.name.toLowerCase().includes('treadmill');
 
                 return (
                   <div key={index} className="flex items-center space-x-2">
                     <span className="text-sm font-semibold text-gray-700 w-8">#{index + 1}</span>
 
-                    {isCardio ? (
-                      // Cardio: Duration only
+                    {isTreadmill ? (
+                      // Treadmill: Duration + Incline + Speed
+                      <>
+                        <Input
+                          type="number"
+                          placeholder="Duration (mins)"
+                          value={set.duration}
+                          onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Input
+                          type="number"
+                          step="0.5"
+                          placeholder="Incline (%)"
+                          value={set.incline}
+                          onChange={(e) => handleSetChange(index, 'incline', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Input
+                          type="number"
+                          step="0.5"
+                          placeholder="Speed (km/h)"
+                          value={set.speed}
+                          onChange={(e) => handleSetChange(index, 'speed', e.target.value)}
+                          className="flex-1"
+                        />
+                      </>
+                    ) : isCardio ? (
+                      // Regular Cardio: Duration only
                       <>
                         <Input
                           type="number"

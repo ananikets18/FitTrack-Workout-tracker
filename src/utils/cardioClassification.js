@@ -108,21 +108,58 @@ export function getCardioStressMultiplier(exerciseName) {
 
 /**
  * Calculate cardio stress score
- * Uses duration (stored in reps field) and type multiplier
+ * Uses duration and type multiplier
+ * For treadmill: also accounts for incline and speed
  * @param {Object} exercise - Cardio exercise object
  * @returns {number} Stress score
  */
 export function calculateCardioStress(exercise) {
     if (!isCardioExercise(exercise)) return 0;
 
-    // Duration is stored in 'reps' field (workaround)
-    const duration = exercise.sets?.reduce((sum, set) => sum + (set.reps || 0), 0) || 0;
+    // Check if this is a treadmill exercise
+    const isTreadmill = exercise.name.toLowerCase().includes('treadmill');
 
-    const typeMultiplier = getCardioStressMultiplier(exercise.name);
+    if (isTreadmill) {
+        // For treadmill, use duration field and apply incline/speed multipliers
+        let totalStress = 0;
 
-    // Base stress: 1 point per minute
-    // Adjusted by type multiplier
-    return duration * typeMultiplier;
+        exercise.sets?.forEach(set => {
+            const duration = set.duration || 0;
+            const incline = set.incline || 0;
+            const speed = set.speed || 0;
+
+            // Base stress from duration
+            let setStress = duration;
+
+            // Apply incline multiplier (each 2% incline adds 10% difficulty)
+            // Example: 0% = 1.0x, 4% = 1.2x, 8% = 1.4x, 12% = 1.6x
+            const inclineMultiplier = 1 + (incline * 0.05);
+
+            // Apply speed multiplier (higher speed = more intensity)
+            // Walking (3-5 km/h) = 0.8x, Jogging (6-8 km/h) = 1.0x, Running (9+ km/h) = 1.2x+
+            let speedMultiplier = 1.0;
+            if (speed < 5) {
+                speedMultiplier = 0.8; // Walking
+            } else if (speed >= 5 && speed < 9) {
+                speedMultiplier = 1.0; // Jogging
+            } else if (speed >= 9) {
+                speedMultiplier = 1.0 + ((speed - 9) * 0.05); // Running, increases with speed
+            }
+
+            setStress = setStress * inclineMultiplier * speedMultiplier;
+            totalStress += setStress;
+        });
+
+        return totalStress;
+    } else {
+        // For regular cardio, use duration field if available, otherwise fall back to reps
+        const duration = exercise.sets?.reduce((sum, set) => sum + (set.duration || set.reps || 0), 0) || 0;
+        const typeMultiplier = getCardioStressMultiplier(exercise.name);
+
+        // Base stress: 1 point per minute
+        // Adjusted by type multiplier
+        return duration * typeMultiplier;
+    }
 }
 
 /**
@@ -158,7 +195,8 @@ export function classifyWorkoutCardio(workout) {
     workout.exercises.forEach(exercise => {
         if (isCardioExercise(exercise)) {
             const cardioType = detectCardioType(exercise.name);
-            const duration = exercise.sets?.reduce((sum, set) => sum + (set.reps || 0), 0) || 0;
+            // Use duration field if available, otherwise fall back to reps (for backward compatibility)
+            const duration = exercise.sets?.reduce((sum, set) => sum + (set.duration || set.reps || 0), 0) || 0;
             const stress = calculateCardioStress(exercise);
 
             breakdown[cardioType]++;

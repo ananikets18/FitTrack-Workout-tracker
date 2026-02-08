@@ -88,7 +88,7 @@ const WorkoutLogMobile = () => {
   const [newExercise, setNewExercise] = useState({
     name: '',
     category: 'chest',
-    sets: [{ reps: 10, weight: 0, duration: 30, completed: false }],
+    sets: [{ reps: 10, weight: 0, duration: 30, incline: 0, speed: 0, completed: false }],
     notes: '',
   });
 
@@ -152,7 +152,7 @@ const WorkoutLogMobile = () => {
     const lastSet = newExercise.sets[newExercise.sets.length - 1];
     setNewExercise({
       ...newExercise,
-      sets: [...newExercise.sets, { reps: lastSet.reps, weight: lastSet.weight, duration: lastSet.duration || 30, completed: false }],
+      sets: [...newExercise.sets, { reps: lastSet.reps, weight: lastSet.weight, duration: lastSet.duration || 30, incline: lastSet.incline || 0, speed: lastSet.speed || 0, completed: false }],
     });
     vibrate(30);
   };
@@ -180,6 +180,7 @@ const WorkoutLogMobile = () => {
     }
 
     const isCardio = newExercise.category === 'cardio';
+    const isTreadmill = isCardio && newExercise.name.toLowerCase().includes('treadmill');
 
     const exercise = {
       id: crypto.randomUUID(),
@@ -189,6 +190,8 @@ const WorkoutLogMobile = () => {
         reps: isCardio ? 0 : (parseInt(set.reps) || 0),
         weight: parseFloat(set.weight) || 0,
         duration: isCardio ? (parseInt(set.duration) || 0) : undefined,
+        incline: isTreadmill ? (parseFloat(set.incline) || 0) : undefined,
+        speed: isTreadmill ? (parseFloat(set.speed) || 0) : undefined,
         completed: set.completed,
       })),
       notes: newExercise.notes,
@@ -203,7 +206,7 @@ const WorkoutLogMobile = () => {
     setNewExercise({
       name: '',
       category: 'chest',
-      sets: [{ reps: 10, weight: 0, duration: 30, completed: false }],
+      sets: [{ reps: 10, weight: 0, duration: 30, incline: 0, speed: 0, completed: false }],
       notes: '',
     });
   };
@@ -450,8 +453,25 @@ const WorkoutLogMobile = () => {
                 <div className="flex items-center space-x-2 text-lg">
                   {exercise.category === 'cardio' ? (
                     <>
-                      <span className="font-bold text-gray-900">{set.duration || 0}</span>
-                      <span className="text-gray-500">mins</span>
+                      {exercise.name.toLowerCase().includes('treadmill') && (set.incline || set.speed) ? (
+                        // Treadmill display with incline and speed
+                        <>
+                          <span className="font-bold text-gray-900">{set.duration || 0}</span>
+                          <span className="text-gray-500">mins</span>
+                          <span className="text-gray-400">|</span>
+                          <span className="font-bold text-gray-900">{set.incline || 0}</span>
+                          <span className="text-gray-500">%</span>
+                          <span className="text-gray-400">|</span>
+                          <span className="font-bold text-gray-900">{set.speed || 0}</span>
+                          <span className="text-gray-500">km/h</span>
+                        </>
+                      ) : (
+                        // Regular cardio display
+                        <>
+                          <span className="font-bold text-gray-900">{set.duration || 0}</span>
+                          <span className="text-gray-500">mins</span>
+                        </>
+                      )}
                     </>
                   ) : (
                     <>
@@ -809,6 +829,7 @@ const WorkoutLogMobile = () => {
             <div className="space-y-2 md:space-y-3">
               {newExercise.sets.map((set, index) => {
                 const isCardio = newExercise.category === 'cardio';
+                const isTreadmill = isCardio && newExercise.name.toLowerCase().includes('treadmill');
 
                 return (
                   <div key={index} className="bg-gray-50 rounded-lg p-2.5 md:p-3">
@@ -824,9 +845,39 @@ const WorkoutLogMobile = () => {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
-                      {isCardio ? (
-                        // Cardio exercises: Duration only
+                    <div className={isTreadmill ? "grid grid-cols-3 gap-2" : "grid grid-cols-2 gap-2"}>
+                      {isTreadmill ? (
+                        // Treadmill: Duration + Incline + Speed
+                        <>
+                          <NumberPicker
+                            label="Duration (mins)"
+                            value={set.duration}
+                            onChange={(val) => handleSetChange(index, 'duration', val)}
+                            min={1}
+                            max={120}
+                            quickIncrements={[-5, -1, 1, 5]}
+                          />
+                          <NumberPicker
+                            label="Incline (%)"
+                            value={set.incline}
+                            onChange={(val) => handleSetChange(index, 'incline', val)}
+                            min={0}
+                            max={15}
+                            step={0.5}
+                            quickIncrements={[-2, -0.5, 0.5, 2]}
+                          />
+                          <NumberPicker
+                            label="Speed (km/h)"
+                            value={set.speed}
+                            onChange={(val) => handleSetChange(index, 'speed', val)}
+                            min={0}
+                            max={20}
+                            step={0.5}
+                            quickIncrements={[-1, -0.5, 0.5, 1]}
+                          />
+                        </>
+                      ) : isCardio ? (
+                        // Regular Cardio: Duration only
                         <>
                           <NumberPicker
                             label="Duration (mins)"

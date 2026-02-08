@@ -200,9 +200,9 @@ export const getProgressiveOverload = (exerciseName, currentWorkout, workoutHist
   const isCardio = currentExercise.category === 'cardio';
 
   if (isCardio) {
-    // For cardio: compare duration
-    const currentDuration = currentExercise.sets.reduce((sum, s) => sum + (s.duration || 0), 0);
-    const previousDuration = previousExercise.sets.reduce((sum, s) => sum + (s.duration || 0), 0);
+    // For cardio: compare duration (use duration field if available, fall back to reps for backward compatibility)
+    const currentDuration = currentExercise.sets.reduce((sum, s) => sum + (s.duration || s.reps || 0), 0);
+    const previousDuration = previousExercise.sets.reduce((sum, s) => sum + (s.duration || s.reps || 0), 0);
 
     if (currentDuration > previousDuration) {
       return {
