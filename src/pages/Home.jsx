@@ -191,21 +191,31 @@ const Home = () => {
             <div className="grid grid-cols-4 gap-2">
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => addWaterIntake(250)}
+                onClick={() => addWaterIntake(300)}
                 className="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-xl p-3 transition-colors group"
               >
                 <Droplet className="w-5 h-5 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                <div className="text-xs font-bold text-gray-900">+250ml</div>
-                <div className="text-[10px] text-gray-500">Glass</div>
+                <div className="text-xs font-bold text-gray-900">+300ml</div>
+                <div className="text-[10px] text-gray-500">Small Glass</div>
               </motion.button>
 
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => addWaterIntake(500)}
+                onClick={() => addWaterIntake(480)}
                 className="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-xl p-3 transition-colors group"
               >
                 <Droplet className="w-6 h-6 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                <div className="text-xs font-bold text-gray-900">+500ml</div>
+                <div className="text-xs font-bold text-gray-900">+480ml</div>
+                <div className="text-[10px] text-gray-500">Large Glass</div>
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => addWaterIntake(600)}
+                className="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-xl p-3 transition-colors group"
+              >
+                <Droplet className="w-6 h-6 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+                <div className="text-xs font-bold text-gray-900">+600ml</div>
                 <div className="text-[10px] text-gray-500">Bottle</div>
               </motion.button>
 
@@ -216,18 +226,23 @@ const Home = () => {
               >
                 <Droplet className="w-7 h-7 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
                 <div className="text-xs font-bold text-gray-900">+750ml</div>
-                <div className="text-[10px] text-gray-500">Large</div>
+                <div className="text-[10px] text-gray-500">Gym</div>
               </motion.button>
+            </div>
 
+            {/* Undo Button */}
+            <div className="mt-2">
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => addWaterIntake(-250)}
+                onClick={() => addWaterIntake(-300)}
                 disabled={waterIntake.amount === 0}
-                className="bg-white hover:bg-red-50 border-2 border-red-200 rounded-xl p-3 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-white hover:bg-red-50 border-2 border-red-200 rounded-xl p-3 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Minus className="w-5 h-5 text-red-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                <div className="text-xs font-bold text-gray-900">-250ml</div>
-                <div className="text-[10px] text-gray-500">Undo</div>
+                <div className="flex items-center justify-center space-x-2">
+                  <Minus className="w-5 h-5 text-red-500 group-hover:scale-110 transition-transform" />
+                  <div className="text-xs font-bold text-gray-900">-300ml</div>
+                  <div className="text-[10px] text-gray-500">Undo</div>
+                </div>
               </motion.button>
             </div>
 
