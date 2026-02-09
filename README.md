@@ -74,7 +74,7 @@ http://localhost:5173
 
 ---
 
-## 🧩 Architecture Notes
+## � Architecture Notes
 
 * Local-first design (no backend or authentication)
 * Browser storage used for persistence
@@ -83,7 +83,7 @@ http://localhost:5173
 
 ---
 
-## 🚧 Project Status
+## � Project Status
 
 * Actively used and iterated as a personal tool
 * Features added based on practical needs
