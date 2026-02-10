@@ -149,6 +149,8 @@ export const db = {
                 reps: set.reps || 0,
                 weight: set.weight || 0,
                 duration: set.duration !== undefined && set.duration !== null && set.duration !== '' ? set.duration : null,
+                incline: set.incline !== undefined && set.incline !== null && set.incline !== '' ? set.incline : null,
+                speed: set.speed !== undefined && set.speed !== null && set.speed !== '' ? set.speed : null,
                 completed: set.completed || false,
                 order: setIndex,
               }))
@@ -208,6 +210,8 @@ export const db = {
                 reps: set.reps || 0,
                 weight: set.weight || 0,
                 duration: set.duration !== undefined && set.duration !== null && set.duration !== '' ? set.duration : null,
+                incline: set.incline !== undefined && set.incline !== null && set.incline !== '' ? set.incline : null,
+                speed: set.speed !== undefined && set.speed !== null && set.speed !== '' ? set.speed : null,
                 completed: set.completed || false,
                 order: setIndex,
               }))
@@ -348,7 +352,7 @@ export const db = {
       // If no error or just "no rows" error, table is available
       this._waterIntakeAvailable = !error || error.code === 'PGRST116';
       return this._waterIntakeAvailable;
-    } catch (error) {
+    } catch {
       // Table doesn't exist or not accessible
       this._waterIntakeAvailable = false;
       return false;
@@ -474,6 +478,8 @@ export const transformWorkoutFromDB = (workout) => {
             reps: set.reps || 0,
             weight: set.weight || 0,
             duration: set.duration, // Include duration for cardio exercises
+            incline: set.incline, // Include incline for treadmill
+            speed: set.speed, // Include speed for treadmill
             completed: set.completed,
           })) || [],
       })) || [],

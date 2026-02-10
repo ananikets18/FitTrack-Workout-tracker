@@ -1,5 +1,4 @@
 import { useWorkouts } from '../context/WorkoutContext';
-import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import {
   calculateStreak,
@@ -9,21 +8,14 @@ import {
   calculateAverageWeight,
   getPersonalRecords,
   calculateTotalActivity,
-  getActivityBreakdown,
 } from '../utils/calculations';
 import Card from '../components/common/Card';
-import Button from '../components/common/Button';
-import BottomSheet from '../components/common/BottomSheet';
 import ExerciseHistoryModal from '../components/common/ExerciseHistoryModal';
-import { VolumeChart, TrainingIntelligenceChart, PRProgressionChart, WeeklyMonthlyActivityChart } from '../components/charts/WorkoutCharts';
-import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, Clock, ChevronRight, Hotel, Star } from 'lucide-react';
-import { format } from 'date-fns';
+import { VolumeChart, TrainingIntelligenceChart, PRProgressionChart, WeeklyMonthlyActivityChart, TreadmillProgressChart } from '../components/charts/WorkoutCharts';
+import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity } from 'lucide-react';
 
 const Statistics = () => {
   const { workouts } = useWorkouts();
-  const navigate = useNavigate();
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedDay, setSelectedDay] = useState(null);
   const [isExerciseHistoryOpen, setIsExerciseHistoryOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
 
@@ -68,11 +60,6 @@ const Statistics = () => {
   const topExercises = Object.entries(exerciseFrequency)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
-
-  const handleViewDetails = () => {
-    setIsSheetOpen(false);
-    navigate('/history');
-  };
 
   const handleExerciseClick = (exerciseName) => {
     setSelectedExercise(exerciseName);
@@ -188,6 +175,19 @@ const Statistics = () => {
         </>
       )}
 
+      {/* Treadmill Progress (Conditional) */}
+      {workouts.some(w => 
+        w.exercises?.some(ex => ex.name.toLowerCase().includes('treadmill'))
+      ) && (
+        <Card>
+          <div className="flex items-center space-x-2 mb-6">
+            <span className="text-2xl">🏃‍♂️</span>
+            <h2 className="text-xl font-semibold text-gray-900">Treadmill Progress</h2>
+          </div>
+          <TreadmillProgressChart workouts={workouts} />
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Personal Records */}
         <Card>
@@ -256,131 +256,6 @@ const Statistics = () => {
           <p className="text-gray-600">Start logging workouts to see your progress and stats!</p>
         </Card>
       )}
-
-      {/* Bottom Sheet for Day Details */}
-      <BottomSheet
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        title={selectedDay ? format(selectedDay.date, 'EEEE, MMM d') : ''}
-      >
-        {selectedDay && (
-          <div className="space-y-4">
-            {selectedDay.workouts.map((workout, idx) => (
-              <div key={idx} className={`rounded-xl p-4 space-y-3 ${workout.type === 'rest_day'
-                ? 'bg-purple-50 border-2 border-purple-200 '
-                : 'bg-gray-50 '
-                }`}>
-                {workout.type === 'rest_day' ? (
-                  <>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="bg-purple-200 rounded-xl p-2">
-                          <Hotel className="w-5 h-5 text-purple-600 " />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-lg text-gray-900 ">Rest Day</h4>
-                          <p className="text-sm text-gray-500 mt-1">
-                            {new Date(workout.date).toLocaleTimeString('en-US', {
-                              hour: 'numeric',
-                              minute: '2-digit',
-                              hour12: true
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-purple-200 ">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm text-gray-600 ">Recovery Quality:</span>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      {workout.activities && workout.activities.length > 0 && (
-                        <div>
-                          <span className="text-sm text-gray-600 block mb-2">Active Recovery:</span>
-                          <div className="flex flex-wrap gap-2">
-                            {workout.activities.map((activity, actIdx) => (
-                              <span
-                                key={actIdx}
-                                className="px-2 py-1 text-xs font-semibold bg-purple-200 text-purple-700 rounded-lg"
-                              >
-                                {activity.replace('_', ' ')}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {workout.notes && (
-                      <p className="text-sm text-gray-600 italic pt-2 border-t border-purple-200 ">
-                        {workout.notes}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-bold text-lg text-gray-900 ">{workout.name}</h4>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {new Date(workout.date).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
-                          })}
-                        </p>
-                      </div>
-                      <div className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-sm font-semibold">
-                        {workout.exercises?.length || 0} exercises
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 ">
-                      {workout.duration > 0 && (
-                        <div className="flex items-center space-x-2">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600 ">{workout.duration} min</span>
-                        </div>
-                      )}
-                      <div className="flex items-center space-x-2">
-                        <Weight className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 ">
-                          {kgToTons(calculateTotalVolume(workout))}T moved
-                        </span>
-                      </div>
-                    </div>
-
-                    {workout.notes && (
-                      <p className="text-sm text-gray-600 italic pt-2 border-t border-gray-200 ">
-                        {workout.notes}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-            ))}
-
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={handleViewDetails}
-              className="w-full flex items-center justify-center space-x-2 mt-4"
-            >
-              <span>View Full Details</span>
-              <ChevronRight className="w-5 h-5" />
-            </Button>
-          </div>
-        )}
-      </BottomSheet>
 
       {/* Exercise History Modal */}
       <ExerciseHistoryModal

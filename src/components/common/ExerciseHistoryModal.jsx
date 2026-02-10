@@ -7,6 +7,9 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
     const [viewMode, setViewMode] = useState('chart'); // 'chart' or 'list'
 
+    // Check if this is a treadmill exercise
+    const isTreadmill = exerciseName?.toLowerCase().includes('treadmill');
+
     // Filter workouts that contain this exercise
     const exerciseHistory = workouts
         .filter(workout => workout.type !== 'rest_day')
@@ -19,6 +22,20 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
             const totalVolume = exercise.sets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
             const totalReps = exercise.sets.reduce((sum, set) => sum + set.reps, 0);
 
+            // Treadmill-specific metrics
+            const totalDuration = exercise.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
+            const maxSpeed = exercise.sets.length > 0 ? Math.max(...exercise.sets.map(s => s.speed || 0)) : 0;
+            const maxIncline = exercise.sets.length > 0 ? Math.max(...exercise.sets.map(s => s.incline || 0)) : 0;
+            const avgSpeed = exercise.sets.length > 0 
+                ? (exercise.sets.reduce((sum, s) => sum + (s.speed || 0), 0) / exercise.sets.length).toFixed(1)
+                : 0;
+            const avgIncline = exercise.sets.length > 0
+                ? (exercise.sets.reduce((sum, s) => sum + (s.incline || 0), 0) / exercise.sets.length).toFixed(1)
+                : 0;
+            const distance = exercise.sets.reduce((sum, set) => 
+                sum + ((set.speed || 0) * (set.duration || 0) / 60), 0
+            ).toFixed(2);
+
             return {
                 date: workout.date,
                 workoutName: workout.name,
@@ -27,6 +44,13 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                 totalReps,
                 sets: exercise.sets,
                 setCount: exercise.sets.length,
+                // Treadmill metrics
+                totalDuration,
+                maxSpeed,
+                maxIncline,
+                avgSpeed,
+                avgIncline,
+                distance,
             };
         })
         .filter(Boolean)
@@ -51,6 +75,20 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
         ? (validWeights.reduce((sum, w) => sum + w, 0) / validWeights.length).toFixed(1)
         : '0.0';
 
+    // Treadmill-specific stats
+    const totalDistance = isTreadmill 
+        ? exerciseHistory.reduce((sum, h) => sum + parseFloat(h.distance || 0), 0).toFixed(2)
+        : 0;
+    const totalMinutes = isTreadmill
+        ? exerciseHistory.reduce((sum, h) => sum + h.totalDuration, 0)
+        : 0;
+    const bestSpeed = isTreadmill
+        ? Math.max(...exerciseHistory.map(h => h.maxSpeed))
+        : 0;
+    const bestIncline = isTreadmill
+        ? Math.max(...exerciseHistory.map(h => h.maxIncline))
+        : 0;
+
     // Prepare chart data (reverse for chronological order)
     const chartData = [...exerciseHistory]
         .reverse()
@@ -58,6 +96,9 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
             date: formatDate(h.date),
             weight: h.maxWeight,
             volume: h.totalVolume,
+            speed: h.maxSpeed,
+            distance: parseFloat(h.distance),
+            incline: h.maxIncline,
         }));
 
     // Find improvement
@@ -70,37 +111,83 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
         <Modal isOpen={isOpen} onClose={onClose} title={exerciseName} size="lg">
             <div className="space-y-6">
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="bg-yellow-50 rounded-lg p-3 text-center">
-                        <Award className="w-5 h-5 text-yellow-600 mx-auto mb-1" />
-                        <div className="text-xl font-bold text-gray-900">{personalRecord}kg</div>
-                        <div className="text-xs text-gray-600">Personal Record</div>
+                {isTreadmill ? (
+                    // Treadmill-specific stats
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="bg-blue-50 rounded-lg p-3 text-center">
+                            <div className="text-2xl mb-1">🏃</div>
+                            <div className="text-xl font-bold text-gray-900">{totalDistance}km</div>
+                            <div className="text-xs text-gray-600">Total Distance</div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-3 text-center">
+                            <div className="text-2xl mb-1">⚡</div>
+                            <div className="text-xl font-bold text-gray-900">{bestSpeed}km/h</div>
+                            <div className="text-xs text-gray-600">Best Speed</div>
+                        </div>
+                        <div className="bg-orange-50 rounded-lg p-3 text-center">
+                            <div className="text-2xl mb-1">📈</div>
+                            <div className="text-xl font-bold text-gray-900">{bestIncline}%</div>
+                            <div className="text-xs text-gray-600">Max Incline</div>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-3 text-center">
+                            <div className="text-2xl mb-1">⏱️</div>
+                            <div className="text-xl font-bold text-gray-900">{totalMinutes}min</div>
+                            <div className="text-xs text-gray-600">Total Time</div>
+                        </div>
                     </div>
-                    <div className="bg-blue-50 rounded-lg p-3 text-center">
-                        <Weight className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                        <div className="text-xl font-bold text-gray-900">{kgToTons(totalVolume)}T</div>
-                        <div className="text-xs text-gray-600">Total Volume</div>
+                ) : (
+                    // Weight training stats
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="bg-yellow-50 rounded-lg p-3 text-center">
+                            <Award className="w-5 h-5 text-yellow-600 mx-auto mb-1" />
+                            <div className="text-xl font-bold text-gray-900">{personalRecord}kg</div>
+                            <div className="text-xs text-gray-600">Personal Record</div>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-3 text-center">
+                            <Weight className="w-5 h-5 text-blue-600 mx-auto mb-1" />
+                            <div className="text-xl font-bold text-gray-900">{kgToTons(totalVolume)}T</div>
+                            <div className="text-xs text-gray-600">Total Volume</div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-3 text-center">
+                            <Target className="w-5 h-5 text-green-600 mx-auto mb-1" />
+                            <div className="text-xl font-bold text-gray-900">{totalSessions}</div>
+                            <div className="text-xs text-gray-600">Sessions</div>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-3 text-center">
+                            <TrendingUp className="w-5 h-5 text-purple-600 mx-auto mb-1" />
+                            <div className="text-xl font-bold text-gray-900">{avgWeight}kg</div>
+                            <div className="text-xs text-gray-600">Avg Weight</div>
+                        </div>
                     </div>
-                    <div className="bg-green-50 rounded-lg p-3 text-center">
-                        <Target className="w-5 h-5 text-green-600 mx-auto mb-1" />
-                        <div className="text-xl font-bold text-gray-900">{totalSessions}</div>
-                        <div className="text-xs text-gray-600">Sessions</div>
-                    </div>
-                    <div className="bg-purple-50 rounded-lg p-3 text-center">
-                        <TrendingUp className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                        <div className="text-xl font-bold text-gray-900">{avgWeight}kg</div>
-                        <div className="text-xs text-gray-600">Avg Weight</div>
-                    </div>
-                </div>
+                )}
 
                 {/* Improvement Badge */}
-                {improvement > 0 && (
+                {!isTreadmill && improvement > 0 && (
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3">
                         <div className="flex items-center justify-center space-x-2">
                             <TrendingUp className="w-5 h-5 text-green-600" />
-                            <span className="text-sm font-semibold text-green-900">
-                                Improved by {improvement}kg ({improvementPercent}%) since first session!
+                            <span className="text-sm font-semibold text-green-800">
+                                +{improvement}kg improvement (+{improvementPercent}%)
                             </span>
+                        </div>
+                    </div>
+                )}
+
+                {isTreadmill && firstSession && latestSession && (
+                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-3">
+                        <div className="grid grid-cols-2 gap-3 text-center">
+                            <div>
+                                <div className="text-xs text-gray-600 mb-1">Speed Progress</div>
+                                <div className="text-lg font-bold text-blue-700">
+                                    {firstSession.maxSpeed}→{latestSession.maxSpeed} km/h
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-xs text-gray-600 mb-1">Incline Progress</div>
+                                <div className="text-lg font-bold text-blue-700">
+                                    {firstSession.maxIncline}→{latestSession.maxIncline}%
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -130,7 +217,9 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                 {/* Chart View */}
                 {viewMode === 'chart' && (
                     <div className="bg-gray-50 rounded-lg p-4">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-4">Weight Progression</h3>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                            {isTreadmill ? 'Speed Progression' : 'Weight Progression'}
+                        </h3>
                         <ResponsiveContainer width="100%" height={250}>
                             <LineChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -142,7 +231,12 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                                 <YAxis
                                     tick={{ fontSize: 12 }}
                                     stroke="#9ca3af"
-                                    label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
+                                    label={{ 
+                                        value: isTreadmill ? 'Speed (km/h)' : 'Weight (kg)', 
+                                        angle: -90, 
+                                        position: 'insideLeft', 
+                                        style: { fontSize: 12 } 
+                                    }}
                                 />
                                 <Tooltip
                                     contentStyle={{
@@ -154,11 +248,12 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                                 />
                                 <Line
                                     type="monotone"
-                                    dataKey="weight"
+                                    dataKey={isTreadmill ? "speed" : "weight"}
                                     stroke="#0ea5e9"
                                     strokeWidth={3}
                                     dot={{ fill: '#0ea5e9', r: 4 }}
                                     activeDot={{ r: 6 }}
+                                    name={isTreadmill ? 'Speed' : 'Weight'}
                                 />
                             </LineChart>
                         </ResponsiveContainer>
@@ -168,61 +263,93 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                 {/* List View */}
                 {viewMode === 'list' && (
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                        {exerciseHistory.map((session, index) => (
-                            <div
-                                key={index}
-                                className={`border rounded-lg p-4 ${session.maxWeight === personalRecord
-                                        ? 'border-yellow-400 bg-yellow-50'
-                                        : 'border-gray-200 bg-white'
-                                    }`}
-                            >
-                                <div className="flex items-start justify-between mb-2">
-                                    <div>
-                                        <div className="flex items-center space-x-2">
-                                            <Calendar className="w-4 h-4 text-gray-400" />
-                                            <span className="text-sm font-medium text-gray-900">{formatDate(session.date)}</span>
-                                            {session.maxWeight === personalRecord && (
-                                                <span className="px-2 py-0.5 text-xs font-bold bg-yellow-400 text-yellow-900 rounded-full">
-                                                    PR
-                                                </span>
+                        {exerciseHistory.map((session, index) => {
+                            const isPR = !isTreadmill && session.maxWeight === personalRecord;
+                            const isSpeedRecord = isTreadmill && session.maxSpeed === bestSpeed;
+                            
+                            return (
+                                <div
+                                    key={index}
+                                    className={`border rounded-lg p-4 ${isPR || isSpeedRecord
+                                            ? 'border-yellow-400 bg-yellow-50'
+                                            : 'border-gray-200 bg-white'
+                                        }`}
+                                >
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div>
+                                            <div className="flex items-center space-x-2">
+                                                <Calendar className="w-4 h-4 text-gray-400" />
+                                                <span className="text-sm font-medium text-gray-900">{formatDate(session.date)}</span>
+                                                {(isPR || isSpeedRecord) && (
+                                                    <span className="px-2 py-0.5 text-xs font-bold bg-yellow-400 text-yellow-900 rounded-full">
+                                                        {isTreadmill ? '⚡ BEST' : 'PR'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-1">{session.workoutName}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            {isTreadmill ? (
+                                                <>
+                                                    <div className="text-lg font-bold text-gray-900">{session.maxSpeed}km/h</div>
+                                                    <div className="text-xs text-gray-500">Max Speed</div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="text-lg font-bold text-gray-900">{session.maxWeight}kg</div>
+                                                    <div className="text-xs text-gray-500">Max Weight</div>
+                                                </>
                                             )}
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-1">{session.workoutName}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-lg font-bold text-gray-900">{session.maxWeight}kg</div>
-                                        <div className="text-xs text-gray-500">Max Weight</div>
-                                    </div>
-                                </div>
 
-                                <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-3 pt-3 border-t">
-                                    <div>
-                                        <span className="font-medium">{session.setCount}</span> sets
-                                    </div>
-                                    <div>
-                                        <span className="font-medium">{session.totalReps}</span> reps
-                                    </div>
-                                    <div>
-                                        <span className="font-medium">{session.totalVolume}kg</span> volume
-                                    </div>
-                                </div>
+                                    {isTreadmill ? (
+                                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-3 pt-3 border-t">
+                                            <div>
+                                                <span className="font-medium">{session.totalDuration}</span> mins
+                                            </div>
+                                            <div>
+                                                <span className="font-medium">{session.distance}</span> km
+                                            </div>
+                                            <div>
+                                                <span className="font-medium">{session.maxIncline}</span>% incline
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-3 pt-3 border-t">
+                                            <div>
+                                                <span className="font-medium">{session.setCount}</span> sets
+                                            </div>
+                                            <div>
+                                                <span className="font-medium">{session.totalReps}</span> reps
+                                            </div>
+                                            <div>
+                                                <span className="font-medium">{session.totalVolume}kg</span> volume
+                                            </div>
+                                        </div>
+                                    )}
 
-                                {/* Sets breakdown */}
-                                <div className="mt-3 pt-3 border-t">
-                                    <div className="text-xs font-semibold text-gray-700 mb-2">Sets:</div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {session.sets.map((set, setIdx) => (
-                                            <span
-                                                key={setIdx}
-                                                className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium"
-                                            >
-                                                {set.weight}kg × {set.reps}
-                                            </span>
-                                        ))}
+                                    {/* Sets breakdown */}
+                                    <div className="mt-3 pt-3 border-t">
+                                        <div className="text-xs font-semibold text-gray-700 mb-2">Sets:</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {session.sets.map((set, setIdx) => (
+                                                <span
+                                                    key={setIdx}
+                                                    className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium"
+                                                >
+                                                    {isTreadmill ? (
+                                                        `${set.duration}min @ ${set.speed}km/h, ${set.incline}%`
+                                                    ) : (
+                                                        `${set.weight}kg × ${set.reps}`
+                                                    )}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
