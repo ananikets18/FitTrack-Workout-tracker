@@ -59,7 +59,7 @@ const Statistics = () => {
 
   const topExercises = Object.entries(exerciseFrequency)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+    .slice(0, 10);
 
   const handleExerciseClick = (exerciseName) => {
     setSelectedExercise(exerciseName);
@@ -231,9 +231,9 @@ const Statistics = () => {
               <p className="text-sm mt-1">Start tracking to see your favorites</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
               {topExercises.map(([exercise, count], index) => (
-                <div key={exercise} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={exercise} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
                     <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
                       #{index + 1}
