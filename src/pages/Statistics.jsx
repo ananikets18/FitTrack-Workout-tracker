@@ -12,12 +12,16 @@ import {
 import Card from '../components/common/Card';
 import ExerciseHistoryModal from '../components/common/ExerciseHistoryModal';
 import { VolumeChart, TrainingIntelligenceChart, PRProgressionChart, WeeklyMonthlyActivityChart, TreadmillProgressChart } from '../components/charts/WorkoutCharts';
-import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity } from 'lucide-react';
+import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, ChevronDown } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Statistics = () => {
   const { workouts } = useWorkouts();
   const [isExerciseHistoryOpen, setIsExerciseHistoryOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
+  const [isTreadmillOpen, setIsTreadmillOpen] = useState(false);
+  const [isActivityTrendsOpen, setIsActivityTrendsOpen] = useState(false);
 
   // Filter out rest days for workout statistics
   const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
@@ -162,10 +166,58 @@ const Statistics = () => {
           </Card>
 
           {/* Weekly/Monthly Activity Trends (NEW) */}
-          <Card>
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Activity Trends</h2>
-            <WeeklyMonthlyActivityChart workouts={workouts} />
-          </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
+          >
+            {/* Accordion Header */}
+            <button
+              onClick={() => setIsActivityTrendsOpen(!isActivityTrendsOpen)}
+              className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl shadow-sm">
+                  <Activity className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900">Activity Trends</h2>
+                  <p className="text-xs md:text-sm text-gray-600">
+                    Weekly and monthly activity analysis
+                  </p>
+                  {!isActivityTrendsOpen && (
+                    <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
+                  )}
+                </div>
+              </div>
+
+              <motion.div
+                animate={{ rotate: isActivityTrendsOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="w-5 h-5 text-gray-600" />
+              </motion.div>
+            </button>
+
+            {/* Accordion Content */}
+            <AnimatePresence>
+              {isActivityTrendsOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
+                    <div className="pt-6">
+                      <WeeklyMonthlyActivityChart workouts={workouts} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
           {/* PR Progression */}
           <Card>
@@ -179,13 +231,58 @@ const Statistics = () => {
       {workouts.some(w => 
         w.exercises?.some(ex => ex.name.toLowerCase().includes('treadmill'))
       ) && (
-        <Card>
-          <div className="flex items-center space-x-2 mb-6">
-            <span className="text-2xl">🏃‍♂️</span>
-            <h2 className="text-xl font-semibold text-gray-900">Treadmill Progress</h2>
-          </div>
-          <TreadmillProgressChart workouts={workouts} />
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
+        >
+          {/* Accordion Header */}
+          <button
+            onClick={() => setIsTreadmillOpen(!isTreadmillOpen)}
+            className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-sm">
+                <span className="text-xl">🏃‍♂️</span>
+              </div>
+              <div className="text-left">
+                <h2 className="text-lg md:text-xl font-bold text-gray-900">Treadmill Progress</h2>
+                <p className="text-xs md:text-sm text-gray-600">
+                  Track your cardio performance
+                </p>
+                {!isTreadmillOpen && (
+                  <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
+                )}
+              </div>
+            </div>
+
+            <motion.div
+              animate={{ rotate: isTreadmillOpen ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ChevronDown className="w-5 h-5 text-gray-600" />
+            </motion.div>
+          </button>
+
+          {/* Accordion Content */}
+          <AnimatePresence>
+            {isTreadmillOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
+                  <div className="pt-6">
+                    <TreadmillProgressChart workouts={workouts} />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
