@@ -238,6 +238,30 @@ const WorkoutLogMobile = () => {
     }));
   };
 
+  const handleAddSetToExercise = (exerciseId) => {
+    setExercises(exercises.map(ex => {
+      if (ex.id === exerciseId) {
+        const lastSet = ex.sets[ex.sets.length - 1];
+        const isCardio = ex.category === 'cardio';
+        const isTreadmill = isCardio && ex.name.toLowerCase().includes('treadmill');
+        
+        const newSet = {
+          reps: isCardio ? 0 : (lastSet.reps || 10),
+          weight: lastSet.weight || 0,
+          duration: isCardio ? (lastSet.duration || 30) : undefined,
+          incline: isTreadmill ? (lastSet.incline || 0) : undefined,
+          speed: isTreadmill ? (lastSet.speed || 0) : undefined,
+          completed: false
+        };
+        
+        return { ...ex, sets: [...ex.sets, newSet] };
+      }
+      return ex;
+    }));
+    toast.success('Set added');
+    vibrate(30);
+  };
+
   const handleSaveWorkout = () => {
     if (!workoutName.trim()) {
       toast.error('Please enter a workout name');
@@ -731,6 +755,16 @@ const WorkoutLogMobile = () => {
                       }}
                     />
                   ))}
+                  
+                  {/* Add Set Button */}
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleAddSetToExercise(exercise.id)}
+                    className="w-full mt-2 py-3 px-4 bg-primary-50 hover:bg-primary-100 text-primary-600 font-semibold rounded-xl border-2 border-dashed border-primary-300 flex items-center justify-center space-x-2 transition-colors"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>Add Set</span>
+                  </motion.button>
                 </div>
 
                 {exercise.notes && (

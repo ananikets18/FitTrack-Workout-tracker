@@ -12,23 +12,12 @@ const WorkoutLog = () => {
   const navigate = useNavigate();
   const { addWorkout, updateWorkout, currentWorkout, clearCurrentWorkout } = useWorkouts();
 
-  const [workoutId, setWorkoutId] = useState(null);
-  const [workoutName, setWorkoutName] = useState('');
-  const [exercises, setExercises] = useState([]);
-  const [duration, setDuration] = useState('');
-  const [notes, setNotes] = useState('');
-  const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
 
-  // Load currentWorkout when editing
-  useEffect(() => {
-    if (currentWorkout) {
-      setWorkoutId(currentWorkout.id);
-      setWorkoutName(currentWorkout.name || '');
-      setExercises(currentWorkout.exercises || []);
-      setDuration(currentWorkout.duration?.toString() || '');
-      setNotes(currentWorkout.notes || '');
-    }
-  }, [currentWorkout]);
+  const [workoutName, setWorkoutName] = useState(currentWorkout?.name || '');
+  const [exercises, setExercises] = useState(currentWorkout?.exercises || []);
+  const [duration, setDuration] = useState(currentWorkout?.duration?.toString() || '');
+  const [notes, setNotes] = useState(currentWorkout?.notes || '');
+  const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
 
   // Clear currentWorkout when component unmounts
   useEffect(() => {
@@ -120,6 +109,29 @@ const WorkoutLog = () => {
     }));
   };
 
+  const handleAddSetToExercise = (exerciseId) => {
+    setExercises(exercises.map(ex => {
+      if (ex.id === exerciseId) {
+        const lastSet = ex.sets[ex.sets.length - 1];
+        const isCardio = ex.category === 'cardio';
+        const isTreadmill = isCardio && ex.name.toLowerCase().includes('treadmill');
+        
+        const newSet = {
+          reps: isCardio ? 0 : (lastSet.reps || 10),
+          weight: lastSet.weight || 0,
+          duration: isCardio ? (lastSet.duration || 30) : undefined,
+          incline: isTreadmill ? (lastSet.incline || 0) : undefined,
+          speed: isTreadmill ? (lastSet.speed || 0) : undefined,
+          completed: false
+        };
+        
+        return { ...ex, sets: [...ex.sets, newSet] };
+      }
+      return ex;
+    }));
+    toast.success('Set added');
+  };
+
   const handleSaveWorkout = async () => {
     if (!workoutName.trim()) {
       toast.error('Please enter a workout name');
@@ -133,16 +145,16 @@ const WorkoutLog = () => {
 
     const workout = {
       name: workoutName,
-      date: workoutId ? currentWorkout.date : new Date().toISOString(), // Preserve original date when editing
+      date: currentWorkout?.id ? currentWorkout.date : new Date().toISOString(), // Preserve original date when editing
       exercises,
       duration: parseInt(duration) || 0,
       notes,
     };
 
     try {
-      if (workoutId) {
+      if (currentWorkout?.id) {
         // Update existing workout
-        await updateWorkout({ ...workout, id: workoutId });
+        await updateWorkout({ ...workout, id: currentWorkout.id });
         toast.success('Workout updated!');
       } else {
         // Create new workout
@@ -152,7 +164,7 @@ const WorkoutLog = () => {
       navigate('/history');
     } catch (error) {
       console.error('Error saving workout:', error);
-      toast.error(workoutId ? 'Failed to update workout' : 'Failed to save workout');
+      toast.error(currentWorkout?.id ? 'Failed to update workout' : 'Failed to save workout');
     }
   };
 
@@ -161,7 +173,7 @@ const WorkoutLog = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">
-          {workoutId ? 'Edit Workout' : 'Log Workout'}
+          {currentWorkout?.id ? 'Edit Workout' : 'Log Workout'}
         </h1>
         <div className="space-x-2">
           <Button variant="secondary" onClick={() => navigate('/history')}>
@@ -170,7 +182,7 @@ const WorkoutLog = () => {
           </Button>
           <Button onClick={handleSaveWorkout}>
             <Save className="w-5 h-5 mr-2" />
-            {workoutId ? 'Update Workout' : 'Save Workout'}
+            {currentWorkout?.id ? 'Update Workout' : 'Save Workout'}
           </Button>
         </div>
       </div>
@@ -274,6 +286,14 @@ const WorkoutLog = () => {
                               </div>
                             </div>
                           ))}
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleAddSetToExercise(exercise.id)}
+                            className="mt-2 w-full"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Set
+                          </Button>
                         </>
                       ) : (
                         // Regular cardio display
@@ -300,6 +320,14 @@ const WorkoutLog = () => {
                               </div>
                             </div>
                           ))}
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleAddSetToExercise(exercise.id)}
+                            className="mt-2 w-full"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Set
+                          </Button>
                         </>
                       )}
                     </>
@@ -330,6 +358,14 @@ const WorkoutLog = () => {
                           </div>
                         </div>
                       ))}
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleAddSetToExercise(exercise.id)}
+                        className="mt-2 w-full"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Set
+                      </Button>
                     </>
                   )}
                 </div>
