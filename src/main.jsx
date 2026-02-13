@@ -2,6 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import performanceMonitor from './utils/performanceMonitor'
+
+// Initialize performance monitoring
+performanceMonitor.init();
 
 // Global error handlers to prevent initialization errors from breaking the app
 window.addEventListener('unhandledrejection', (event) => {

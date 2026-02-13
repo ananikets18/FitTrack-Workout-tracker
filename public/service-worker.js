@@ -1,13 +1,30 @@
-const CACHE_VERSION = '1.0.1'; // Updated after cleanup
+const CACHE_VERSION = '1.1.0';
 const CACHE_NAME = `fittrack-v${CACHE_VERSION}`;
 const RUNTIME_CACHE = `fittrack-runtime-v${CACHE_VERSION}`;
+const IMAGE_CACHE = `fittrack-images-v${CACHE_VERSION}`;
+
+// Max cache sizes
+const MAX_RUNTIME_CACHE_SIZE = 50;
+const MAX_IMAGE_CACHE_SIZE = 30;
 
 // Static assets to cache immediately
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
 ];
+
+// Helper to limit cache size
+const limitCacheSize = async (cacheName, maxItems) => {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxItems) {
+    await cache.delete(keys[0]);
+    await limitCacheSize(cacheName, maxItems);
+  }
+};
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -21,7 +38,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Fetch event - Network first strategy with runtime caching
+// Fetch event - Network first strategy with improved caching
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -36,21 +53,44 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Handle image requests with cache-first strategy
+  if (request.destination === 'image') {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(request).then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(IMAGE_CACHE).then((cache) => {
+              cache.put(request, responseToCache);
+              limitCacheSize(IMAGE_CACHE, MAX_IMAGE_CACHE_SIZE);
+            });
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Network-first strategy for other requests
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // Only cache successful responses
+        // Only cache successful GET responses
         if (!response || response.status !== 200 || response.type === 'error') {
           return response;
         }
 
-        // Clone the response
         const responseToCache = response.clone();
 
         // Cache successful GET requests
         if (request.method === 'GET') {
           caches.open(RUNTIME_CACHE).then((cache) => {
             cache.put(request, responseToCache);
+            limitCacheSize(RUNTIME_CACHE, MAX_RUNTIME_CACHE_SIZE);
           });
         }
 
@@ -79,7 +119,7 @@ self.addEventListener('fetch', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  const currentCaches = [CACHE_NAME, RUNTIME_CACHE];
+  const currentCaches = [CACHE_NAME, RUNTIME_CACHE, IMAGE_CACHE];
 
   event.waitUntil(
     caches
@@ -88,7 +128,10 @@ self.addEventListener('activate', (event) => {
         return Promise.all(
           cacheNames
             .filter((cacheName) => !currentCaches.includes(cacheName))
-            .map((cacheName) => caches.delete(cacheName))
+            .map((cacheName) => {
+              console.log('Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            })
         );
       })
       .then(() => self.clients.claim())
@@ -99,5 +142,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+  
+  // Clear all caches on request
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(cacheNames.map((name) => caches.delete(name)));
+      })
+    );
   }
 });

@@ -2,7 +2,7 @@
   for = "/*"
   [headers.values]
     # Content Security Policy
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://cozktrbipfapjuoogyhk.supabase.co https://api.groq.com;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://cozktrbipfapjuoogyhk.supabase.co https://api.groq.com; worker-src 'self' blob:;"
     
     # Prevent clickjacking
     X-Frame-Options = "DENY"
@@ -16,23 +16,47 @@
     # Referrer Policy
     Referrer-Policy = "strict-origin-when-cross-origin"
     
-    # Permissions Policy
+    # Permissions Policy (modern replacement for Feature-Policy)
     Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
     
     # Strict Transport Security (HTTPS only)
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    
+    # Cross-Origin policies for enhanced security
+    Cross-Origin-Embedder-Policy = "credentialless"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
 
-# Cache static assets
+# Cache static assets aggressively
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Cache service worker
+# Cache images
+[[headers]]
+  for = "*.{png,jpg,jpeg,gif,svg,webp,avif}"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache fonts
+[[headers]]
+  for = "*.{woff,woff2,ttf,eot}"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Access-Control-Allow-Origin = "*"
+
+# Cache service worker - no cache to ensure updates
 [[headers]]
   for = "/service-worker.js"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+    
+# Cache manifest - short TTL for PWA updates
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
 
 # SPA fallback - redirect all requests to index.html for client-side routing
 [[redirects]]

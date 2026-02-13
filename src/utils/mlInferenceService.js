@@ -20,6 +20,9 @@
 // Install: npm install @tensorflow/tfjs
 
 import * as tf from '@tensorflow/tfjs';
+import { createLogger } from './logger';
+
+const logger = createLogger('ML-Service');
 
 class MLModelService {
     constructor() {
@@ -37,7 +40,7 @@ class MLModelService {
      */
     async loadModels() {
         try {
-            console.log('🤖 Loading ML models...');
+            logger.info('🤖 Loading ML models...');
 
             // Load models from your server/CDN
             this.models.workoutSuccess = await tf.loadLayersModel(
@@ -53,11 +56,11 @@ class MLModelService {
             );
 
             this.modelsLoaded = true;
-            console.log('✅ ML models loaded successfully');
+            logger.info('✅ ML models loaded successfully');
 
             return { success: true };
         } catch (error) {
-            console.error('❌ Failed to load ML models:', error);
+            logger.error('❌ Failed to load ML models:', error);
             return { success: false, error };
         }
     }

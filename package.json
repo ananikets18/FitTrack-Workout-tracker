@@ -1,13 +1,30 @@
 {
   "name": "workout-tracker",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "A modern, offline-first PWA for tracking workouts with AI-powered features",
+  "author": "FitTrack Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ananikets18/FitTrack-Workout-tracker.git"
+  },
+  "keywords": [
+    "fitness",
+    "workout-tracker",
+    "pwa",
+    "react",
+    "offline-first"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --fix",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "analyze": "vite-bundle-visualizer"
   },
   "dependencies": {
     "@supabase/auth-ui-react": "^0.4.7",
