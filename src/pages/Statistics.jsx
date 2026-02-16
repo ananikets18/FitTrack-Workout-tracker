@@ -10,6 +10,8 @@ import {
   calculateTotalActivity,
 } from '../utils/calculations';
 import Card from '../components/common/Card';
+import SkeletonStatCard from '../components/common/SkeletonStatCard';
+import SkeletonCard from '../components/common/SkeletonCard';
 import ExerciseHistoryModal from '../components/common/ExerciseHistoryModal';
 import { VolumeChart, TrainingIntelligenceChart, PRProgressionChart, WeeklyMonthlyActivityChart, TreadmillProgressChart } from '../components/charts/WorkoutCharts';
 import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, ChevronDown } from 'lucide-react';
@@ -17,7 +19,7 @@ import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, ChevronDo
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Statistics = () => {
-  const { workouts } = useWorkouts();
+  const { workouts, isLoading } = useWorkouts();
   const [isExerciseHistoryOpen, setIsExerciseHistoryOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [isTreadmillOpen, setIsTreadmillOpen] = useState(false);
@@ -133,25 +135,43 @@ const Statistics = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-        {stats.map((stat, index) => (
-          <Card key={index} elevated className="text-center">
-            <div className={`inline-flex items-center justify-center w-11 h-11 md:w-14 md:h-14 rounded-2xl ${stat.bgColor} mb-2 md:mb-3 shadow-soft`}>
-              <stat.icon className={`w-5 h-5 md:w-7 md:h-7 ${stat.color}`} />
-            </div>
-            <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
-            <div className="text-gray-600 text-xs md:text-sm font-medium">{stat.label}</div>
-            {stat.subtitle && (
-              <div className="text-xs text-gray-500 mt-1 hidden md:block">{stat.subtitle}</div>
-            )}
-          </Card>
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+          <SkeletonStatCard />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          {stats.map((stat, index) => (
+            <Card key={index} elevated className="text-center">
+              <div className={`inline-flex items-center justify-center w-11 h-11 md:w-14 md:h-14 rounded-2xl ${stat.bgColor} mb-2 md:mb-3 shadow-soft`}>
+                <stat.icon className={`w-5 h-5 md:w-7 md:h-7 ${stat.color}`} />
+              </div>
+              <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+              <div className="text-gray-600 text-xs md:text-sm font-medium">{stat.label}</div>
+              {stat.subtitle && (
+                <div className="text-xs text-gray-500 mt-1 hidden md:block">{stat.subtitle}</div>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
 
 
 
       {/* Progress Charts */}
-      {workouts.length >= 3 && (
+      {isLoading ? (
+        <>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </>
+      ) : workouts.length >= 3 && (
         <>
           {/* Volume Trend */}
           <Card>
@@ -228,122 +248,129 @@ const Statistics = () => {
       )}
 
       {/* Treadmill Progress (Conditional) */}
-      {workouts.some(w => 
+      {!isLoading && workouts.some(w =>
         w.exercises?.some(ex => ex.name.toLowerCase().includes('treadmill'))
       ) && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
-        >
-          {/* Accordion Header */}
-          <button
-            onClick={() => setIsTreadmillOpen(!isTreadmillOpen)}
-            className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-sm">
-                <span className="text-xl">🏃‍♂️</span>
-              </div>
-              <div className="text-left">
-                <h2 className="text-lg md:text-xl font-bold text-gray-900">Treadmill Progress</h2>
-                <p className="text-xs md:text-sm text-gray-600">
-                  Track your cardio performance
-                </p>
-                {!isTreadmillOpen && (
-                  <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
-                )}
-              </div>
-            </div>
-
-            <motion.div
-              animate={{ rotate: isTreadmillOpen ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
+            {/* Accordion Header */}
+            <button
+              onClick={() => setIsTreadmillOpen(!isTreadmillOpen)}
+              className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
             >
-              <ChevronDown className="w-5 h-5 text-gray-600" />
-            </motion.div>
-          </button>
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-sm">
+                  <span className="text-xl">🏃‍♂️</span>
+                </div>
+                <div className="text-left">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900">Treadmill Progress</h2>
+                  <p className="text-xs md:text-sm text-gray-600">
+                    Track your cardio performance
+                  </p>
+                  {!isTreadmillOpen && (
+                    <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
+                  )}
+                </div>
+              </div>
 
-          {/* Accordion Content */}
-          <AnimatePresence>
-            {isTreadmillOpen && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
+                animate={{ rotate: isTreadmillOpen ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
-                className="overflow-hidden"
               >
-                <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
-                  <div className="pt-6">
-                    <TreadmillProgressChart workouts={workouts} />
-                  </div>
-                </div>
+                <ChevronDown className="w-5 h-5 text-gray-600" />
               </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      )}
+            </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Personal Records */}
-        <Card>
-          <div className="flex items-center space-x-2 mb-6">
-            <Award className="w-6 h-6 text-yellow-600" />
-            <h2 className="text-xl font-semibold text-gray-900">Personal Records</h2>
-          </div>
-          {Object.keys(personalRecords).length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No personal records yet</p>
-              <p className="text-sm mt-1">Complete workouts to track your PRs</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {Object.entries(personalRecords)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 8)
-                .map(([exercise, weight]) => (
-                  <button
-                    key={exercise}
-                    onClick={() => handleExerciseClick(exercise)}
-                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
-                  >
-                    <span className="font-medium text-gray-900 truncate mr-3" title={exercise}>{exercise}</span>
-                    <span className="text-lg font-bold text-primary-600 flex-shrink-0">{weight} kg</span>
-                  </button>
-                ))}
-            </div>
-          )}
-        </Card>
-
-        {/* Most Frequent Exercises */}
-        <Card>
-          <div className="flex items-center space-x-2 mb-6">
-            <TrendingUp className="w-6 h-6 text-green-600" />
-            <h2 className="text-xl font-semibold text-gray-900">Top Exercises</h2>
-          </div>
-          {topExercises.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No exercises logged yet</p>
-              <p className="text-sm mt-1">Start tracking to see your favorites</p>
-            </div>
-          ) : (
-            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
-              {topExercises.map(([exercise, count], index) => (
-                <div key={exercise} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                      #{index + 1}
+            {/* Accordion Content */}
+            <AnimatePresence>
+              {isTreadmillOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
+                    <div className="pt-6">
+                      <TreadmillProgressChart workouts={workouts} />
                     </div>
-                    <span className="font-medium text-gray-900 truncate" title={exercise}>{exercise}</span>
                   </div>
-                  <span className="text-sm text-gray-600 flex-shrink-0 ml-3">{count} times</span>
-                </div>
-              ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Personal Records */}
+          <Card>
+            <div className="flex items-center space-x-2 mb-6">
+              <Award className="w-6 h-6 text-yellow-600" />
+              <h2 className="text-xl font-semibold text-gray-900">Personal Records</h2>
             </div>
-          )}
-        </Card>
-      </div>
+            {Object.keys(personalRecords).length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No personal records yet</p>
+                <p className="text-sm mt-1">Complete workouts to track your PRs</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {Object.entries(personalRecords)
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 8)
+                  .map(([exercise, weight]) => (
+                    <button
+                      key={exercise}
+                      onClick={() => handleExerciseClick(exercise)}
+                      className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
+                    >
+                      <span className="font-medium text-gray-900 truncate mr-3" title={exercise}>{exercise}</span>
+                      <span className="text-lg font-bold text-primary-600 flex-shrink-0">{weight} kg</span>
+                    </button>
+                  ))}
+              </div>
+            )}
+          </Card>
+
+          {/* Most Frequent Exercises */}
+          <Card>
+            <div className="flex items-center space-x-2 mb-6">
+              <TrendingUp className="w-6 h-6 text-green-600" />
+              <h2 className="text-xl font-semibold text-gray-900">Top Exercises</h2>
+            </div>
+            {topExercises.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No exercises logged yet</p>
+                <p className="text-sm mt-1">Start tracking to see your favorites</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
+                {topExercises.map(([exercise, count], index) => (
+                  <div key={exercise} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                        #{index + 1}
+                      </div>
+                      <span className="font-medium text-gray-900 truncate" title={exercise}>{exercise}</span>
+                    </div>
+                    <span className="text-sm text-gray-600 flex-shrink-0 ml-3">{count} times</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
 
       {/* Empty State */}
       {workouts.length === 0 && (

@@ -6,6 +6,7 @@ import { usePreferences } from '../context/PreferencesContext';
 import { useNavigate } from 'react-router-dom';
 import { calculateStreak } from '../utils/calculations';
 import { getSmartRecommendation } from '../utils/smartRecommendations';
+import { WATER_INTAKE, TOAST_DURATION } from '../constants';
 
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -52,7 +53,7 @@ const Home = () => {
     }
 
     cloneWorkout(lastWorkout);
-    toast.success(`Repeating: ${lastWorkout.name}`, { duration: 2000 });
+    toast.success(`Repeating: ${lastWorkout.name}`, { duration: TOAST_DURATION.DEFAULT });
     navigate('/log');
   };
 
@@ -60,14 +61,14 @@ const Home = () => {
     if (!recommendation.workout) return;
 
     cloneWorkout(recommendation.workout);
-    toast.success(`Starting: ${recommendation.workout.name}`, { duration: 2000, icon: '⚡' });
+    toast.success(`Starting: ${recommendation.workout.name}`, { duration: TOAST_DURATION.DEFAULT, icon: '⚡' });
     navigate('/log');
   };
 
   const handleSetupComplete = (setupPreferences) => {
     updatePreferences(setupPreferences);
     completeSetup();
-    toast.success('Setup complete! 🎉 Smart recommendations enabled', { duration: 3000 });
+    toast.success('Setup complete! 🎉 Smart recommendations enabled', { duration: TOAST_DURATION.LONG });
   };
 
   const handleSaveRestDay = (restDayData) => {
@@ -166,7 +167,7 @@ const Home = () => {
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-blue-600">{(waterIntake.amount / 1000).toFixed(1)}L</div>
-                <div className="text-xs text-gray-500">of 4L goal</div>
+                <div className="text-xs text-gray-500">of {WATER_INTAKE.DAILY_GOAL_ML / 1000}L goal</div>
               </div>
             </div>
 
@@ -175,15 +176,15 @@ const Home = () => {
               <div className="h-3 bg-blue-100 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${Math.min((waterIntake.amount / 4000) * 100, 100)}%` }}
+                  animate={{ width: `${Math.min((waterIntake.amount / WATER_INTAKE.DAILY_GOAL_ML) * 100, 100)}%` }}
                   transition={{ duration: 0.5 }}
                   className="h-full bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full"
                 />
               </div>
               <div className="flex justify-between mt-1 text-xs text-gray-500">
                 <span>0L</span>
-                <span className="font-medium text-blue-600">{Math.round((waterIntake.amount / 4000) * 100)}%</span>
-                <span>4L</span>
+                <span className="font-medium text-blue-600">{Math.round((waterIntake.amount / WATER_INTAKE.DAILY_GOAL_ML) * 100)}%</span>
+                <span>{WATER_INTAKE.DAILY_GOAL_ML / 1000}L</span>
               </div>
             </div>
 
@@ -191,41 +192,41 @@ const Home = () => {
             <div className="grid grid-cols-4 gap-2">
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => addWaterIntake(300)}
+                onClick={() => addWaterIntake(WATER_INTAKE.SMALL_GLASS_ML)}
                 className="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-xl p-3 transition-colors group"
               >
                 <Droplet className="w-5 h-5 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                <div className="text-xs font-bold text-gray-900">+300ml</div>
+                <div className="text-xs font-bold text-gray-900">+{WATER_INTAKE.SMALL_GLASS_ML}ml</div>
                 <div className="text-[10px] text-gray-500">Small Glass</div>
               </motion.button>
 
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => addWaterIntake(480)}
+                onClick={() => addWaterIntake(WATER_INTAKE.LARGE_GLASS_ML)}
                 className="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-xl p-3 transition-colors group"
               >
                 <Droplet className="w-6 h-6 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                <div className="text-xs font-bold text-gray-900">+480ml</div>
+                <div className="text-xs font-bold text-gray-900">+{WATER_INTAKE.LARGE_GLASS_ML}ml</div>
                 <div className="text-[10px] text-gray-500">Large Glass</div>
               </motion.button>
 
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => addWaterIntake(600)}
+                onClick={() => addWaterIntake(WATER_INTAKE.BOTTLE_ML)}
                 className="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-xl p-3 transition-colors group"
               >
                 <Droplet className="w-6 h-6 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                <div className="text-xs font-bold text-gray-900">+600ml</div>
+                <div className="text-xs font-bold text-gray-900">+{WATER_INTAKE.BOTTLE_ML}ml</div>
                 <div className="text-[10px] text-gray-500">Bottle</div>
               </motion.button>
 
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => addWaterIntake(750)}
+                onClick={() => addWaterIntake(WATER_INTAKE.GYM_BOTTLE_ML)}
                 className="bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-xl p-3 transition-colors group"
               >
                 <Droplet className="w-7 h-7 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-                <div className="text-xs font-bold text-gray-900">+750ml</div>
+                <div className="text-xs font-bold text-gray-900">+{WATER_INTAKE.GYM_BOTTLE_ML}ml</div>
                 <div className="text-[10px] text-gray-500">Gym</div>
               </motion.button>
             </div>
@@ -234,20 +235,20 @@ const Home = () => {
             <div className="mt-2">
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => addWaterIntake(-300)}
+                onClick={() => addWaterIntake(-WATER_INTAKE.UNDO_AMOUNT_ML)}
                 disabled={waterIntake.amount === 0}
                 className="w-full bg-white hover:bg-red-50 border-2 border-red-200 rounded-xl p-3 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center justify-center space-x-2">
                   <Minus className="w-5 h-5 text-red-500 group-hover:scale-110 transition-transform" />
-                  <div className="text-xs font-bold text-gray-900">-300ml</div>
+                  <div className="text-xs font-bold text-gray-900">-{WATER_INTAKE.UNDO_AMOUNT_ML}ml</div>
                   <div className="text-[10px] text-gray-500">Undo</div>
                 </div>
               </motion.button>
             </div>
 
             {/* Hydration Status */}
-            {waterIntake.amount >= 4000 && (
+            {waterIntake.amount >= WATER_INTAKE.DAILY_GOAL_ML && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}

@@ -49,21 +49,54 @@ export const validateExerciseName = (name) => {
 };
 
 // Validate set data
-export const validateSet = (set) => {
+export const validateSet = (set, exerciseCategory = null, exerciseName = '') => {
   const reps = sanitizeNumber(set.reps, 0, 999);
   const weight = sanitizeNumber(set.weight, 0, 9999);
   const duration = set.duration !== undefined && set.duration !== null && set.duration !== ''
     ? sanitizeNumber(set.duration, 0, 999)
     : null;
 
+  // Validate treadmill-specific fields
+  const isTreadmill = exerciseCategory === 'cardio' && exerciseName.toLowerCase().includes('treadmill');
+  let incline = null;
+  let speed = null;
+
+  if (isTreadmill) {
+    // Validate incline (0-15%)
+    if (set.incline !== undefined && set.incline !== null && set.incline !== '') {
+      const inclineValue = parseFloat(set.incline);
+      if (isNaN(inclineValue) || inclineValue < 0 || inclineValue > 15) {
+        incline = Math.max(0, Math.min(15, inclineValue || 0));
+      } else {
+        incline = inclineValue;
+      }
+    }
+
+    // Validate speed (0-25 km/h)
+    if (set.speed !== undefined && set.speed !== null && set.speed !== '') {
+      const speedValue = parseFloat(set.speed);
+      if (isNaN(speedValue) || speedValue < 0 || speedValue > 25) {
+        speed = Math.max(0, Math.min(25, speedValue || 0));
+      } else {
+        speed = speedValue;
+      }
+    }
+  }
+
+  const validatedSet = {
+    reps,
+    weight,
+    duration,
+    completed: Boolean(set.completed)
+  };
+
+  // Only include treadmill fields if they're defined
+  if (incline !== null) validatedSet.incline = incline;
+  if (speed !== null) validatedSet.speed = speed;
+
   return {
     isValid: reps >= 0 && weight >= 0,
-    value: {
-      reps,
-      weight,
-      duration, // Include duration for cardio exercises
-      completed: Boolean(set.completed)
-    },
+    value: validatedSet,
     error: null
   };
 };
@@ -134,7 +167,7 @@ export const sanitizeWorkout = (workout) => {
         category: sanitizeString(exercise.category, 50),
         notes: sanitizeString(exercise.notes || '', 500),
         sets: Array.isArray(exercise.sets)
-          ? exercise.sets.map(set => validateSet(set).value)
+          ? exercise.sets.map(set => validateSet(set, exercise.category, exercise.name).value)
           : []
       }))
       : [],
