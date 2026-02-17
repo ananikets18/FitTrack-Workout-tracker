@@ -13,7 +13,7 @@ import Card from '../components/common/Card';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
 import SkeletonCard from '../components/common/SkeletonCard';
 import ExerciseHistoryModal from '../components/common/ExerciseHistoryModal';
-import { VolumeChart, TrainingIntelligenceChart, PRProgressionChart, WeeklyMonthlyActivityChart, TreadmillProgressChart } from '../components/charts/WorkoutCharts';
+import { TrainingIntelligenceChart, TreadmillProgressChart } from '../components/charts/WorkoutCharts';
 import HeatmapCalendar from '../components/charts/HeatmapCalendar';
 import PRTimeline from '../components/charts/PRTimeline';
 import InteractiveChart from '../components/charts/InteractiveChart';
@@ -26,7 +26,6 @@ const Statistics = () => {
   const [isExerciseHistoryOpen, setIsExerciseHistoryOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [isTreadmillOpen, setIsTreadmillOpen] = useState(false);
-  const [isActivityTrendsOpen, setIsActivityTrendsOpen] = useState(false);
   const [isHeatmapOpen, setIsHeatmapOpen] = useState(false);
   const [isPRTimelineOpen, setIsPRTimelineOpen] = useState(false);
   const [isInteractiveChartOpen, setIsInteractiveChartOpen] = useState(false);
@@ -175,80 +174,13 @@ const Statistics = () => {
         <>
           <SkeletonCard />
           <SkeletonCard />
-          <SkeletonCard />
         </>
       ) : workouts.length >= 3 && (
         <>
-          {/* Volume Trend */}
-          <Card>
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Volume Trend (Last 30 Days)</h2>
-            <VolumeChart workouts={workouts} />
-          </Card>
-
-          {/* Training Intelligence Dashboard */}
+          {/* Training Intelligence Dashboard - Unique insights */}
           <Card>
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Training Intelligence (Last 7 Days)</h2>
             <TrainingIntelligenceChart workouts={workouts} />
-          </Card>
-
-          {/* Weekly/Monthly Activity Trends (NEW) */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
-          >
-            {/* Accordion Header */}
-            <button
-              onClick={() => setIsActivityTrendsOpen(!isActivityTrendsOpen)}
-              className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl shadow-sm">
-                  <Activity className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                </div>
-                <div className="text-left">
-                  <h2 className="text-lg md:text-xl font-bold text-gray-900">Activity Trends</h2>
-                  <p className="text-xs md:text-sm text-gray-600">
-                    Weekly and monthly activity analysis
-                  </p>
-                  {!isActivityTrendsOpen && (
-                    <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
-                  )}
-                </div>
-              </div>
-
-              <motion.div
-                animate={{ rotate: isActivityTrendsOpen ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              </motion.div>
-            </button>
-
-            {/* Accordion Content */}
-            <AnimatePresence>
-              {isActivityTrendsOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
-                    <div className="pt-6">
-                      <WeeklyMonthlyActivityChart workouts={workouts} />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* PR Progression */}
-          <Card>
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Records Progression</h2>
-            <PRProgressionChart workouts={workouts} />
           </Card>
 
           {/* NEW: Heatmap Calendar */}
