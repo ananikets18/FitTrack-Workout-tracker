@@ -5,7 +5,7 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
-import { Plus, Trash2, Check, X, Save } from 'lucide-react';
+import { Plus, Trash2, Check, X, Save, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const WorkoutLog = () => {
@@ -18,6 +18,7 @@ const WorkoutLog = () => {
   const [duration, setDuration] = useState(currentWorkout?.duration?.toString() || '');
   const [notes, setNotes] = useState(currentWorkout?.notes || '');
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
+  const [editingSet, setEditingSet] = useState(null); // { exerciseId, setIndex, set, exercise }
 
   // Clear currentWorkout when component unmounts
   useEffect(() => {
@@ -115,7 +116,7 @@ const WorkoutLog = () => {
         const lastSet = ex.sets[ex.sets.length - 1];
         const isCardio = ex.category === 'cardio';
         const isTreadmill = isCardio && ex.name.toLowerCase().includes('treadmill');
-        
+
         const newSet = {
           reps: isCardio ? 0 : (lastSet.reps || 10),
           weight: lastSet.weight || 0,
@@ -124,12 +125,41 @@ const WorkoutLog = () => {
           speed: isTreadmill ? (lastSet.speed || 0) : undefined,
           completed: false
         };
-        
+
         return { ...ex, sets: [...ex.sets, newSet] };
       }
       return ex;
     }));
     toast.success('Set added');
+  };
+
+  const handleRemoveSetFromExercise = (exerciseId, setIndex) => {
+    setExercises(exercises.map(ex => {
+      if (ex.id === exerciseId && ex.sets.length > 1) {
+        return {
+          ...ex,
+          sets: ex.sets.filter((_, i) => i !== setIndex)
+        };
+      }
+      return ex;
+    }));
+    toast.success('Set removed');
+  };
+
+  const handleUpdateSet = (updatedSet) => {
+    setExercises(exercises.map(ex => {
+      if (ex.id === editingSet.exerciseId) {
+        const updatedSets = [...ex.sets];
+        updatedSets[editingSet.setIndex] = {
+          ...updatedSets[editingSet.setIndex],
+          ...updatedSet
+        };
+        return { ...ex, sets: updatedSets };
+      }
+      return ex;
+    }));
+    setEditingSet(null);
+    toast.success('Set updated');
   };
 
   const handleSaveWorkout = async () => {
@@ -260,19 +290,38 @@ const WorkoutLog = () => {
                       {exercise.name.toLowerCase().includes('treadmill') ? (
                         // Treadmill-specific display
                         <>
-                          <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-gray-700">
+                          <div className="grid grid-cols-6 gap-2 text-sm font-semibold text-gray-700">
                             <div>Set</div>
                             <div>Duration (mins)</div>
                             <div>Incline (%)</div>
                             <div>Speed (km/h)</div>
+                            <div className="text-center">Actions</div>
                             <div className="text-center">Done</div>
                           </div>
                           {exercise.sets.map((set, index) => (
-                            <div key={index} className="grid grid-cols-5 gap-2 items-center">
+                            <div key={index} className="grid grid-cols-6 gap-2 items-center">
                               <div className="text-gray-600">{index + 1}</div>
                               <div className="text-gray-900 font-semibold">{set.duration || 0}</div>
                               <div className="text-gray-900 font-semibold">{set.incline || 0}</div>
                               <div className="text-gray-900 font-semibold">{set.speed || 0}</div>
+                              <div className="flex justify-center gap-1">
+                                <button
+                                  onClick={() => setEditingSet({ exerciseId: exercise.id, setIndex: index, set, exercise })}
+                                  className="p-1 hover:bg-blue-50 rounded text-blue-600"
+                                  title="Edit set"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                {exercise.sets.length > 1 && (
+                                  <button
+                                    onClick={() => handleRemoveSetFromExercise(exercise.id, index)}
+                                    className="p-1 hover:bg-red-50 rounded text-red-600"
+                                    title="Delete set"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
                               <div className="flex justify-center">
                                 <button
                                   onClick={() => handleToggleSet(exercise.id, index)}
@@ -286,8 +335,8 @@ const WorkoutLog = () => {
                               </div>
                             </div>
                           ))}
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             onClick={() => handleAddSetToExercise(exercise.id)}
                             className="mt-2 w-full"
                           >
@@ -298,15 +347,34 @@ const WorkoutLog = () => {
                       ) : (
                         // Regular cardio display
                         <>
-                          <div className="grid grid-cols-3 gap-2 text-sm font-semibold text-gray-700">
+                          <div className="grid grid-cols-4 gap-2 text-sm font-semibold text-gray-700">
                             <div>Set</div>
                             <div>Duration (mins)</div>
+                            <div className="text-center">Actions</div>
                             <div className="text-center">Done</div>
                           </div>
                           {exercise.sets.map((set, index) => (
-                            <div key={index} className="grid grid-cols-3 gap-2 items-center">
+                            <div key={index} className="grid grid-cols-4 gap-2 items-center">
                               <div className="text-gray-600">{index + 1}</div>
                               <div className="text-gray-900 font-semibold">{set.duration || 0}</div>
+                              <div className="flex justify-center gap-1">
+                                <button
+                                  onClick={() => setEditingSet({ exerciseId: exercise.id, setIndex: index, set, exercise })}
+                                  className="p-1 hover:bg-blue-50 rounded text-blue-600"
+                                  title="Edit set"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                {exercise.sets.length > 1 && (
+                                  <button
+                                    onClick={() => handleRemoveSetFromExercise(exercise.id, index)}
+                                    className="p-1 hover:bg-red-50 rounded text-red-600"
+                                    title="Delete set"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
                               <div className="flex justify-center">
                                 <button
                                   onClick={() => handleToggleSet(exercise.id, index)}
@@ -320,8 +388,8 @@ const WorkoutLog = () => {
                               </div>
                             </div>
                           ))}
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             onClick={() => handleAddSetToExercise(exercise.id)}
                             className="mt-2 w-full"
                           >
@@ -334,17 +402,36 @@ const WorkoutLog = () => {
                   ) : (
                     // Weight training display
                     <>
-                      <div className="grid grid-cols-4 gap-2 text-sm font-semibold text-gray-700">
+                      <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-gray-700">
                         <div>Set</div>
                         <div>Reps</div>
                         <div>Weight (kg)</div>
+                        <div className="text-center">Actions</div>
                         <div className="text-center">Done</div>
                       </div>
                       {exercise.sets.map((set, index) => (
-                        <div key={index} className="grid grid-cols-4 gap-2 items-center">
+                        <div key={index} className="grid grid-cols-5 gap-2 items-center">
                           <div className="text-gray-600">{index + 1}</div>
                           <div className="text-gray-900 font-semibold">{set.reps}</div>
                           <div className="text-gray-900 font-semibold">{set.weight}</div>
+                          <div className="flex justify-center gap-1">
+                            <button
+                              onClick={() => setEditingSet({ exerciseId: exercise.id, setIndex: index, set, exercise })}
+                              className="p-1 hover:bg-blue-50 rounded text-blue-600"
+                              title="Edit set"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            {exercise.sets.length > 1 && (
+                              <button
+                                onClick={() => handleRemoveSetFromExercise(exercise.id, index)}
+                                className="p-1 hover:bg-red-50 rounded text-red-600"
+                                title="Delete set"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
                           <div className="flex justify-center">
                             <button
                               onClick={() => handleToggleSet(exercise.id, index)}
@@ -358,8 +445,8 @@ const WorkoutLog = () => {
                           </div>
                         </div>
                       ))}
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={() => handleAddSetToExercise(exercise.id)}
                         className="mt-2 w-full"
                       >
@@ -545,6 +632,104 @@ const WorkoutLog = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Edit Set Modal */}
+      {editingSet && (
+        <Modal
+          isOpen={!!editingSet}
+          onClose={() => setEditingSet(null)}
+          title={`Edit Set ${editingSet.setIndex + 1} - ${editingSet.exercise.name}`}
+        >
+          <div className="space-y-4">
+            {editingSet.exercise.category === 'cardio' ? (
+              <>
+                {/* Cardio Exercise */}
+                <Input
+                  label="Duration (minutes)"
+                  type="number"
+                  value={editingSet.set.duration || 0}
+                  onChange={(e) => setEditingSet({
+                    ...editingSet,
+                    set: { ...editingSet.set, duration: parseInt(e.target.value) || 0 }
+                  })}
+                  min={0}
+                  max={180}
+                />
+
+                {/* Treadmill specific fields */}
+                {editingSet.exercise.name.toLowerCase().includes('treadmill') && (
+                  <>
+                    <Input
+                      label="Incline (%)"
+                      type="number"
+                      step="0.5"
+                      value={editingSet.set.incline || 0}
+                      onChange={(e) => setEditingSet({
+                        ...editingSet,
+                        set: { ...editingSet.set, incline: parseFloat(e.target.value) || 0 }
+                      })}
+                      min={0}
+                      max={15}
+                    />
+
+                    <Input
+                      label="Speed (km/h)"
+                      type="number"
+                      step="0.5"
+                      value={editingSet.set.speed || 0}
+                      onChange={(e) => setEditingSet({
+                        ...editingSet,
+                        set: { ...editingSet.set, speed: parseFloat(e.target.value) || 0 }
+                      })}
+                      min={0}
+                      max={25}
+                    />
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Regular Exercise */}
+                <Input
+                  label="Reps"
+                  type="number"
+                  value={editingSet.set.reps || 0}
+                  onChange={(e) => setEditingSet({
+                    ...editingSet,
+                    set: { ...editingSet.set, reps: parseInt(e.target.value) || 0 }
+                  })}
+                  min={0}
+                  max={100}
+                />
+
+                <Input
+                  label="Weight (kg)"
+                  type="number"
+                  step="2.5"
+                  value={editingSet.set.weight || 0}
+                  onChange={(e) => setEditingSet({
+                    ...editingSet,
+                    set: { ...editingSet.set, weight: parseFloat(e.target.value) || 0 }
+                  })}
+                  min={0}
+                  max={500}
+                />
+              </>
+            )}
+
+            {/* Save Button */}
+            <div className="flex space-x-2 pt-4">
+              <Button variant="secondary" size="sm" onClick={() => setEditingSet(null)} className="flex-1">
+                Cancel
+              </Button>
+              <Button size="sm" onClick={() => handleUpdateSet(editingSet.set)} className="flex-1">
+                <Check className="w-4 h-4 mr-2" />
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

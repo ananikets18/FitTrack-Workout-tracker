@@ -36,6 +36,7 @@ const WorkoutLogMobile = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [editingSet, setEditingSet] = useState(null); // { exerciseId, setIndex, set }
 
   // Load workout data if in edit mode
   useEffect(() => {
@@ -244,7 +245,7 @@ const WorkoutLogMobile = () => {
         const lastSet = ex.sets[ex.sets.length - 1];
         const isCardio = ex.category === 'cardio';
         const isTreadmill = isCardio && ex.name.toLowerCase().includes('treadmill');
-        
+
         const newSet = {
           reps: isCardio ? 0 : (lastSet.reps || 10),
           weight: lastSet.weight || 0,
@@ -253,12 +254,29 @@ const WorkoutLogMobile = () => {
           speed: isTreadmill ? (lastSet.speed || 0) : undefined,
           completed: false
         };
-        
+
         return { ...ex, sets: [...ex.sets, newSet] };
       }
       return ex;
     }));
     toast.success('Set added');
+    vibrate(30);
+  };
+
+  const handleUpdateSet = (updatedSet) => {
+    setExercises(exercises.map(ex => {
+      if (ex.id === editingSet.exerciseId) {
+        const updatedSets = [...ex.sets];
+        updatedSets[editingSet.setIndex] = {
+          ...updatedSets[editingSet.setIndex],
+          ...updatedSet
+        };
+        return { ...ex, sets: updatedSets };
+      }
+      return ex;
+    }));
+    setEditingSet(null);
+    toast.success('Set updated');
     vibrate(30);
   };
 
@@ -417,7 +435,7 @@ const WorkoutLogMobile = () => {
   };
 
   // Swipeable Set Component
-  const SwipeableSet = ({ set, setIndex, onToggle, onDelete, exercise }) => {
+  const SwipeableSet = ({ set, setIndex, onToggle, onDelete, exercise, onEdit }) => {
     const x = useMotionValue(0);
     const backgroundColor = useTransform(
       x,
@@ -443,7 +461,10 @@ const WorkoutLogMobile = () => {
           updatedSets[setIndex] = {
             ...updatedSets[setIndex],
             reps: previousSet.reps,
-            weight: previousSet.weight
+            weight: previousSet.weight,
+            duration: previousSet.duration,
+            incline: previousSet.incline,
+            speed: previousSet.speed
           };
           return { ...ex, sets: updatedSets };
         }
@@ -474,7 +495,11 @@ const WorkoutLogMobile = () => {
               </div>
 
               <div className="flex-1">
-                <div className="flex items-center space-x-2 text-lg">
+                {/* Clickable set values for editing */}
+                <button
+                  onClick={onEdit}
+                  className="flex items-center space-x-2 text-lg hover:bg-gray-50 px-2 py-1 rounded-lg transition-colors group"
+                >
                   {exercise.category === 'cardio' ? (
                     <>
                       {exercise.name.toLowerCase().includes('treadmill') && (set.incline || set.speed) ? (
@@ -505,7 +530,8 @@ const WorkoutLogMobile = () => {
                       <span className="text-gray-500">kg</span>
                     </>
                   )}
-                </div>
+                  <Edit className="w-4 h-4 text-gray-400 group-hover:text-primary-600 transition-colors" />
+                </button>
                 {setIndex > 0 && (
                   <motion.button
                     whileTap={{ scale: 0.95 }}
@@ -740,6 +766,7 @@ const WorkoutLogMobile = () => {
                       set={set}
                       setIndex={setIndex}
                       onToggle={() => handleToggleSet(exercise.id, setIndex)}
+                      onEdit={() => setEditingSet({ exerciseId: exercise.id, setIndex, set, exercise })}
                       onDelete={() => {
                         // Remove set logic
                         setExercises(exercises.map(ex => {
@@ -755,7 +782,7 @@ const WorkoutLogMobile = () => {
                       }}
                     />
                   ))}
-                  
+
                   {/* Add Set Button */}
                   <motion.button
                     whileTap={{ scale: 0.95 }}
@@ -1094,6 +1121,121 @@ const WorkoutLogMobile = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Edit Set Modal */}
+      {editingSet && (
+        <Modal
+          isOpen={!!editingSet}
+          onClose={() => setEditingSet(null)}
+          title={`Edit Set ${editingSet.setIndex + 1} - ${editingSet.exercise.name}`}
+          size="md"
+        >
+          <div className="space-y-6">
+            {editingSet.exercise.category === 'cardio' ? (
+              <>
+                {/* Cardio Exercise */}
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    Duration (minutes)
+                  </label>
+                  <NumberPicker
+                    value={editingSet.set.duration || 0}
+                    onChange={(value) => setEditingSet({
+                      ...editingSet,
+                      set: { ...editingSet.set, duration: value }
+                    })}
+                    min={0}
+                    max={180}
+                    step={1}
+                  />
+                </div>
+
+                {/* Treadmill specific fields */}
+                {editingSet.exercise.name.toLowerCase().includes('treadmill') && (
+                  <>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                        Incline (%)
+                      </label>
+                      <NumberPicker
+                        value={editingSet.set.incline || 0}
+                        onChange={(value) => setEditingSet({
+                          ...editingSet,
+                          set: { ...editingSet.set, incline: value }
+                        })}
+                        min={0}
+                        max={15}
+                        step={0.5}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                        Speed (km/h)
+                      </label>
+                      <NumberPicker
+                        value={editingSet.set.speed || 0}
+                        onChange={(value) => setEditingSet({
+                          ...editingSet,
+                          set: { ...editingSet.set, speed: value }
+                        })}
+                        min={0}
+                        max={25}
+                        step={0.5}
+                      />
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Regular Exercise */}
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    Reps
+                  </label>
+                  <NumberPicker
+                    value={editingSet.set.reps || 0}
+                    onChange={(value) => setEditingSet({
+                      ...editingSet,
+                      set: { ...editingSet.set, reps: value }
+                    })}
+                    min={0}
+                    max={100}
+                    step={1}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    Weight (kg)
+                  </label>
+                  <NumberPicker
+                    value={editingSet.set.weight || 0}
+                    onChange={(value) => setEditingSet({
+                      ...editingSet,
+                      set: { ...editingSet.set, weight: value }
+                    })}
+                    min={0}
+                    max={500}
+                    step={2.5}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Save Button */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleUpdateSet(editingSet.set)}
+              className="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-lg flex items-center justify-center space-x-2"
+            >
+              <Check className="w-5 h-5" />
+              <span>Save Changes</span>
+            </motion.button>
+          </div>
+        </Modal>
+      )}
 
       {/* Exit Warning Modal */}
       <Modal
