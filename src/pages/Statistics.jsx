@@ -14,7 +14,10 @@ import SkeletonStatCard from '../components/common/SkeletonStatCard';
 import SkeletonCard from '../components/common/SkeletonCard';
 import ExerciseHistoryModal from '../components/common/ExerciseHistoryModal';
 import { VolumeChart, TrainingIntelligenceChart, PRProgressionChart, WeeklyMonthlyActivityChart, TreadmillProgressChart } from '../components/charts/WorkoutCharts';
-import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, ChevronDown } from 'lucide-react';
+import HeatmapCalendar from '../components/charts/HeatmapCalendar';
+import PRTimeline from '../components/charts/PRTimeline';
+import InteractiveChart from '../components/charts/InteractiveChart';
+import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, ChevronDown, Calendar, Trophy, BarChart3 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,6 +27,9 @@ const Statistics = () => {
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [isTreadmillOpen, setIsTreadmillOpen] = useState(false);
   const [isActivityTrendsOpen, setIsActivityTrendsOpen] = useState(false);
+  const [isHeatmapOpen, setIsHeatmapOpen] = useState(false);
+  const [isPRTimelineOpen, setIsPRTimelineOpen] = useState(false);
+  const [isInteractiveChartOpen, setIsInteractiveChartOpen] = useState(false);
 
   // Filter out rest days for workout statistics
   const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
@@ -244,6 +250,182 @@ const Statistics = () => {
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Records Progression</h2>
             <PRProgressionChart workouts={workouts} />
           </Card>
+
+          {/* NEW: Heatmap Calendar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
+          >
+            {/* Accordion Header */}
+            <button
+              onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
+              className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-sm">
+                  <Calendar className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900">Activity Heatmap</h2>
+                  <p className="text-xs md:text-sm text-gray-600">
+                    GitHub-style calendar view of your workout consistency
+                  </p>
+                  {!isHeatmapOpen && (
+                    <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
+                  )}
+                </div>
+              </div>
+
+              <motion.div
+                animate={{ rotate: isHeatmapOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="w-5 h-5 text-gray-600" />
+              </motion.div>
+            </button>
+
+            {/* Accordion Content */}
+            <AnimatePresence>
+              {isHeatmapOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
+                    <div className="pt-6">
+                      <HeatmapCalendar workouts={workouts} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* NEW: PR Timeline */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
+          >
+            {/* Accordion Header */}
+            <button
+              onClick={() => setIsPRTimelineOpen(!isPRTimelineOpen)}
+              className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl shadow-sm">
+                  <Trophy className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900">PR Timeline</h2>
+                  <p className="text-xs md:text-sm text-gray-600">
+                    Visual history of all your personal records
+                  </p>
+                  {!isPRTimelineOpen && (
+                    <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
+                  )}
+                </div>
+              </div>
+
+              <motion.div
+                animate={{ rotate: isPRTimelineOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="w-5 h-5 text-gray-600" />
+              </motion.div>
+            </button>
+
+            {/* Accordion Content */}
+            <AnimatePresence>
+              {isPRTimelineOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
+                    <div className="pt-6">
+                      <PRTimeline workouts={workouts} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* NEW: Interactive Chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
+          >
+            {/* Accordion Header */}
+            <button
+              onClick={() => setIsInteractiveChartOpen(!isInteractiveChartOpen)}
+              className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-sm">
+                  <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900">Advanced Analytics</h2>
+                  <p className="text-xs md:text-sm text-gray-600">
+                    Interactive charts with zoom, filter, and export
+                  </p>
+                  {!isInteractiveChartOpen && (
+                    <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
+                  )}
+                </div>
+              </div>
+
+              <motion.div
+                animate={{ rotate: isInteractiveChartOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="w-5 h-5 text-gray-600" />
+              </motion.div>
+            </button>
+
+            {/* Accordion Content */}
+            <AnimatePresence>
+              {isInteractiveChartOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
+                    <div className="pt-6 space-y-6">
+                      <InteractiveChart
+                        workouts={workouts}
+                        title="Activity Points Progress"
+                        metric="activity"
+                      />
+                      <InteractiveChart
+                        workouts={workouts}
+                        title="Volume Progress"
+                        metric="volume"
+                      />
+                      <InteractiveChart
+                        workouts={workouts}
+                        title="Workout Frequency"
+                        metric="workouts"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </>
       )}
 
