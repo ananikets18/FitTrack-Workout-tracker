@@ -347,11 +347,7 @@ const Statistics = () => {
                         title="Volume Progress"
                         metric="volume"
                       />
-                      <InteractiveChart
-                        workouts={workouts}
-                        title="Workout Frequency"
-                        metric="workouts"
-                      />
+
                     </div>
                   </div>
                 </motion.div>

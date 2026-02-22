@@ -432,26 +432,6 @@ export const generateInsights = (workouts) => {
     }
   }
 
-  // 4. Workout Frequency Insight
-  if (regularWorkouts.length >= 4) {
-    const workoutDays = {};
-    regularWorkouts.forEach(w => {
-      const day = format(new Date(w.date), 'EEEE');
-      workoutDays[day] = (workoutDays[day] || 0) + 1;
-    });
-
-    const mostCommonDay = Object.entries(workoutDays)
-      .sort((a, b) => b[1] - a[1])[0];
-
-    if (mostCommonDay && mostCommonDay[1] >= 3) {
-      insights.push({
-        icon: '📅',
-        title: 'Favorite Day',
-        message: `You love ${mostCommonDay[0]}s! You've worked out ${mostCommonDay[1]} times on this day.`,
-        color: 'indigo',
-      });
-    }
-  }
 
   // 5. Rest Day Balance
   const workoutToRestRatio = regularWorkouts.length / (restDays.length || 1);
