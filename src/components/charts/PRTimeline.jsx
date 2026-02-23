@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { format, differenceInDays } from 'date-fns';
 import { Trophy, TrendingUp, Award, Zap, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getEffectiveWeight, isBarbellExercise } from '../../data/exercises';
 
 /**
  * Personal Records Timeline - Visual PR history with milestones
@@ -25,7 +26,11 @@ const PRTimeline = ({ workouts }) => {
 
         sortedWorkouts.forEach(workout => {
             workout.exercises?.forEach(exercise => {
-                const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0), 0);
+                // Use effective weight: adds 20 kg barbell for bench press / deadlift variants
+                const effectiveWeights = exercise.sets
+                    .map(s => getEffectiveWeight(s.weight, exercise.name))
+                    .filter(w => w > 0);
+                const maxWeight = effectiveWeights.length > 0 ? Math.max(...effectiveWeights) : 0;
 
                 if (maxWeight > 0) {
                     const exerciseName = exercise.name;
@@ -47,7 +52,11 @@ const PRTimeline = ({ workouts }) => {
                             date: new Date(workout.date),
                             dateStr: format(new Date(workout.date), 'MMM d, yyyy'),
                             isPR: exercise.isPR || false,
-                            sets: exercise.sets.filter(s => s.weight === maxWeight),
+                            // Keep raw sets; display will compute effective weight
+                            sets: exercise.sets.filter(s =>
+                                getEffectiveWeight(s.weight, exerciseName) === maxWeight
+                            ),
+                            exerciseName,
                         };
 
                         exerciseMaxes[exerciseName] = { weight: maxWeight, date: workout.date };
@@ -156,8 +165,8 @@ const PRTimeline = ({ workouts }) => {
                     <button
                         onClick={() => setSelectedExercise(null)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${selectedExercise === null
-                                ? 'bg-primary-600 text-white shadow-md'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-primary-600 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                     >
                         All PRs
@@ -167,8 +176,8 @@ const PRTimeline = ({ workouts }) => {
                             key={ex.name}
                             onClick={() => setSelectedExercise(ex.name)}
                             className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${selectedExercise === ex.name
-                                    ? 'bg-primary-600 text-white shadow-md'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-primary-600 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
                             {ex.name} ({ex.count})
@@ -236,7 +245,10 @@ const PRTimeline = ({ workouts }) => {
                                                         key={idx}
                                                         className="px-2 py-1 bg-gray-100 rounded text-xs font-medium text-gray-700"
                                                     >
-                                                        {set.reps} reps @ {set.weight} kg
+                                                        {set.reps} reps @ {getEffectiveWeight(set.weight, pr.exercise)} kg
+                                                        {isBarbellExercise(pr.exercise) && (
+                                                            <span className="text-blue-500 ml-1">(bar+plates)</span>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>

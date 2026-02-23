@@ -3,6 +3,7 @@ import Modal from './Modal';
 import { TrendingUp, Award, Calendar, Weight, Target } from 'lucide-react';
 import { formatDate, kgToTons } from '../../utils/calculations';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { getEffectiveWeight, isBarbellExercise } from '../../data/exercises';
 
 const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
     const [viewMode, setViewMode] = useState('chart'); // 'chart' or 'list'
@@ -17,22 +18,27 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
             const exercise = workout.exercises?.find(ex => ex.name === exerciseName);
             if (!exercise) return null;
 
-            const weights = exercise.sets.map(s => s.weight || 0).filter(w => w > 0);
-            const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
-            const totalVolume = exercise.sets.reduce((sum, set) => sum + (set.weight * set.reps), 0);
+            // Compute effective weights (plate load + 20 kg barbell for barbell exercises)
+            const effectiveWeights = exercise.sets
+                .map(s => getEffectiveWeight(s.weight, exerciseName))
+                .filter(w => w > 0);
+            const maxWeight = effectiveWeights.length > 0 ? Math.max(...effectiveWeights) : 0;
+            const totalVolume = exercise.sets.reduce((sum, set) => {
+                return sum + (getEffectiveWeight(set.weight, exerciseName) * set.reps);
+            }, 0);
             const totalReps = exercise.sets.reduce((sum, set) => sum + set.reps, 0);
 
             // Treadmill-specific metrics
             const totalDuration = exercise.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
             const maxSpeed = exercise.sets.length > 0 ? Math.max(...exercise.sets.map(s => s.speed || 0)) : 0;
             const maxIncline = exercise.sets.length > 0 ? Math.max(...exercise.sets.map(s => s.incline || 0)) : 0;
-            const avgSpeed = exercise.sets.length > 0 
+            const avgSpeed = exercise.sets.length > 0
                 ? (exercise.sets.reduce((sum, s) => sum + (s.speed || 0), 0) / exercise.sets.length).toFixed(1)
                 : 0;
             const avgIncline = exercise.sets.length > 0
                 ? (exercise.sets.reduce((sum, s) => sum + (s.incline || 0), 0) / exercise.sets.length).toFixed(1)
                 : 0;
-            const distance = exercise.sets.reduce((sum, set) => 
+            const distance = exercise.sets.reduce((sum, set) =>
                 sum + ((set.speed || 0) * (set.duration || 0) / 60), 0
             ).toFixed(2);
 
@@ -71,12 +77,12 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
     const personalRecord = validWeights.length > 0 ? Math.max(...validWeights) : 0;
     const totalVolume = exerciseHistory.reduce((sum, h) => sum + h.totalVolume, 0);
     const totalSessions = exerciseHistory.length;
-    const avgWeight = validWeights.length > 0 
+    const avgWeight = validWeights.length > 0
         ? (validWeights.reduce((sum, w) => sum + w, 0) / validWeights.length).toFixed(1)
         : '0.0';
 
     // Treadmill-specific stats
-    const totalDistance = isTreadmill 
+    const totalDistance = isTreadmill
         ? exerciseHistory.reduce((sum, h) => sum + parseFloat(h.distance || 0), 0).toFixed(2)
         : 0;
     const totalMinutes = isTreadmill
@@ -197,8 +203,8 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                     <button
                         onClick={() => setViewMode('chart')}
                         className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${viewMode === 'chart'
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
                             }`}
                     >
                         Chart View
@@ -206,8 +212,8 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                     <button
                         onClick={() => setViewMode('list')}
                         className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${viewMode === 'list'
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
                             }`}
                     >
                         List View
@@ -231,11 +237,11 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                                 <YAxis
                                     tick={{ fontSize: 12 }}
                                     stroke="#9ca3af"
-                                    label={{ 
-                                        value: isTreadmill ? 'Speed (km/h)' : 'Weight (kg)', 
-                                        angle: -90, 
-                                        position: 'insideLeft', 
-                                        style: { fontSize: 12 } 
+                                    label={{
+                                        value: isTreadmill ? 'Speed (km/h)' : 'Weight (kg)',
+                                        angle: -90,
+                                        position: 'insideLeft',
+                                        style: { fontSize: 12 }
                                     }}
                                 />
                                 <Tooltip
@@ -266,13 +272,13 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                         {exerciseHistory.map((session, index) => {
                             const isPR = !isTreadmill && session.maxWeight === personalRecord;
                             const isSpeedRecord = isTreadmill && session.maxSpeed === bestSpeed;
-                            
+
                             return (
                                 <div
                                     key={index}
                                     className={`border rounded-lg p-4 ${isPR || isSpeedRecord
-                                            ? 'border-yellow-400 bg-yellow-50'
-                                            : 'border-gray-200 bg-white'
+                                        ? 'border-yellow-400 bg-yellow-50'
+                                        : 'border-gray-200 bg-white'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between mb-2">
@@ -341,7 +347,7 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                                                     {isTreadmill ? (
                                                         `${set.duration}min @ ${set.speed}km/h, ${set.incline}%`
                                                     ) : (
-                                                        `${set.weight}kg × ${set.reps}`
+                                                        `${getEffectiveWeight(set.weight, exerciseName)}kg × ${set.reps}${isBarbellExercise(exerciseName) ? ' (bar+plates)' : ''}`
                                                     )}
                                                 </span>
                                             ))}

@@ -7,6 +7,7 @@ import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import { Plus, Trash2, Check, X, Save, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { isBarbellExercise, getEffectiveWeight } from '../data/exercises';
 
 const WorkoutLog = () => {
   const navigate = useNavigate();
@@ -405,7 +406,7 @@ const WorkoutLog = () => {
                       <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-gray-700">
                         <div>Set</div>
                         <div>Reps</div>
-                        <div>Weight (kg)</div>
+                        <div>{isBarbellExercise(exercise.name) ? 'Plate Load — Total (kg)' : 'Weight (kg)'}</div>
                         <div className="text-center">Actions</div>
                         <div className="text-center">Done</div>
                       </div>
@@ -413,7 +414,12 @@ const WorkoutLog = () => {
                         <div key={index} className="grid grid-cols-5 gap-2 items-center">
                           <div className="text-gray-600">{index + 1}</div>
                           <div className="text-gray-900 font-semibold">{set.reps}</div>
-                          <div className="text-gray-900 font-semibold">{set.weight}</div>
+                          <div className="text-gray-900 font-semibold">
+                            {isBarbellExercise(exercise.name)
+                              ? <span>{set.weight} → {getEffectiveWeight(set.weight, exercise.name)} kg</span>
+                              : set.weight
+                            }
+                          </div>
                           <div className="flex justify-center gap-1">
                             <button
                               onClick={() => setEditingSet({ exerciseId: exercise.id, setIndex: index, set, exercise })}
@@ -578,6 +584,7 @@ const WorkoutLog = () => {
                       </>
                     ) : (
                       // Weight training: Reps + Weight
+                      // Barbell exercises: enter only the plate load (bar weight added automatically)
                       <>
                         <Input
                           type="number"
@@ -586,13 +593,19 @@ const WorkoutLog = () => {
                           onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
                           className="flex-1"
                         />
-                        <Input
-                          type="number"
-                          placeholder="Weight (kg)"
-                          value={set.weight}
-                          onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
-                          className="flex-1"
-                        />
+                        <div className="flex-1 flex flex-col">
+                          <Input
+                            type="number"
+                            placeholder={isBarbellExercise(newExercise.name) ? 'Plate Load (kg)' : 'Weight (kg)'}
+                            value={set.weight}
+                            onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+                          />
+                          {isBarbellExercise(newExercise.name) && set.weight !== '' && (
+                            <span className="text-xs text-blue-600 font-semibold mt-0.5">
+                              = {getEffectiveWeight(set.weight, newExercise.name)} kg total
+                            </span>
+                          )}
+                        </div>
                       </>
                     )}
 
@@ -703,7 +716,7 @@ const WorkoutLog = () => {
                 />
 
                 <Input
-                  label="Weight (kg)"
+                  label={isBarbellExercise(editingSet.exercise.name) ? 'Plate Load (kg)' : 'Weight (kg)'}
                   type="number"
                   step="2.5"
                   value={editingSet.set.weight || 0}
@@ -714,6 +727,11 @@ const WorkoutLog = () => {
                   min={0}
                   max={500}
                 />
+                {isBarbellExercise(editingSet.exercise.name) && (
+                  <p className="text-xs text-blue-600 font-semibold mt-1">
+                    = {getEffectiveWeight(editingSet.set.weight, editingSet.exercise.name)} kg total (20 kg bar included)
+                  </p>
+                )}
               </>
             )}
 

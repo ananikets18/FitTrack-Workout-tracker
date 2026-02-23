@@ -2,6 +2,7 @@ import React from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
 import { calculateTotalVolume, calculateTotalActivity } from '../../utils/calculations';
+import { getEffectiveWeight } from '../../data/exercises';
 
 // Custom tooltip styling
 const CustomTooltip = ({ active, payload, label }) => {
@@ -33,7 +34,8 @@ export const VolumeChart = ({ workouts }) => {
   // Detect if we have cardio/bodyweight exercises
   const hasCardioOrBodyweight = regularWorkouts.some(w =>
     w.exercises?.some(ex => {
-      const maxWeight = Math.max(...ex.sets.map(s => s.weight || 0));
+      const effectiveWeights = ex.sets.map(s => getEffectiveWeight(s.weight, ex.name));
+      const maxWeight = effectiveWeights.length > 0 ? Math.max(...effectiveWeights) : 0;
       return ex.category === 'cardio' || maxWeight === 0;
     })
   );
@@ -151,7 +153,7 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
         // For cardio: track duration, for weights: track max weight
         const metric = isCardio
           ? exercise.sets.reduce((sum, s) => sum + (s.duration || 0), 0) // Total duration
-          : Math.max(...exercise.sets.map(s => s.weight || 0), 0); // Max weight (0 prevents -Infinity)
+          : Math.max(...exercise.sets.map(s => getEffectiveWeight(s.weight, exercise.name)), 0); // Max effective weight
 
         if (!exerciseProgress[exercise.name]) {
           exerciseProgress[exercise.name] = { records: [], isCardio };
@@ -191,9 +193,10 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
 
     dayWorkouts.forEach(workout => {
       workout.exercises?.forEach(exercise => {
-        const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+        const maxWeight = Math.max(...exercise.sets.map(s => getEffectiveWeight(s.weight, exercise.name)), 0);
         exercise.sets.forEach(set => {
-          const intensity = maxWeight > 0 ? (set.weight / maxWeight) : 0;
+          const effectiveW = getEffectiveWeight(set.weight, exercise.name);
+          const intensity = maxWeight > 0 ? (effectiveW / maxWeight) : 0;
           if (intensity < 0.6) light++;
           else if (intensity < 0.85) moderate++;
           else heavy++;
@@ -218,7 +221,7 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
 
     sortedWorkouts.forEach(workout => {
       workout.exercises?.forEach(exercise => {
-        const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+        const maxWeight = Math.max(...exercise.sets.map(s => getEffectiveWeight(s.weight, exercise.name)));
         if (!exerciseMaxes[exercise.name] || maxWeight > exerciseMaxes[exercise.name]) {
           exerciseMaxes[exercise.name] = maxWeight;
           prs.push({
@@ -426,7 +429,7 @@ export const PRProgressionChart = ({ workouts }) => {
   regularWorkouts.forEach((workout) => {
     const date = format(new Date(workout.date), 'MMM d');
     workout.exercises?.forEach((exercise) => {
-      const maxWeight = Math.max(...exercise.sets.map((set) => set.weight), 0);
+      const maxWeight = Math.max(...exercise.sets.map((set) => getEffectiveWeight(set.weight, exercise.name)), 0);
       if (maxWeight > 0) {
         if (!exercisePRs[exercise.name]) {
           exercisePRs[exercise.name] = [];
@@ -546,7 +549,7 @@ export const WeeklyMonthlyActivityChart = ({ workouts }) => {
 
     workout.exercises?.forEach(exercise => {
       const isCardio = exercise.category === 'cardio';
-      const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
+      const maxWeight = Math.max(...exercise.sets.map(s => getEffectiveWeight(s.weight, exercise.name)), 0);
       const isBodyweight = maxWeight === 0 && !isCardio;
 
       const points = exercise.sets.reduce((sum, set) => {
@@ -665,10 +668,10 @@ export const TreadmillProgressChart = ({ workouts }) => {
   // Filter out treadmill workouts
   const treadmillWorkouts = workouts
     .filter(w => w.type !== 'rest_day')
-    .flatMap(workout => 
+    .flatMap(workout =>
       workout.exercises
         ?.filter(ex => ex.name.toLowerCase().includes('treadmill'))
-        .flatMap(ex => 
+        .flatMap(ex =>
           ex.sets
             // Accept all sets from treadmill exercises, even without speed/incline
             .map(set => ({
@@ -733,7 +736,7 @@ export const TreadmillProgressChart = ({ workouts }) => {
   const maxIncline = Math.max(...treadmillWorkouts.map(tw => tw.incline));
   const maxDistance = Math.max(...treadmillWorkouts.map(tw => tw.distance));
   const maxDuration = Math.max(...treadmillWorkouts.map(tw => tw.duration));
-  
+
   const avgSpeed = (treadmillWorkouts.reduce((sum, tw) => sum + tw.speed, 0) / treadmillWorkouts.length).toFixed(1);
   const avgIncline = (treadmillWorkouts.reduce((sum, tw) => sum + tw.incline, 0) / treadmillWorkouts.length).toFixed(1);
   const totalDistance = treadmillWorkouts.reduce((sum, tw) => sum + tw.distance, 0).toFixed(2);
@@ -775,11 +778,10 @@ export const TreadmillProgressChart = ({ workouts }) => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center px-3 md:px-4 py-2.5 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 whitespace-nowrap ${
-              activeTab === tab.id
-                ? 'bg-white text-primary-600 shadow-md'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+            className={`flex-1 flex items-center justify-center px-3 md:px-4 py-2.5 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+              ? 'bg-white text-primary-600 shadow-md'
+              : 'text-gray-600 hover:text-gray-900'
+              }`}
           >
             <span className="md:mr-1">{tab.icon}</span>
             <span className="hidden md:inline">{tab.label}</span>
@@ -796,7 +798,7 @@ export const TreadmillProgressChart = ({ workouts }) => {
               <LineChart data={speedData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="session" tick={{ fontSize: 11 }} />
-                <YAxis 
+                <YAxis
                   tick={{ fontSize: 12 }}
                   label={{ value: 'Speed (km/h)', angle: -90, position: 'insideLeft', fontSize: 12 }}
                   domain={[0, 'auto']}
@@ -846,7 +848,7 @@ export const TreadmillProgressChart = ({ workouts }) => {
               <LineChart data={inclineData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="session" tick={{ fontSize: 11 }} />
-                <YAxis 
+                <YAxis
                   tick={{ fontSize: 12 }}
                   label={{ value: 'Incline (%)', angle: -90, position: 'insideLeft', fontSize: 12 }}
                   domain={[0, 'auto']}
@@ -898,7 +900,7 @@ export const TreadmillProgressChart = ({ workouts }) => {
               <BarChart data={distanceData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} angle={-45} textAnchor="end" height={80} />
-                <YAxis 
+                <YAxis
                   tick={{ fontSize: 12 }}
                   label={{ value: 'Distance (km)', angle: -90, position: 'insideLeft', fontSize: 12 }}
                 />

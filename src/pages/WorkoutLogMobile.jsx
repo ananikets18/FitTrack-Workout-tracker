@@ -12,7 +12,7 @@ import Modal from '../components/common/Modal';
 import BatchEditModal from '../components/common/BatchEditModal';
 import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar, BookmarkPlus, FileText, ChevronRight, Sliders } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-import { searchExercises, getExercisesByCategory, getCategoryForExercise } from '../data/exercises';
+import { searchExercises, getExercisesByCategory, getCategoryForExercise, isBarbellExercise, getEffectiveWeight } from '../data/exercises';
 
 const WorkoutLogMobile = () => {
   const navigate = useNavigate();
@@ -526,8 +526,15 @@ const WorkoutLogMobile = () => {
                     <>
                       <span className="font-bold text-gray-900">{set.reps}</span>
                       <span className="text-gray-500">reps ×</span>
-                      <span className="font-bold text-gray-900">{set.weight}</span>
+                      <span className="font-bold text-gray-900">
+                        {isBarbellExercise(exercise.name)
+                          ? getEffectiveWeight(set.weight, exercise.name)
+                          : set.weight}
+                      </span>
                       <span className="text-gray-500">kg</span>
+                      {isBarbellExercise(exercise.name) && (
+                        <span className="text-xs text-blue-500 font-medium">(bar+plates)</span>
+                      )}
                     </>
                   )}
                   <Edit className="w-4 h-4 text-gray-400 group-hover:text-primary-600 transition-colors" />
@@ -976,6 +983,9 @@ const WorkoutLogMobile = () => {
                         </>
                       ) : (
                         // Weight training: Reps and Weight
+                        // For barbell exercises (bench press / deadlift), the label says
+                        // "Plate Load" to remind the user to enter only the plates they
+                        // added. The app adds the 20 kg barbell automatically.
                         <>
                           <NumberPicker
                             label="Reps"
@@ -985,16 +995,23 @@ const WorkoutLogMobile = () => {
                             max={100}
                             quickIncrements={[-5, -2, 2, 5]}
                           />
-                          <NumberPicker
-                            label="Weight"
-                            value={set.weight}
-                            onChange={(val) => handleSetChange(index, 'weight', val)}
-                            min={0}
-                            max={999}
-                            step={2.5}
-                            quickIncrements={[-20, -10, -5, 5, 10, 20]}
-                            unit="kg"
-                          />
+                          <div className="flex flex-col">
+                            <NumberPicker
+                              label={isBarbellExercise(newExercise.name) ? 'Plate Load' : 'Weight'}
+                              value={set.weight}
+                              onChange={(val) => handleSetChange(index, 'weight', val)}
+                              min={0}
+                              max={999}
+                              step={2.5}
+                              quickIncrements={[-20, -10, -5, 5, 10, 20]}
+                              unit="kg"
+                            />
+                            {isBarbellExercise(newExercise.name) && (
+                              <span className="text-xs text-blue-600 font-semibold text-center mt-1">
+                                = {getEffectiveWeight(set.weight, newExercise.name)} kg total (bar incl.)
+                              </span>
+                            )}
+                          </div>
                         </>
                       )}
                     </div>
@@ -1208,7 +1225,7 @@ const WorkoutLogMobile = () => {
 
                 <div>
                   <label className="text-sm font-semibold text-gray-700 mb-2 block">
-                    Weight (kg)
+                    {isBarbellExercise(editingSet.exercise.name) ? 'Plate Load (kg)' : 'Weight (kg)'}
                   </label>
                   <NumberPicker
                     value={editingSet.set.weight || 0}
@@ -1220,6 +1237,11 @@ const WorkoutLogMobile = () => {
                     max={500}
                     step={2.5}
                   />
+                  {isBarbellExercise(editingSet.exercise.name) && (
+                    <p className="text-xs text-blue-600 font-semibold text-center mt-2">
+                      = {getEffectiveWeight(editingSet.set.weight, editingSet.exercise.name)} kg total (20 kg bar included)
+                    </p>
+                  )}
                 </div>
               </>
             )}

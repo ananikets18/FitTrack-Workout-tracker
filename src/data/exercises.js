@@ -421,3 +421,83 @@ export const getCategoryForExercise = (exerciseName) => {
   return null; // Return null if not found
 };
 
+// ============================================
+// BARBELL EQUIPMENT DETECTION
+// ============================================
+
+// The gym barbell/rod itself weighs 20 kg.
+// These exercises are performed with that barbell — users log only the
+// extra PLATE LOAD they added on top of the bar.
+//
+// Bench Press variants: any "bench press" that is barbell-based
+// (flat, incline, decline, close-grip, wide-grip — but NOT dumbbell or machine)
+//
+// Deadlift variants: all deadlift forms (conventional, Romanian, sumo,
+// stiff-leg, trap bar) — they all use the same standard barbell.
+
+const BARBELL_BENCH_PRESS_PATTERNS = [
+  'bench press',
+  'barbell bench press',
+  'incline barbell press',
+  'decline barbell press',
+  'close-grip bench press',
+  'wide-grip bench press',
+];
+
+const DEADLIFT_PATTERNS = [
+  'deadlift',
+  'romanian deadlift',
+  'rdl',
+  'sumo deadlift',
+  'trap bar deadlift',
+  'stiff-leg deadlift',
+];
+
+/**
+ * Returns true when the named exercise uses the 20 kg gym barbell,
+ * meaning the user's weight input is plate-load only (not total weight).
+ *
+ * Rules:
+ *  - Barbell bench press family: name contains "bench press" but is NOT
+ *    a dumbbell or machine variant.
+ *  - All deadlift family names (Romanian, Sumo, Stiff-Leg, Trap Bar, etc.)
+ */
+export const isBarbellExercise = (exerciseName) => {
+  if (!exerciseName) return false;
+  const lower = exerciseName.toLowerCase().trim();
+
+  // Check deadlift patterns first (all deadlifts use the barbell)
+  if (DEADLIFT_PATTERNS.some(p => lower.includes(p))) return true;
+
+  // Check bench press patterns — but exclude dumbbell / machine variants
+  const isDumbbellOrMachine =
+    lower.includes('dumbbell') ||
+    lower.includes('machine') ||
+    lower.startsWith('db ');
+
+  if (!isDumbbellOrMachine && BARBELL_BENCH_PRESS_PATTERNS.some(p => lower.includes(p))) {
+    return true;
+  }
+
+  return false;
+};
+
+/**
+ * Returns the TRUE total weight lifted (in kg) for a set of a given exercise.
+ *
+ * - For barbell exercises: plateLoad + 20 kg barbell
+ * - For everything else:   the weight as entered
+ *
+ * @param {number} plateWeight  - The weight the user logged (plates only for barbell moves)
+ * @param {string} exerciseName - Name of the exercise
+ * @param {number} barbellKg    - Weight of the barbell (default 20 kg)
+ * @returns {number} The effective / total lifted weight
+ */
+export const getEffectiveWeight = (plateWeight, exerciseName, barbellKg = 20) => {
+  const plate = parseFloat(plateWeight) || 0;
+  if (isBarbellExercise(exerciseName)) {
+    return plate + barbellKg;
+  }
+  return plate;
+};
+

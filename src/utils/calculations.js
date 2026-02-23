@@ -16,13 +16,15 @@ import {
   getWorkoutIntensityClassification,
   classifyExerciseIntensity
 } from './intensityClassification';
+import { getEffectiveWeight } from '../data/exercises';
 
 export const calculateTotalVolume = (workout) => {
   if (!workout?.exercises) return 0;
 
   return workout.exercises.reduce((total, exercise) => {
     const exerciseVolume = exercise.sets.reduce((sum, set) => {
-      return sum + (set.reps * set.weight);
+      const effectiveWeight = getEffectiveWeight(set.weight, exercise.name);
+      return sum + (set.reps * effectiveWeight);
     }, 0);
     return total + exerciseVolume;
   }, 0);
@@ -52,7 +54,7 @@ export const calculateAverageWeight = (workout) => {
 
   workout.exercises.forEach(exercise => {
     exercise.sets.forEach(set => {
-      totalWeight += set.weight || 0;
+      totalWeight += getEffectiveWeight(set.weight, exercise.name);
       totalSets++;
     });
   });
@@ -65,7 +67,8 @@ export const calculateExerciseVolume = (exercise) => {
   if (!exercise?.sets) return 0;
 
   return exercise.sets.reduce((sum, set) => {
-    return sum + (set.reps * set.weight);
+    const effectiveWeight = getEffectiveWeight(set.weight, exercise.name);
+    return sum + (set.reps * effectiveWeight);
   }, 0);
 };
 
@@ -82,9 +85,10 @@ export const calculateActivityPoints = (exercise) => {
   if (!exercise?.sets) return 0;
 
   const isCardio = exercise.category === 'cardio';
-  const weights = exercise.sets.map(s => s.weight || 0).filter(w => w > 0);
-  const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
-  const isBodyweight = maxWeight === 0 && !isCardio;
+  // Use effective weights to correctly identify bodyweight vs weighted exercises
+  const effectiveWeights = exercise.sets.map(s => getEffectiveWeight(s.weight, exercise.name)).filter(w => w > 0);
+  const maxEffectiveWeight = effectiveWeights.length > 0 ? Math.max(...effectiveWeights) : 0;
+  const isBodyweight = maxEffectiveWeight === 0 && !isCardio;
 
   if (isCardio) {
     // Use advanced cardio stress calculation (accounts for LISS/MISS/HIIT)
@@ -96,8 +100,9 @@ export const calculateActivityPoints = (exercise) => {
       // Bodyweight exercises: reps × 2
       return sum + ((set.reps || 0) * 2);
     } else {
-      // Weighted exercises: reps × weight
-      return sum + ((set.reps || 0) * (set.weight || 0));
+      // Weighted exercises: reps × effective weight (plates + barbell if applicable)
+      const effectiveWeight = getEffectiveWeight(set.weight, exercise.name);
+      return sum + ((set.reps || 0) * effectiveWeight);
     }
   }, 0);
 };
@@ -132,8 +137,8 @@ export const getActivityBreakdown = (workouts) => {
   regularWorkouts.forEach(workout => {
     workout.exercises?.forEach(exercise => {
       const isCardio = exercise.category === 'cardio';
-      const weights = exercise.sets.map(s => s.weight || 0).filter(w => w > 0);
-      const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
+      const effectiveWeights = exercise.sets.map(s => getEffectiveWeight(s.weight, exercise.name)).filter(w => w > 0);
+      const maxWeight = effectiveWeights.length > 0 ? Math.max(...effectiveWeights) : 0;
       const isBodyweight = maxWeight === 0 && !isCardio;
 
       const points = calculateActivityPoints(exercise);
@@ -220,10 +225,14 @@ export const getProgressiveOverload = (exerciseName, currentWorkout, workoutHist
       return { status: 'maintained', message: 'Same duration', color: 'gray' };
     }
   } else {
-    // For weight training: compare weight and reps
-    const currentWeights = currentExercise.sets.map(s => s.weight || 0).filter(w => w > 0);
+    // For weight training: compare effective weight (plates + barbell where applicable) and reps
+    const currentWeights = currentExercise.sets
+      .map(s => getEffectiveWeight(s.weight, exerciseName))
+      .filter(w => w > 0);
     const currentMaxWeight = currentWeights.length > 0 ? Math.max(...currentWeights) : 0;
-    const previousWeights = previousExercise.sets.map(s => s.weight || 0).filter(w => w > 0);
+    const previousWeights = previousExercise.sets
+      .map(s => getEffectiveWeight(s.weight, exerciseName))
+      .filter(w => w > 0);
     const previousMaxWeight = previousWeights.length > 0 ? Math.max(...previousWeights) : 0;
     const currentTotalReps = currentExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
     const previousTotalReps = previousExercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
@@ -256,8 +265,11 @@ export const getPersonalRecords = (workouts) => {
 
   regularWorkouts.forEach(workout => {
     workout.exercises?.forEach(exercise => {
-      const weights = exercise.sets.map(set => set.weight || 0).filter(w => w > 0);
-      const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
+      // Use effective weight so PRs for barbell exercises include the 20 kg bar
+      const effectiveWeights = exercise.sets
+        .map(set => getEffectiveWeight(set.weight, exercise.name))
+        .filter(w => w > 0);
+      const maxWeight = effectiveWeights.length > 0 ? Math.max(...effectiveWeights) : 0;
 
       if (maxWeight > 0 && (!records[exercise.name] || maxWeight > records[exercise.name])) {
         records[exercise.name] = maxWeight;
@@ -398,8 +410,10 @@ export const generateInsights = (workouts) => {
 
     recentWorkouts.forEach(workout => {
       workout.exercises?.forEach(exercise => {
-        const weights = exercise.sets.map(s => s.weight || 0).filter(w => w > 0);
-        const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
+        const effectiveWeights = exercise.sets
+          .map(s => getEffectiveWeight(s.weight, exercise.name))
+          .filter(w => w > 0);
+        const maxWeight = effectiveWeights.length > 0 ? Math.max(...effectiveWeights) : 0;
         if (!exerciseProgress[exercise.name]) {
           exerciseProgress[exercise.name] = { first: maxWeight, last: maxWeight, count: 0 };
         }
