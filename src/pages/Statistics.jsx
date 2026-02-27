@@ -29,6 +29,7 @@ const Statistics = () => {
   const [isHeatmapOpen, setIsHeatmapOpen] = useState(false);
   const [isPRTimelineOpen, setIsPRTimelineOpen] = useState(false);
   const [isInteractiveChartOpen, setIsInteractiveChartOpen] = useState(false);
+  const [analyticsMetric, setAnalyticsMetric] = useState('volume');
 
   // Filter out rest days for workout statistics
   const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
@@ -336,18 +337,35 @@ const Statistics = () => {
                   className="overflow-hidden"
                 >
                   <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
-                    <div className="pt-6 space-y-6">
+                    <div className="pt-4">
+                      {/* Metric tab switcher */}
+                      <div className="flex flex-wrap gap-2 mb-5">
+                        {[
+                          { value: 'volume', label: '📦 Volume' },
+                          { value: 'activity', label: '⚡ Activity Points' },
+                          { value: 'workouts', label: '🏋️ Workouts' },
+                        ].map(tab => (
+                          <button
+                            key={tab.value}
+                            onClick={() => setAnalyticsMetric(tab.value)}
+                            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${analyticsMetric === tab.value
+                                ? 'bg-indigo-600 text-white shadow-sm'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              }`}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
                       <InteractiveChart
                         workouts={workouts}
-                        title="Activity Points Progress"
-                        metric="activity"
+                        title={
+                          analyticsMetric === 'volume' ? 'Volume Progress'
+                            : analyticsMetric === 'activity' ? 'Activity Points Progress'
+                              : 'Workout Count'
+                        }
+                        metric={analyticsMetric}
                       />
-                      <InteractiveChart
-                        workouts={workouts}
-                        title="Volume Progress"
-                        metric="volume"
-                      />
-
                     </div>
                   </div>
                 </motion.div>
