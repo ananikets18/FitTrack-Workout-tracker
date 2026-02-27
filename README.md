@@ -76,6 +76,76 @@ src/
 
 ---
 
+## 🏗️ Architecture
+
+```mermaid
+flowchart TB
+    subgraph Browser["🌐 Browser (PWA)"]
+        direction TB
+
+        subgraph UI["📱 UI Layer — Pages"]
+            Home["🏠 Home\n(Dashboard + Achievements)"]
+            Log["📝 Workout Log\n(Exercise tracking)"]
+            History["📚 History\n(Browse & export)"]
+            Stats["📊 Statistics\n(Charts & PRs)"]
+            Wellness["💊 Wellness\n(Sleep, Body, Calendar)"]
+        end
+
+        subgraph State["⚙️ State Layer — React Context API"]
+            WC["WorkoutContext\n(workouts, water intake)"]
+            AC["AuthContext\n(user session)"]
+            PC["PreferencesContext\n(goals, setup)"]
+            SC["SleepContext"]
+            NC["NutritionContext"]
+            BC["BodyMeasurementsContext"]
+            TC["TemplateContext"]
+        end
+
+        subgraph Utils["🛠️ Utility Layer"]
+            direction LR
+            Calc["calculations.js\n(volume, reps, streak)"]
+            Ach["achievements.js\n(unlock logic)"]
+            Recs["smartRecommendations.js\n(AI workout picks)"]
+            Val["validation.js\n(data sanitization)"]
+            Exp["exportUtils.js\n(JSON / Excel)"]
+        end
+
+        subgraph Data["📦 Data Layer"]
+            ExLib["Exercise Library\n(150+ exercises)"]
+            SW["Service Worker\n(offline cache)"]
+        end
+    end
+
+    subgraph Backend["☁️ Backend — Supabase"]
+        Auth["Auth\n(email + magic link)"]
+        DB["PostgreSQL\n(workouts, water, wellness)"]
+        RLS["Row-Level Security\n(per-user isolation)"]
+    end
+
+    %% UI → State
+    Home & Log & History & Stats & Wellness --> WC
+    Home & Log --> TC
+    Wellness --> SC & NC & BC
+    UI --> AC & PC
+
+    %% State → Utils
+    WC --> Calc & Ach & Recs & Val & Exp
+
+    %% State ↔ Backend
+    WC <-->|"CRUD workouts"| DB
+    AC <-->|"session"| Auth
+    SC & NC & BC <-->|"health data"| DB
+    DB --> RLS
+
+    %% Utils → Data
+    Calc & Ach --> ExLib
+    Browser <-->|"offline-first"| SW
+```
+
+> **Data flow:** User actions in the UI layer go through Context, which calls utility functions and syncs with Supabase. The Service Worker intercepts network requests to enable offline usage.
+
+---
+
 ## ⚙️ Running Locally
 
 ```bash
