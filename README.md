@@ -116,9 +116,6 @@ http://localhost:5173
 
 ---
 
-## � Project Status
-* See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines
-
 ---
 
 ## 📝 License
