@@ -107,61 +107,17 @@ http://localhost:5173
 
 ---
 
-## 🏛️ Architecture
+## � Architecture Notes
 
-FitTrack follows a **layered frontend architecture** with a clear separation between UI, state, intelligence, and persistence.
+* Local-first design (no backend or authentication)
+* Browser storage used for persistence
+* Modular component structure for extensibility
+* Designed to be easily adapted or extended
 
-```mermaid
-graph TB
-    subgraph Browser["🌐 Browser / PWA"]
-        subgraph UI["UI Layer"]
-            Pages["📄 Pages\nHome · Log · History\nStats · Wellness"]
-            Components["🧩 Components\nLayout · Charts · Common\nTracking · Auth"]
-        end
+---
 
-        subgraph State["State Layer (Context API)"]
-            WC["💪 WorkoutContext\nworkouts · water intake\nadd · update · delete"]
-            AC["🔐 AuthContext\nuser session"]
-            PC["⚙️ PreferencesContext\nsetup · goals"]
-            SC["😴 SleepContext"]
-            NC["🍎 NutritionContext"]
-            BC["📏 BodyMeasurementsContext"]
-            TC["📋 TemplateContext"]
-        end
-
-        subgraph Intelligence["Intelligence & Utils Layer"]
-            CALC["📐 calculations.js\nstreak · volume · reps\nactivity points · PRs"]
-            ACH["🏆 achievements.js\n33 achievements · 8 categories\nunlock detection"]
-            REC["🤖 smartRecommendations.js\nAI workout suggestions"]
-            ML["🧠 ML Engine\nprediction · difficulty\noverload predictor"]
-            INJURY["🛡️ injuryPrevention.js\nCNS stress · readiness"]
-            CARDIO["🏃 cardioClassification.js\nLISS · MISS · HIIT"]
-        end
-
-        subgraph Data["Data Layer"]
-            EX["📚 exercises.js\n150+ exercises\nbarbell detection"]
-            VALID["✅ validation.js\nsanitize · limits"]
-        end
-
-        subgraph PWA["PWA Infrastructure"]
-            SW["⚡ Service Worker\ncache · offline"]
-            MANIFEST["📱 Manifest\ninstallable"]
-        end
-    end
-
-    subgraph External["☁️ External Services"]
-        SUPA["🟢 Supabase\nPostgres DB\nAuth · Real-time"]
-    end
-
-    Pages --> Components
-    Components --> State
-    State --> Intelligence
-    State --> Data
-    Intelligence --> Data
-    State --> SUPA
-    PWA --> Browser
-```
-
+## � Project Status
+* See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines
 
 ---
 
