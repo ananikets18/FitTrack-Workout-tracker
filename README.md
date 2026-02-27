@@ -107,14 +107,6 @@ http://localhost:5173
 
 ---
 
-## � Architecture Notes
-
-* Local-first design (no backend or authentication)
-* Browser storage used for persistence
-* Modular component structure for extensibility
-* Designed to be easily adapted or extended
-
----
 
 
 ## 🤝 Contributions
