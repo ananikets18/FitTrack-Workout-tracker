@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useMemo } from 'react';
+import { AnimatePresence } from 'framer-motion';
 
 import { useWorkouts } from '../context/WorkoutContext';
 import { usePreferences } from '../context/PreferencesContext';
@@ -17,7 +18,7 @@ import SetupWizard from '../components/SetupWizard';
 
 import SkeletonCard from '../components/common/SkeletonCard';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
-import { TrendingUp, Calendar, Flame, ChevronRight, Dumbbell, Hotel, Plus, RotateCcw, Zap, Brain, AlertCircle, Droplet, Minus } from 'lucide-react';
+import { TrendingUp, Calendar, Flame, ChevronRight, ChevronDown, Dumbbell, Hotel, Plus, RotateCcw, Zap, Brain, AlertCircle, Droplet, Minus } from 'lucide-react';
 import { formatDate } from '../utils/calculations';
 import toast from 'react-hot-toast';
 // eslint-disable-next-line no-unused-vars
@@ -28,6 +29,7 @@ const Home = () => {
   const { preferences, updatePreferences, completeSetup, isLoading: preferencesLoading } = usePreferences();
   const navigate = useNavigate();
   const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
+  const [showMoreActivity, setShowMoreActivity] = useState(false);
 
   // Derive showSetupWizard from current state instead of using useEffect
   const showSetupWizard = useMemo(() => {
@@ -38,7 +40,10 @@ const Home = () => {
   const totalWorkouts = regularWorkouts.length;
   const totalRestDays = workouts.filter(w => w.type === 'rest_day').length;
   const currentStreak = calculateStreak(workouts);
-  const recentWorkouts = workouts.slice(0, 3);
+  const INITIAL_COUNT = 3;
+  const EXPANDED_COUNT = 7;
+  const recentWorkouts = workouts.slice(0, showMoreActivity ? EXPANDED_COUNT : INITIAL_COUNT);
+  const hasMore = workouts.length > INITIAL_COUNT;
 
   // Get last workout
   const lastWorkout = regularWorkouts[0];
@@ -382,61 +387,83 @@ const Home = () => {
           </div>
 
           <div className="space-y-3">
-            {recentWorkouts.map((workout, index) => (
-              <motion.div
-                key={workout.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Link to="/history">
-                  <Card hover elevated className="active:scale-98">
-                    {workout.type === 'rest_day' ? (
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-3 flex-1 min-w-0">
-                          <div className="bg-purple-100 rounded-xl p-2 flex-shrink-0">
-                            <Hotel className="w-5 h-5 text-purple-600 " />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-semibold text-gray-900">Rest Day</h3>
-                            <p className="text-gray-500 text-sm mt-1">{formatDate(workout.date)}</p>
-                            <div className="flex items-center space-x-2 mt-2">
-                              <div className="flex items-center">
-                                {[...Array(5)].map((_, i) => (
-                                  <span key={i} className={`text-sm ${i < workout.recoveryQuality ? 'text-yellow-400' : 'text-gray-300'}`}>
-                                    ★
-                                  </span>
-                                ))}
+            <AnimatePresence initial={false}>
+              {recentWorkouts.map((workout, index) => (
+                <motion.div
+                  key={workout.id}
+                  initial={{ opacity: 0, y: -12, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                  transition={{ duration: 0.22, delay: index >= INITIAL_COUNT ? (index - INITIAL_COUNT) * 0.07 : 0 }}
+                >
+                  <Link to="/history">
+                    <Card hover elevated className="active:scale-98">
+                      {workout.type === 'rest_day' ? (
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-3 flex-1 min-w-0">
+                            <div className="bg-purple-100 rounded-xl p-2 flex-shrink-0">
+                              <Hotel className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-semibold text-gray-900">Rest Day</h3>
+                              <p className="text-gray-500 text-sm mt-1">{formatDate(workout.date)}</p>
+                              <div className="flex items-center space-x-2 mt-2">
+                                <div className="flex items-center">
+                                  {[...Array(5)].map((_, i) => (
+                                    <span key={i} className={`text-sm ${i < workout.recoveryQuality ? 'text-yellow-400' : 'text-gray-300'}`}>
+                                      ★
+                                    </span>
+                                  ))}
+                                </div>
+                                {workout.activities?.length > 0 && (
+                                  <>
+                                    <span className="text-gray-400">•</span>
+                                    <span className="text-sm text-gray-500">{workout.activities.length} activities</span>
+                                  </>
+                                )}
                               </div>
-                              {workout.activities?.length > 0 && (
-                                <>
-                                  <span className="text-gray-400">•</span>
-                                  <span className="text-sm text-gray-500">{workout.activities.length} activities</span>
-                                </>
-                              )}
                             </div>
                           </div>
+                          <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4" />
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4" />
-                      </div>
-                    ) : (
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-semibold text-gray-900 truncate">{workout.name}</h3>
-                          <p className="text-gray-500 text-sm mt-1">{formatDate(workout.date)}</p>
-                          <div className="flex items-center space-x-3 mt-2 text-sm text-gray-500 ">
-                            <span className="font-medium">{workout.exercises?.length || 0} exercises</span>
-                            {workout.duration && <><span>•</span><span>{workout.duration} min</span></>}
+                      ) : (
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-semibold text-gray-900 truncate">{workout.name}</h3>
+                            <p className="text-gray-500 text-sm mt-1">{formatDate(workout.date)}</p>
+                            <div className="flex items-center space-x-3 mt-2 text-sm text-gray-500">
+                              <span className="font-medium">{workout.exercises?.length || 0} exercises</span>
+                              {workout.duration && <><span>•</span><span>{workout.duration} min</span></>}
+                            </div>
                           </div>
+                          <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4" />
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4" />
-                      </div>
-                    )}
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
+                      )}
+                    </Card>
+                  </Link>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
+
+          {/* Show more / Show less toggle */}
+          {hasMore && (
+            <motion.button
+              onClick={() => setShowMoreActivity(prev => !prev)}
+              whileTap={{ scale: 0.97 }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-sm font-semibold text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            >
+              <motion.span
+                animate={{ rotate: showMoreActivity ? 180 : 0 }}
+                transition={{ duration: 0.25 }}
+              >
+                <ChevronDown className="w-4 h-4" />
+              </motion.span>
+              {showMoreActivity
+                ? 'Show less'
+                : `Show ${Math.min(EXPANDED_COUNT, workouts.length) - INITIAL_COUNT} more`}
+            </motion.button>
+          )}
         </div>
       )}
 

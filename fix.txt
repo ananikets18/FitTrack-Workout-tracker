@@ -1,0 +1,92 @@
+🔍 App Analysis — Recommended Improvements
+After reading every page, context, utility, and component, here's what I'd suggest across key areas:
+
+🔴 High Priority (Biggest Impact)
+1. Nutrition Tab is Empty — Build It Out
+Both 
+
+Wellness.jsx
+ and 
+
+Health.jsx
+ have a "Coming soon" placeholder for the Nutrition Tracker. You already have a 
+
+NutritionContext.jsx
+ set up — it just needs a UI. This is the most glaring incomplete feature users will notice.
+
+Suggestion: Basic macro/calorie logger (daily goal vs. actual), similar to the water tracker's clean card UI.
+
+2. Achievement Unlock Toast Notification
+Right now 
+
+getNewlyUnlockedAchievements()
+ exists in 
+
+achievements.js
+ but is never called anywhere in the app. Users earn achievements with no feedback.
+
+Suggestion: In 
+
+WorkoutContext.jsx
+ → after 
+
+addWorkout()
+ saves, compare old vs new unlocked achievements and fire a toast.success('🏆 Achievement Unlocked: ...').
+
+3. Water Intake Resets on Refresh (Race Condition)
+The water intake resets to RESET_WATER_INTAKE on load even before Supabase responds — then corrects itself. This causes a visible flicker.
+
+Suggestion: Don't dispatch RESET_WATER_INTAKE as the initial fallback. Instead keep the previous state and only replace once Supabase responds.
+
+🟡 Medium Priority (UX Polish)
+4. Recent Activity only shows 3 items — no way to "peek" more from Home
+The home page cuts off at workouts.slice(0, 3) and shows a "View All" link to the full History page. There's no intermediate state.
+
+Suggestion: Add a "Show more" toggle that expands to 7 items inline without navigating away.
+
+5. Statistics PR Cards are not sortable / filterable
+The Personal Records section on the Stats page shows slice(0, 8) sorted by weight, but with no category filter (chest/back/legs etc.).
+
+Suggestion: Add a muscle group filter pill row above the PR list so users can quickly browse PRs by body part.
+
+6. History Page has no search
+The History page (at 56KB!) is the biggest file in the project. Looking at its size, it likely has filtering but no text search.
+
+Suggestion: Add a search bar to filter by workout name or exercise name.
+
+7. 
+
+Health.jsx
+ is a dead route — it's not registered in 
+
+App.jsx
+
+Health.jsx
+ is a full page with tabs (sleep, body, nutrition) but has no route in 
+
+App.jsx
+. Only 
+
+Wellness.jsx
+ is routed at /wellness.
+
+Suggestion: Either remove 
+
+Health.jsx
+ (it's a duplicate of Wellness), or wire it up to its own route.
+
+🟢 Low Priority (Nice to Have)
+8. Streak breaks silently with no recovery path
+If a user misses a day, their streak resets to 0 with no notification. A "streak broken" moment is demoralizing.
+
+Suggestion: On Home load, if yesterday's calculation shows a streak that was active but today it dropped, show a gentle toast: "Your streak ended yesterday. Start a new one today! 💪"
+
+9. Water Intake tracker has no daily history
+The water tracker resets every day with no historical log at all — unlike every other metric.
+
+Suggestion: Show a small "Yesterday: 2.3L" note below the daily goal so users have some context.
+
+10. No empty state for the Achievements accordion badge preview
+When recentUnlocked.length === 0 (new user), the badge preview row in the closed accordion header just disappears, leaving just the chevron.
+
+Suggestion: Show a small "Start logging to earn badges" hint text in the header preview area when no achievements are unlocked.
