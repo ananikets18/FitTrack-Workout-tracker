@@ -23,7 +23,7 @@ const AchievementsAccordion = () => {
             progressPercent: Math.min((p.current / p.next.requirement) * 100, 100)
         }))
         .sort((a, b) => b.progressPercent - a.progressPercent)
-        .slice(0, 2);
+        .slice(0, 3);
 
     if (workouts.length === 0) return null;
 
@@ -137,12 +137,25 @@ const AchievementsAccordion = () => {
                                                         </h5>
                                                         <div className="flex items-center gap-2 text-xs text-white/60 mb-2">
                                                             <span>
-                                                                {typeof achievement.current === 'number'
-                                                                    ? achievement.current.toFixed(achievement.category === 'volume' ? 1 : 0)
-                                                                    : achievement.current}
+                                                                {(() => {
+                                                                    const v = achievement.current;
+                                                                    if (achievement.category === 'volume') return `${Number(v).toFixed(1)} tons`;
+                                                                    if (achievement.category === 'reps') return `${Number(v).toLocaleString()} reps`;
+                                                                    if (achievement.category === 'cardio') return `${Math.round(v)} mins`;
+                                                                    if (achievement.category === 'variety') return `${v} groups`;
+                                                                    if (achievement.category === 'rest') return `${v} days`;
+                                                                    return v;
+                                                                })()}
                                                             </span>
                                                             <span>/</span>
-                                                            <span>{achievement.requirement}</span>
+                                                            <span>
+                                                                {achievement.category === 'volume' ? `${achievement.requirement} tons`
+                                                                    : achievement.category === 'reps' ? `${Number(achievement.requirement).toLocaleString()} reps`
+                                                                        : achievement.category === 'cardio' ? `${achievement.requirement} mins`
+                                                                            : achievement.category === 'variety' ? `${achievement.requirement} groups`
+                                                                                : achievement.category === 'rest' ? `${achievement.requirement} days`
+                                                                                    : achievement.requirement}
+                                                            </span>
                                                         </div>
                                                         {/* Progress Bar */}
                                                         <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
