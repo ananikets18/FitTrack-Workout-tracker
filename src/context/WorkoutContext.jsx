@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { db as supabase, transformWorkoutFromDB } from '../lib/supabase';
 import { sanitizeWorkout } from '../utils/validation';
 import toast from 'react-hot-toast';
+import { getNewlyUnlockedAchievements } from '../utils/achievements';
 
 const WorkoutContext = createContext();
 
@@ -64,6 +65,54 @@ const initialState = {
   waterIntake: { date: new Date().toISOString().split('T')[0], amount: 0 },
 };
 
+// Fire a rich toast for each newly unlocked achievement (staggered so they don't overlap)
+const fireAchievementToasts = (newlyUnlocked) => {
+  newlyUnlocked.forEach((achievement, index) => {
+    setTimeout(() => {
+      toast(
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            fontSize: '2rem',
+            lineHeight: 1,
+            flexShrink: 0,
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05))',
+            borderRadius: '50%',
+            width: '48px',
+            height: '48px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            {achievement.icon}
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', marginBottom: '2px' }}>
+              🏆 Achievement Unlocked!
+            </div>
+            <div style={{ fontWeight: 800, fontSize: '15px', color: '#fff', lineHeight: 1.2 }}>
+              {achievement.name}
+            </div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginTop: '2px' }}>
+              {achievement.description}
+            </div>
+          </div>
+        </div>,
+        {
+          duration: 5000,
+          style: {
+            background: 'linear-gradient(135deg, #1e1b4b, #312e81)',
+            border: '1px solid rgba(167,139,250,0.4)',
+            borderRadius: '16px',
+            padding: '14px 16px',
+            boxShadow: '0 8px 32px rgba(109,40,217,0.35)',
+            maxWidth: '340px',
+          },
+        }
+      );
+    }, index * 700);
+  });
+};
+
 // Provider component
 export const WorkoutProvider = ({ children }) => {
   const [state, dispatch] = useReducer(workoutReducer, initialState);
@@ -103,6 +152,7 @@ export const WorkoutProvider = ({ children }) => {
 
     try {
       const sanitized = sanitizeWorkout(workout);
+      const previousWorkouts = state.workouts;
 
       // Save directly to Supabase
       const newWorkout = await supabase.createWorkout(sanitized, user.id);
@@ -112,6 +162,12 @@ export const WorkoutProvider = ({ children }) => {
       dispatch({ type: ACTIONS.ADD_WORKOUT, payload: transformed });
 
       toast.success('Workout saved!');
+
+      // Check for newly unlocked achievements
+      const updatedWorkouts = [transformed, ...previousWorkouts];
+      const newlyUnlocked = getNewlyUnlockedAchievements(updatedWorkouts, previousWorkouts);
+      if (newlyUnlocked.length > 0) fireAchievementToasts(newlyUnlocked);
+
       return transformed;
     } catch (error) {
       console.error('Error adding workout:', error);
@@ -139,6 +195,8 @@ export const WorkoutProvider = ({ children }) => {
         notes: (restDayData.notes || '').trim().slice(0, 1000),
       };
 
+      const previousWorkouts = state.workouts;
+
       // Save directly to Supabase
       const newRestDay = await supabase.createWorkout(restDay, user.id);
       const transformed = transformWorkoutFromDB(newRestDay);
@@ -147,6 +205,12 @@ export const WorkoutProvider = ({ children }) => {
       dispatch({ type: ACTIONS.ADD_WORKOUT, payload: transformed });
 
       toast.success('Rest day logged!');
+
+      // Check for newly unlocked achievements (rest day category)
+      const updatedWorkouts = [transformed, ...previousWorkouts];
+      const newlyUnlocked = getNewlyUnlockedAchievements(updatedWorkouts, previousWorkouts);
+      if (newlyUnlocked.length > 0) fireAchievementToasts(newlyUnlocked);
+
       return transformed;
     } catch (error) {
       console.error('Error adding rest day:', error);
