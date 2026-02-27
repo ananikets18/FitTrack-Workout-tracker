@@ -79,67 +79,25 @@ src/
 ## 🏗️ Architecture
 
 ```mermaid
-flowchart TB
-    subgraph Browser["🌐 Browser (PWA)"]
-        direction TB
-
-        subgraph UI["📱 UI Layer — Pages"]
-            Home["🏠 Home\n(Dashboard + Achievements)"]
-            Log["📝 Workout Log\n(Exercise tracking)"]
-            History["📚 History\n(Browse & export)"]
-            Stats["📊 Statistics\n(Charts & PRs)"]
-            Wellness["💊 Wellness\n(Sleep, Body, Calendar)"]
-        end
-
-        subgraph State["⚙️ State Layer — React Context API"]
-            WC["WorkoutContext\n(workouts, water intake)"]
-            AC["AuthContext\n(user session)"]
-            PC["PreferencesContext\n(goals, setup)"]
-            SC["SleepContext"]
-            NC["NutritionContext"]
-            BC["BodyMeasurementsContext"]
-            TC["TemplateContext"]
-        end
-
-        subgraph Utils["🛠️ Utility Layer"]
-            direction LR
-            Calc["calculations.js\n(volume, reps, streak)"]
-            Ach["achievements.js\n(unlock logic)"]
-            Recs["smartRecommendations.js\n(AI workout picks)"]
-            Val["validation.js\n(data sanitization)"]
-            Exp["exportUtils.js\n(JSON / Excel)"]
-        end
-
-        subgraph Data["📦 Data Layer"]
-            ExLib["Exercise Library\n(150+ exercises)"]
-            SW["Service Worker\n(offline cache)"]
-        end
+flowchart TD
+    subgraph Client ["🌐 Browser (PWA)"]
+        UI["📱 UI Layer\n(React Pages & Components)"]
+        State["⚙️ State Layer\n(Context API)"]
+        Utils["🛠️ Core Logic\n(Calculations & Validation)"]
+        LocalData["📦 Local Data\n(Service Worker Cache)"]
+        
+        UI --> State
+        State --> Utils
+        Utils --> LocalData
     end
 
-    subgraph Backend["☁️ Backend — Supabase"]
-        Auth["Auth\n(email + magic link)"]
-        DB["PostgreSQL\n(workouts, water, wellness)"]
-        RLS["Row-Level Security\n(per-user isolation)"]
+    subgraph Backend ["☁️ Supabase Backend"]
+        Auth["🔑 Authentication\n(Email & Sessions)"]
+        DB["🗄️ PostgreSQL DB\n(Workouts & Wellness)"]
     end
 
-    %% UI → State
-    Home & Log & History & Stats & Wellness --> WC
-    Home & Log --> TC
-    Wellness --> SC & NC & BC
-    UI --> AC & PC
-
-    %% State → Utils
-    WC --> Calc & Ach & Recs & Val & Exp
-
-    %% State ↔ Backend
-    WC <-->|"CRUD workouts"| DB
-    AC <-->|"session"| Auth
-    SC & NC & BC <-->|"health data"| DB
-    DB --> RLS
-
-    %% Utils → Data
-    Calc & Ach --> ExLib
-    Browser <-->|"offline-first"| SW
+    State <==>|"Bi-directional Sync"| DB
+    State <==>|"Verify Session"| Auth
 ```
 
 > **Data flow:** User actions in the UI layer go through Context, which calls utility functions and syncs with Supabase. The Service Worker intercepts network requests to enable offline usage.
@@ -186,4 +144,8 @@ This is a personal project, but:
 * Feedback and suggestions are welcome
 * Forking for personal experimentation is encouraged
 
+---
 
+## 📝 License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
