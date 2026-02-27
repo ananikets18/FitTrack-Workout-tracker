@@ -116,20 +116,6 @@ http://localhost:5173
 
 ---
 
-## � Project Status
-* See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines
-
----
-
-## 📝 License
-
-MIT License - See LICENSE file for details
-
-* Actively used and iterated as a personal tool
-* Features added based on practical needs
-* No public release or production deployment
-
----
 
 ## 🤝 Contributions
 
