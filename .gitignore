@@ -39,3 +39,25 @@ docs/
 file.txt
 supabase/
 supababse/
+
+# Python & ML Environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# OS Generated Files
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Testing & Caching
+coverage/
+.eslintcache
+.stylelintcache
+
+# Build Outputs
+build/
+out/
