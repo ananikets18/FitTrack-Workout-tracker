@@ -106,6 +106,7 @@ export const EXERCISE_CATEGORIES = [
     'shoulders',
     'legs',
     'arms',
+    'forearms',
     'core',
     'cardio',
     'other',
@@ -118,6 +119,7 @@ export const MUSCLE_COLORS = {
     legs: 'bg-green-500/30 border border-green-400/50',
     shoulders: 'bg-yellow-500/30 border border-yellow-400/50',
     arms: 'bg-purple-500/30 border border-purple-400/50',
+    forearms: 'bg-teal-500/30 border border-teal-400/50',
     core: 'bg-orange-500/30 border border-orange-400/50',
     cardio: 'bg-pink-500/30 border border-pink-400/50',
 };
