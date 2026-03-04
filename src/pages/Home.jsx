@@ -25,7 +25,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 const Home = () => {
-  const { workouts, isLoading, addRestDay, cloneWorkout, waterIntake, addWaterIntake } = useWorkouts();
+  const { workouts, isLoading, addRestDay, cloneWorkout, waterIntake, addWaterIntake, isWaterLoading } = useWorkouts();
   const { preferences, updatePreferences, completeSetup, isLoading: preferencesLoading } = usePreferences();
   const navigate = useNavigate();
   const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
@@ -154,7 +154,28 @@ const Home = () => {
       {!isLoading && workouts.length > 0 && <AchievementsAccordion />}
 
       {/* Water Intake Tracker */}
-      {!isLoading && (
+      {isWaterLoading ? (
+        /* Skeleton to prevent the 0L → real-value flicker */
+        <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-100 p-5 animate-pulse">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-200 rounded-xl w-11 h-11" />
+              <div className="space-y-2">
+                <div className="h-4 w-28 bg-blue-200 rounded" />
+                <div className="h-3 w-36 bg-blue-100 rounded" />
+              </div>
+            </div>
+            <div className="text-right space-y-2">
+              <div className="h-7 w-16 bg-blue-200 rounded ml-auto" />
+              <div className="h-3 w-20 bg-blue-100 rounded" />
+            </div>
+          </div>
+          <div className="h-3 bg-blue-200 rounded-full mb-4" />
+          <div className="grid grid-cols-4 gap-2">
+            {[0, 1, 2, 3].map(i => <div key={i} className="h-16 bg-blue-200 rounded-xl" />)}
+          </div>
+        </div>
+      ) : (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -265,7 +286,7 @@ const Home = () => {
 
             {waterIntake.amount < 1000 && waterIntake.amount > 0 && (
               <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
-                <span className="text-xs text-yellow-700">💧 Keep drinking! You\'re just getting started.</span>
+                <span className="text-xs text-yellow-700">💧 Keep drinking! You're just getting started.</span>
               </div>
             )}
           </Card>

@@ -19,6 +19,7 @@ const ACTIONS = {
   SET_WATER_INTAKE: 'SET_WATER_INTAKE',
   ADD_WATER_INTAKE: 'ADD_WATER_INTAKE',
   RESET_WATER_INTAKE: 'RESET_WATER_INTAKE',
+  SET_WATER_LOADING: 'SET_WATER_LOADING',
 };
 
 // Reducer
@@ -52,6 +53,8 @@ const workoutReducer = (state, action) => {
       return { ...state, waterIntake: { ...state.waterIntake, amount: state.waterIntake.amount + action.payload } };
     case ACTIONS.RESET_WATER_INTAKE:
       return { ...state, waterIntake: { date: new Date().toISOString().split('T')[0], amount: 0 } };
+    case ACTIONS.SET_WATER_LOADING:
+      return { ...state, isWaterLoading: action.payload };
     default:
       return state;
   }
@@ -63,6 +66,7 @@ const initialState = {
   currentWorkout: null,
   isLoading: true,
   waterIntake: { date: new Date().toISOString().split('T')[0], amount: 0 },
+  isWaterLoading: true,
 };
 
 // Fire a rich toast for each newly unlocked achievement (staggered so they don't overlap)
@@ -350,20 +354,24 @@ export const WorkoutProvider = ({ children }) => {
     const loadWaterIntake = async () => {
       const today = new Date().toISOString().split('T')[0];
 
+      // Signal that water data is being fetched — UI should show skeleton
+      dispatch({ type: ACTIONS.SET_WATER_LOADING, payload: true });
+
       if (user) {
         try {
           const data = await supabase.getWaterIntake(user.id, today);
           if (data) {
             dispatch({ type: ACTIONS.SET_WATER_INTAKE, payload: { date: data.date, amount: data.amount } });
           } else {
-            // No record for today, reset
+            // No record for today — start fresh at 0 (no flicker: was already loading)
             dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
           }
         } catch (error) {
           // Silently handle errors - water intake table might not exist yet
-          // This prevents breaking the app if the feature isn't fully deployed
           console.warn('Water intake feature not available:', error.message);
           dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
+        } finally {
+          dispatch({ type: ACTIONS.SET_WATER_LOADING, payload: false });
         }
       } else {
         // Load from localStorage for guests
@@ -381,6 +389,8 @@ export const WorkoutProvider = ({ children }) => {
           }
         } catch (error) {
           console.error('Error loading water intake from localStorage:', error);
+        } finally {
+          dispatch({ type: ACTIONS.SET_WATER_LOADING, payload: false });
         }
       }
     };
@@ -393,6 +403,7 @@ export const WorkoutProvider = ({ children }) => {
     currentWorkout: state.currentWorkout,
     isLoading: state.isLoading,
     waterIntake: state.waterIntake,
+    isWaterLoading: state.isWaterLoading,
     addWorkout,
     addRestDay,
     updateWorkout,
