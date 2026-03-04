@@ -1,4 +1,5 @@
 import { useWorkouts } from '../context/WorkoutContext';
+import { getCategoryForExercise } from '../data/exercises';
 import { useState } from 'react';
 import {
   calculateStreak,
@@ -30,6 +31,7 @@ const Statistics = () => {
   const [isPRTimelineOpen, setIsPRTimelineOpen] = useState(false);
   const [isInteractiveChartOpen, setIsInteractiveChartOpen] = useState(false);
   const [analyticsMetric, setAnalyticsMetric] = useState('volume');
+  const [prMuscleFilter, setPrMuscleFilter] = useState('all');
 
   // Filter out rest days for workout statistics
   const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
@@ -442,7 +444,7 @@ const Statistics = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Personal Records */}
           <Card>
-            <div className="flex items-center space-x-2 mb-6">
+            <div className="flex items-center space-x-2 mb-4">
               <Award className="w-6 h-6 text-yellow-600" />
               <h2 className="text-xl font-semibold text-gray-900">Personal Records</h2>
             </div>
@@ -451,23 +453,97 @@ const Statistics = () => {
                 <p>No personal records yet</p>
                 <p className="text-sm mt-1">Complete workouts to track your PRs</p>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {Object.entries(personalRecords)
-                  .sort((a, b) => b[1] - a[1])
-                  .slice(0, 8)
-                  .map(([exercise, weight]) => (
-                    <button
-                      key={exercise}
-                      onClick={() => handleExerciseClick(exercise)}
-                      className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
-                    >
-                      <span className="font-medium text-gray-900 truncate mr-3" title={exercise}>{exercise}</span>
-                      <span className="text-lg font-bold text-primary-600 flex-shrink-0">{weight} kg</span>
-                    </button>
-                  ))}
-              </div>
-            )}
+            ) : (() => {
+              // Build a map of exercise → muscle group using the exercise library
+              const prEntries = Object.entries(personalRecords);
+              const prWithCategory = prEntries.map(([exercise, weight]) => ({
+                exercise,
+                weight,
+                category: getCategoryForExercise(exercise) || 'other',
+              }));
+
+              // Derive which muscle groups actually exist among the PRs
+              const muscleGroupOrder = ['chest', 'back', 'shoulders', 'legs', 'arms', 'core', 'forearms', 'cardio', 'other'];
+              const muscleGroupLabels = {
+                chest: '🫁 Chest',
+                back: '🔙 Back',
+                shoulders: '🏔️ Shoulders',
+                legs: '🦵 Legs',
+                arms: '💪 Arms',
+                core: '⚡ Core',
+                forearms: '🤜 Forearms',
+                cardio: '🏃 Cardio',
+                other: '🏋️ Other',
+              };
+              const presentGroups = muscleGroupOrder.filter(g =>
+                prWithCategory.some(p => p.category === g)
+              );
+
+              // Filter & sort entries
+              const filtered = prWithCategory
+                .filter(p => prMuscleFilter === 'all' || p.category === prMuscleFilter)
+                .sort((a, b) => b.weight - a.weight)
+                .slice(0, prMuscleFilter === 'all' ? 8 : 12);
+
+              return (
+                <>
+                  {/* Muscle group filter pills */}
+                  {presentGroups.length > 1 && (
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      <button
+                        onClick={() => setPrMuscleFilter('all')}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                          prMuscleFilter === 'all'
+                            ? 'bg-yellow-500 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        All
+                      </button>
+                      {presentGroups.map(g => (
+                        <button
+                          key={g}
+                          onClick={() => setPrMuscleFilter(prev => prev === g ? 'all' : g)}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                            prMuscleFilter === g
+                              ? 'bg-yellow-500 text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {muscleGroupLabels[g]}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* PR list */}
+                  <div className="space-y-3">
+                    {filtered.length === 0 ? (
+                      <div className="text-center py-6 text-gray-500 text-sm">
+                        No PRs found for this muscle group
+                      </div>
+                    ) : (
+                      filtered.map(({ exercise, weight }) => (
+                        <button
+                          key={exercise}
+                          onClick={() => handleExerciseClick(exercise)}
+                          className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
+                        >
+                          <span className="font-medium text-gray-900 truncate mr-3" title={exercise}>{exercise}</span>
+                          <span className="text-lg font-bold text-primary-600 flex-shrink-0">{weight} kg</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+
+                  {prMuscleFilter === 'all' && prEntries.length > 8 && (
+                    <p className="text-xs text-gray-400 text-center mt-3">
+                      {prEntries.length - 8} more — filter by muscle group to explore
+                    </p>
+                  )}
+                </>
+              );
+            })()}
           </Card>
 
           {/* Most Frequent Exercises */}
