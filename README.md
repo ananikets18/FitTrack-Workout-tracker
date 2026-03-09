@@ -135,8 +135,6 @@ http://localhost:5173
 
 ---
 
-
-
 ## 🤝 Contributions
 
 This is a personal project, but:
