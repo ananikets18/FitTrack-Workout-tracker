@@ -20,6 +20,8 @@ const ACTIONS = {
   ADD_WATER_INTAKE: 'ADD_WATER_INTAKE',
   RESET_WATER_INTAKE: 'RESET_WATER_INTAKE',
   SET_WATER_LOADING: 'SET_WATER_LOADING',
+  SET_WATER_HISTORY: 'SET_WATER_HISTORY',
+  SET_WATER_HISTORY_LOADING: 'SET_WATER_HISTORY_LOADING',
 };
 
 // Reducer
@@ -55,6 +57,10 @@ const workoutReducer = (state, action) => {
       return { ...state, waterIntake: { date: new Date().toISOString().split('T')[0], amount: 0 } };
     case ACTIONS.SET_WATER_LOADING:
       return { ...state, isWaterLoading: action.payload };
+    case ACTIONS.SET_WATER_HISTORY:
+      return { ...state, waterHistory: action.payload };
+    case ACTIONS.SET_WATER_HISTORY_LOADING:
+      return { ...state, isWaterHistoryLoading: action.payload };
     default:
       return state;
   }
@@ -67,6 +73,21 @@ const initialState = {
   isLoading: true,
   waterIntake: { date: new Date().toISOString().split('T')[0], amount: 0 },
   isWaterLoading: true,
+  waterHistory: [],
+  isWaterHistoryLoading: true,
+};
+
+const upsertWaterHistoryEntry = (history, date, amount) => {
+  const map = new Map(history.map(entry => [entry.date, entry.amount]));
+  map.set(date, Math.max(0, amount));
+
+  return Array.from(map.entries())
+    .map(([entryDate, entryAmount]) => ({ date: entryDate, amount: entryAmount }))
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+};
+
+const saveGuestWaterHistory = (history) => {
+  localStorage.setItem('waterIntakeHistory_guest', JSON.stringify(history));
 };
 
 // Fire a rich toast for each newly unlocked achievement (staggered so they don't overlap)
@@ -309,6 +330,9 @@ export const WorkoutProvider = ({ children }) => {
 
     dispatch({ type: ACTIONS.SET_WATER_INTAKE, payload: waterData });
 
+    const updatedHistory = upsertWaterHistoryEntry(state.waterHistory, today, newAmount);
+    dispatch({ type: ACTIONS.SET_WATER_HISTORY, payload: updatedHistory });
+
     // Save to Supabase if user is logged in
     if (user) {
       try {
@@ -322,6 +346,7 @@ export const WorkoutProvider = ({ children }) => {
       // Save to localStorage for guests
       try {
         localStorage.setItem('waterIntake_guest', JSON.stringify(waterData));
+        saveGuestWaterHistory(updatedHistory);
       } catch (error) {
         console.error('Error saving water intake to localStorage:', error);
       }
@@ -333,6 +358,9 @@ export const WorkoutProvider = ({ children }) => {
     const waterData = { date: today, amount: 0 };
     dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
 
+    const updatedHistory = upsertWaterHistoryEntry(state.waterHistory, today, 0);
+    dispatch({ type: ACTIONS.SET_WATER_HISTORY, payload: updatedHistory });
+
     if (user) {
       try {
         await supabase.upsertWaterIntake(user.id, today, 0);
@@ -343,6 +371,7 @@ export const WorkoutProvider = ({ children }) => {
     } else {
       try {
         localStorage.setItem('waterIntake_guest', JSON.stringify(waterData));
+        saveGuestWaterHistory(updatedHistory);
       } catch (error) {
         console.error('Error resetting water intake in localStorage:', error);
       }
@@ -398,12 +427,78 @@ export const WorkoutProvider = ({ children }) => {
     loadWaterIntake();
   }, [user]);
 
+  // Load water intake history (for weekly/monthly stats)
+  useEffect(() => {
+    const loadWaterHistory = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      dispatch({ type: ACTIONS.SET_WATER_HISTORY_LOADING, payload: true });
+
+      if (user) {
+        try {
+          const history = await supabase.getWaterIntakeHistory(user.id, 90);
+          const normalized = (history || []).map(entry => ({
+            date: entry.date,
+            amount: Number(entry.amount) || 0,
+          }));
+
+          dispatch({ type: ACTIONS.SET_WATER_HISTORY, payload: normalized });
+        } catch (error) {
+          console.warn('Water intake history not available:', error.message);
+          dispatch({ type: ACTIONS.SET_WATER_HISTORY, payload: [] });
+        } finally {
+          dispatch({ type: ACTIONS.SET_WATER_HISTORY_LOADING, payload: false });
+        }
+      } else {
+        try {
+          const savedHistory = localStorage.getItem('waterIntakeHistory_guest');
+          const savedToday = localStorage.getItem('waterIntake_guest');
+
+          let history = [];
+
+          if (savedHistory) {
+            const parsed = JSON.parse(savedHistory);
+            if (Array.isArray(parsed)) {
+              history = parsed
+                .filter(entry => entry && typeof entry.date === 'string')
+                .map(entry => ({
+                  date: entry.date,
+                  amount: Number(entry.amount) || 0,
+                }));
+            }
+          }
+
+          if (savedToday) {
+            const todayData = JSON.parse(savedToday);
+            if (todayData?.date === today) {
+              history = upsertWaterHistoryEntry(history, todayData.date, Number(todayData.amount) || 0);
+            }
+          }
+
+          dispatch({ type: ACTIONS.SET_WATER_HISTORY, payload: history });
+
+          if (history.length > 0) {
+            saveGuestWaterHistory(history);
+          }
+        } catch (error) {
+          console.error('Error loading water history from localStorage:', error);
+          dispatch({ type: ACTIONS.SET_WATER_HISTORY, payload: [] });
+        } finally {
+          dispatch({ type: ACTIONS.SET_WATER_HISTORY_LOADING, payload: false });
+        }
+      }
+    };
+
+    loadWaterHistory();
+  }, [user]);
+
   const value = {
     workouts: state.workouts,
     currentWorkout: state.currentWorkout,
     isLoading: state.isLoading,
     waterIntake: state.waterIntake,
     isWaterLoading: state.isWaterLoading,
+    waterHistory: state.waterHistory,
+    isWaterHistoryLoading: state.isWaterHistoryLoading,
     addWorkout,
     addRestDay,
     updateWorkout,

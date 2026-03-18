@@ -25,7 +25,17 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 const Home = () => {
-  const { workouts, isLoading, addRestDay, cloneWorkout, waterIntake, addWaterIntake, isWaterLoading } = useWorkouts();
+  const {
+    workouts,
+    isLoading,
+    addRestDay,
+    cloneWorkout,
+    waterIntake,
+    addWaterIntake,
+    isWaterLoading,
+    waterHistory,
+    isWaterHistoryLoading,
+  } = useWorkouts();
   const { preferences, updatePreferences, completeSetup, isLoading: preferencesLoading } = usePreferences();
   const navigate = useNavigate();
   const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
@@ -44,6 +54,49 @@ const Home = () => {
   const EXPANDED_COUNT = 7;
   const recentWorkouts = workouts.slice(0, showMoreActivity ? EXPANDED_COUNT : INITIAL_COUNT);
   const hasMore = workouts.length > INITIAL_COUNT;
+
+  const hydrationStats = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 6);
+
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 29);
+
+    const weekEntries = waterHistory.filter((entry) => {
+      const date = new Date(entry.date);
+      date.setHours(0, 0, 0, 0);
+      return date >= sevenDaysAgo && date <= today;
+    });
+
+    const monthEntries = waterHistory.filter((entry) => {
+      const date = new Date(entry.date);
+      date.setHours(0, 0, 0, 0);
+      return date >= thirtyDaysAgo && date <= today;
+    });
+
+    const weeklyTotal = weekEntries.reduce((sum, entry) => sum + (Number(entry.amount) || 0), 0);
+    const monthlyTotal = monthEntries.reduce((sum, entry) => sum + (Number(entry.amount) || 0), 0);
+
+    const weeklyGoal = WATER_INTAKE.DAILY_GOAL_ML * 7;
+    const monthlyGoal = WATER_INTAKE.DAILY_GOAL_ML * 30;
+
+    const weeklyGoalDays = weekEntries.filter(entry => (Number(entry.amount) || 0) >= WATER_INTAKE.DAILY_GOAL_ML).length;
+    const monthlyGoalDays = monthEntries.filter(entry => (Number(entry.amount) || 0) >= WATER_INTAKE.DAILY_GOAL_ML).length;
+
+    return {
+      weeklyTotal,
+      monthlyTotal,
+      weeklyAverage: weeklyTotal / 7,
+      monthlyAverage: monthlyTotal / 30,
+      weeklyProgress: Math.min((weeklyTotal / weeklyGoal) * 100, 100),
+      monthlyProgress: Math.min((monthlyTotal / monthlyGoal) * 100, 100),
+      weeklyGoalDays,
+      monthlyGoalDays,
+    };
+  }, [waterHistory]);
 
   // Get last workout
   const lastWorkout = regularWorkouts[0];
@@ -289,6 +342,86 @@ const Home = () => {
                 <span className="text-xs text-yellow-700">💧 Keep drinking! You're just getting started.</span>
               </div>
             )}
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Weekly/Monthly Water Progress */}
+      {(isWaterLoading || isWaterHistoryLoading) ? (
+        <div className="rounded-2xl bg-white border border-gray-200 p-5 animate-pulse">
+          <div className="h-5 w-44 bg-gray-200 rounded mb-4" />
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="h-20 bg-gray-100 rounded-xl" />
+            <div className="h-20 bg-gray-100 rounded-xl" />
+          </div>
+          <div className="space-y-3">
+            <div className="h-2.5 bg-gray-100 rounded-full" />
+            <div className="h-2.5 bg-gray-100 rounded-full" />
+          </div>
+        </div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Hydration Progress</h3>
+                <p className="text-xs text-gray-600">Weekly and monthly water stats</p>
+              </div>
+              <div className="bg-cyan-50 text-cyan-700 text-xs font-semibold px-3 py-1 rounded-full">
+                Goal: {(WATER_INTAKE.DAILY_GOAL_ML / 1000).toFixed(1)}L/day
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="rounded-xl bg-blue-50 p-3 border border-blue-100">
+                <p className="text-xs text-blue-700 font-semibold mb-1">Last 7 Days</p>
+                <p className="text-xl font-bold text-blue-900">{(hydrationStats.weeklyTotal / 1000).toFixed(1)}L</p>
+                <p className="text-xs text-blue-700 mt-1">Avg {(hydrationStats.weeklyAverage / 1000).toFixed(1)}L/day</p>
+                <p className="text-xs text-blue-600 mt-0.5">Goal hit {hydrationStats.weeklyGoalDays}/7 days</p>
+              </div>
+
+              <div className="rounded-xl bg-purple-50 p-3 border border-purple-100">
+                <p className="text-xs text-purple-700 font-semibold mb-1">Last 30 Days</p>
+                <p className="text-xl font-bold text-purple-900">{(hydrationStats.monthlyTotal / 1000).toFixed(1)}L</p>
+                <p className="text-xs text-purple-700 mt-1">Avg {(hydrationStats.monthlyAverage / 1000).toFixed(1)}L/day</p>
+                <p className="text-xs text-purple-600 mt-0.5">Goal hit {hydrationStats.monthlyGoalDays}/30 days</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="text-gray-600 font-medium">Weekly Goal Progress</span>
+                  <span className="font-semibold text-blue-700">{Math.round(hydrationStats.weeklyProgress)}%</span>
+                </div>
+                <div className="h-2.5 bg-blue-100 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${hydrationStats.weeklyProgress}%` }}
+                    transition={{ duration: 0.6 }}
+                    className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="text-gray-600 font-medium">Monthly Goal Progress</span>
+                  <span className="font-semibold text-purple-700">{Math.round(hydrationStats.monthlyProgress)}%</span>
+                </div>
+                <div className="h-2.5 bg-purple-100 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${hydrationStats.monthlyProgress}%` }}
+                    transition={{ duration: 0.6 }}
+                    className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"
+                  />
+                </div>
+              </div>
+            </div>
           </Card>
         </motion.div>
       )}
