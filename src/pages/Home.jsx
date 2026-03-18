@@ -368,14 +368,14 @@ const Home = () => {
           <Card>
             <button
               onClick={() => setIsHydrationStatsOpen(prev => !prev)}
-              className="w-full flex items-center justify-between text-left"
+              className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between text-left gap-3"
             >
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Hydration Progress</h3>
                 <p className="text-xs text-gray-600">Weekly and monthly water stats</p>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="bg-cyan-50 text-cyan-700 text-xs font-semibold px-3 py-1 rounded-full">
+              <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+                <div className="bg-cyan-50 text-cyan-700 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
                   Goal: {(WATER_INTAKE.DAILY_GOAL_ML / 1000).toFixed(1)}L/day
                 </div>
                 <motion.div
@@ -398,7 +398,7 @@ const Home = () => {
                   className="overflow-hidden"
                 >
                   <div className="pt-4">
-                    <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                       <div className="rounded-xl bg-blue-50 p-3 border border-blue-100">
                         <p className="text-xs text-blue-700 font-semibold mb-1">Last 7 Days</p>
                         <p className="text-xl font-bold text-blue-900">{(hydrationStats.weeklyTotal / 1000).toFixed(1)}L</p>
