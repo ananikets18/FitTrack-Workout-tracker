@@ -40,6 +40,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
   const [showMoreActivity, setShowMoreActivity] = useState(false);
+  const [isHydrationStatsOpen, setIsHydrationStatsOpen] = useState(false);
 
   // Derive showSetupWizard from current state instead of using useEffect
   const showSetupWizard = useMemo(() => {
@@ -365,63 +366,89 @@ const Home = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           <Card>
-            <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => setIsHydrationStatsOpen(prev => !prev)}
+              className="w-full flex items-center justify-between text-left"
+            >
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Hydration Progress</h3>
                 <p className="text-xs text-gray-600">Weekly and monthly water stats</p>
               </div>
-              <div className="bg-cyan-50 text-cyan-700 text-xs font-semibold px-3 py-1 rounded-full">
-                Goal: {(WATER_INTAKE.DAILY_GOAL_ML / 1000).toFixed(1)}L/day
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="rounded-xl bg-blue-50 p-3 border border-blue-100">
-                <p className="text-xs text-blue-700 font-semibold mb-1">Last 7 Days</p>
-                <p className="text-xl font-bold text-blue-900">{(hydrationStats.weeklyTotal / 1000).toFixed(1)}L</p>
-                <p className="text-xs text-blue-700 mt-1">Avg {(hydrationStats.weeklyAverage / 1000).toFixed(1)}L/day</p>
-                <p className="text-xs text-blue-600 mt-0.5">Goal hit {hydrationStats.weeklyGoalDays}/7 days</p>
-              </div>
-
-              <div className="rounded-xl bg-purple-50 p-3 border border-purple-100">
-                <p className="text-xs text-purple-700 font-semibold mb-1">Last 30 Days</p>
-                <p className="text-xl font-bold text-purple-900">{(hydrationStats.monthlyTotal / 1000).toFixed(1)}L</p>
-                <p className="text-xs text-purple-700 mt-1">Avg {(hydrationStats.monthlyAverage / 1000).toFixed(1)}L/day</p>
-                <p className="text-xs text-purple-600 mt-0.5">Goal hit {hydrationStats.monthlyGoalDays}/30 days</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-gray-600 font-medium">Weekly Goal Progress</span>
-                  <span className="font-semibold text-blue-700">{Math.round(hydrationStats.weeklyProgress)}%</span>
+              <div className="flex items-center gap-3">
+                <div className="bg-cyan-50 text-cyan-700 text-xs font-semibold px-3 py-1 rounded-full">
+                  Goal: {(WATER_INTAKE.DAILY_GOAL_ML / 1000).toFixed(1)}L/day
                 </div>
-                <div className="h-2.5 bg-blue-100 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${hydrationStats.weeklyProgress}%` }}
-                    transition={{ duration: 0.6 }}
-                    className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"
-                  />
-                </div>
+                <motion.div
+                  animate={{ rotate: isHydrationStatsOpen ? 180 : 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="text-gray-500"
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </motion.div>
               </div>
+            </button>
 
-              <div>
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-gray-600 font-medium">Monthly Goal Progress</span>
-                  <span className="font-semibold text-purple-700">{Math.round(hydrationStats.monthlyProgress)}%</span>
-                </div>
-                <div className="h-2.5 bg-purple-100 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${hydrationStats.monthlyProgress}%` }}
-                    transition={{ duration: 0.6 }}
-                    className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"
-                  />
-                </div>
-              </div>
-            </div>
+            <AnimatePresence initial={false}>
+              {isHydrationStatsOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-4">
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="rounded-xl bg-blue-50 p-3 border border-blue-100">
+                        <p className="text-xs text-blue-700 font-semibold mb-1">Last 7 Days</p>
+                        <p className="text-xl font-bold text-blue-900">{(hydrationStats.weeklyTotal / 1000).toFixed(1)}L</p>
+                        <p className="text-xs text-blue-700 mt-1">Avg {(hydrationStats.weeklyAverage / 1000).toFixed(1)}L/day</p>
+                        <p className="text-xs text-blue-600 mt-0.5">Goal hit {hydrationStats.weeklyGoalDays}/7 days</p>
+                      </div>
+
+                      <div className="rounded-xl bg-purple-50 p-3 border border-purple-100">
+                        <p className="text-xs text-purple-700 font-semibold mb-1">Last 30 Days</p>
+                        <p className="text-xl font-bold text-purple-900">{(hydrationStats.monthlyTotal / 1000).toFixed(1)}L</p>
+                        <p className="text-xs text-purple-700 mt-1">Avg {(hydrationStats.monthlyAverage / 1000).toFixed(1)}L/day</p>
+                        <p className="text-xs text-purple-600 mt-0.5">Goal hit {hydrationStats.monthlyGoalDays}/30 days</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between text-xs mb-1.5">
+                          <span className="text-gray-600 font-medium">Weekly Goal Progress</span>
+                          <span className="font-semibold text-blue-700">{Math.round(hydrationStats.weeklyProgress)}%</span>
+                        </div>
+                        <div className="h-2.5 bg-blue-100 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${hydrationStats.weeklyProgress}%` }}
+                            transition={{ duration: 0.6 }}
+                            className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between text-xs mb-1.5">
+                          <span className="text-gray-600 font-medium">Monthly Goal Progress</span>
+                          <span className="font-semibold text-purple-700">{Math.round(hydrationStats.monthlyProgress)}%</span>
+                        </div>
+                        <div className="h-2.5 bg-purple-100 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${hydrationStats.monthlyProgress}%` }}
+                            transition={{ duration: 0.6 }}
+                            className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Card>
         </motion.div>
       )}
