@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Minus, Plus } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
@@ -14,30 +14,26 @@ const NumberPicker = ({
   unit = '',
   className = ''
 }) => {
-  const [inputValue, setInputValue] = useState(value || 0);
-
-  // Sync internal state with prop changes
-  useEffect(() => {
-    setInputValue(value || 0);
-  }, [value]);
+  const inputValue = useMemo(() => {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return 0;
+    return Math.max(min, Math.min(max, numericValue));
+  }, [value, min, max]);
 
   const handleIncrement = () => {
     const newValue = Math.min(max, (inputValue || 0) + step);
-    setInputValue(newValue);
     onChange(newValue);
     vibrate();
   };
 
   const handleDecrement = () => {
     const newValue = Math.max(min, (inputValue || 0) - step);
-    setInputValue(newValue);
     onChange(newValue);
     vibrate();
   };
 
   const handleQuickChange = (amount) => {
     const newValue = Math.max(min, Math.min(max, (inputValue || 0) + amount));
-    setInputValue(newValue);
     onChange(newValue);
     vibrate();
   };
@@ -45,7 +41,6 @@ const NumberPicker = ({
   const handleInputChange = (e) => {
     const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
     if (!isNaN(val) && val >= min && val <= max) {
-      setInputValue(val);
       onChange(val);
     }
   };

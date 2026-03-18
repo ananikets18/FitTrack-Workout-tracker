@@ -3,7 +3,7 @@ import { Home, Plus, History, BarChart3, Activity } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { lightHaptic, mediumHaptic } from '../../utils/haptics';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 
 
@@ -27,6 +27,8 @@ const BottomNav = () => {
   };
 
   const handleNavClick = (isPrimary = false) => {
+    setIsVisible(true);
+
     if (isPrimary) {
       mediumHaptic();
     } else {
@@ -51,12 +53,6 @@ const BottomNav = () => {
 
     setLastScrollY(latest);
   });
-
-  // Reset visibility on route change
-  useEffect(() => {
-    setIsVisible(true);
-  }, [location.pathname]);
-
 
   return (
     <motion.nav
