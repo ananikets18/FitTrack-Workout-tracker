@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
+import { getLocalDateInputValue } from '../utils/date';
 
 const NutritionContext = createContext();
 
@@ -137,7 +138,7 @@ export const NutritionProvider = ({ children }) => {
 
     // Get nutrition for specific date
     const getNutritionForDate = (date) => {
-        const dateStr = typeof date === 'string' ? date : date.toISOString().split('T')[0];
+        const dateStr = typeof date === 'string' ? date : getLocalDateInputValue(date);
         return nutritionLogs.filter(log => log.date === dateStr);
     };
 

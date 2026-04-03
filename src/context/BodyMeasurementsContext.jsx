@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
+import { getLocalDateInputValue } from '../utils/date';
 
 const BodyMeasurementsContext = createContext();
 
@@ -139,7 +140,7 @@ export const BodyMeasurementsProvider = ({ children }) => {
 
     // Get measurement for specific date
     const getMeasurementForDate = (date) => {
-        const dateStr = typeof date === 'string' ? date : date.toISOString().split('T')[0];
+        const dateStr = typeof date === 'string' ? date : getLocalDateInputValue(date);
         return measurements.find(m => m.date === dateStr);
     };
 

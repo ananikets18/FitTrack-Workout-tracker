@@ -13,6 +13,7 @@ import BatchEditModal from '../components/common/BatchEditModal';
 import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar, BookmarkPlus, FileText, ChevronRight, Sliders } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { searchExercises, getExercisesByCategory, getCategoryForExercise, isBarbellExercise, getEffectiveWeight } from '../data/exercises';
+import { getLocalDateInputValue } from '../utils/date';
 
 const WorkoutLogMobile = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const WorkoutLogMobile = () => {
   const editingWorkoutId = currentWorkout?.id;
 
   const [workoutName, setWorkoutName] = useState('');
-  const [workoutDate, setWorkoutDate] = useState(new Date().toISOString().split('T')[0]); // YYYY-MM-DD format
+  const [workoutDate, setWorkoutDate] = useState(getLocalDateInputValue()); // YYYY-MM-DD format
   const [exercises, setExercises] = useState([]);
   const [duration, setDuration] = useState('');
 
@@ -42,7 +43,7 @@ const WorkoutLogMobile = () => {
   useEffect(() => {
     if (currentWorkout) {
       setWorkoutName(currentWorkout.name || '');
-      setWorkoutDate(currentWorkout.date ? new Date(currentWorkout.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+      setWorkoutDate(currentWorkout.date ? getLocalDateInputValue(currentWorkout.date) : getLocalDateInputValue());
       setExercises(currentWorkout.exercises || []);
       setDuration(currentWorkout.duration?.toString() || '');
       setNotes(currentWorkout.notes || '');
@@ -682,7 +683,7 @@ const WorkoutLogMobile = () => {
               type="date"
               value={workoutDate}
               onChange={(e) => setWorkoutDate(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
+              max={getLocalDateInputValue()}
               className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>

@@ -5,6 +5,7 @@ import Button from '../common/Button';
 import Input from '../common/Input';
 import Modal from '../common/Modal';
 import { Moon, Plus, Edit2, Trash2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { getLocalDateInputValue } from '../../utils/date';
 
 const SleepTracker = () => {
     const {
@@ -21,7 +22,7 @@ const SleepTracker = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingLog, setEditingLog] = useState(null);
     const [formData, setFormData] = useState({
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalDateInputValue(),
         hours_slept: '',
         quality: 3,
         sleep_start_time: '',
@@ -76,7 +77,7 @@ const SleepTracker = () => {
         setIsModalOpen(false);
         setEditingLog(null);
         setFormData({
-            date: new Date().toISOString().split('T')[0],
+            date: getLocalDateInputValue(),
             hours_slept: '',
             quality: 3,
             sleep_start_time: '',

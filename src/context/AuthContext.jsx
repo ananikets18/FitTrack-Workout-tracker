@@ -24,13 +24,30 @@ export const AuthProvider = ({ children }) => {
 
     // 1️⃣ Restore session on page load
     const loadSession = async () => {
-      const { data } = await supabase.auth.getSession();
+      try {
+        const { data, error } = await supabase.auth.getSession();
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
+        if (error) {
+          console.error('Error restoring auth session:', error);
+          setSession(null);
+          setUser(null);
+          return;
+        }
+
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+      } catch (error) {
+        if (!mounted) return;
+        console.error('Unexpected auth session recovery error:', error);
+        setSession(null);
+        setUser(null);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
     };
 
     loadSession();

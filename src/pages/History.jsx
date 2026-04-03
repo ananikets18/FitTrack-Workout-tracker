@@ -11,6 +11,7 @@ import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExc
 import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { calculateWeightedMuscleSets } from '../utils/exerciseMuscleMapping';
+import { getLocalDateInputValue } from '../utils/date';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, subDays } from 'date-fns';
 // Sub-component for individual workout card
 const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
@@ -157,7 +158,7 @@ const History = () => {
   const [workoutToDelete, setWorkoutToDelete] = useState(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportPeriod, setExportPeriod] = useState('all');
-  const [exportDate, setExportDate] = useState(new Date().toISOString().split('T')[0]);
+  const [exportDate, setExportDate] = useState(getLocalDateInputValue());
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 

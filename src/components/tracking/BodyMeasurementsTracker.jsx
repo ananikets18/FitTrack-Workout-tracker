@@ -6,6 +6,7 @@ import Button from '../common/Button';
 import Input from '../common/Input';
 import Modal from '../common/Modal';
 import { Scale, Plus, Edit2, Trash2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { getLocalDateInputValue } from '../../utils/date';
 
 const BodyMeasurementsTracker = () => {
     const { user } = useAuth();
@@ -25,7 +26,7 @@ const BodyMeasurementsTracker = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingMeasurement, setEditingMeasurement] = useState(null);
     const [formData, setFormData] = useState({
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalDateInputValue(),
         weight: '',
         body_fat_percentage: '',
         chest: '',
@@ -95,7 +96,7 @@ const BodyMeasurementsTracker = () => {
         setIsModalOpen(false);
         setEditingMeasurement(null);
         setFormData({
-            date: new Date().toISOString().split('T')[0],
+            date: getLocalDateInputValue(),
             weight: '',
             body_fat_percentage: '',
             chest: '',

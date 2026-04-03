@@ -2,6 +2,7 @@ import { createContext, useContext, useReducer, useEffect, useCallback, useRef }
 import { useAuth } from './AuthContext';
 import { db as supabase, transformWorkoutFromDB } from '../lib/supabase';
 import { sanitizeWorkout } from '../utils/validation';
+import { getLocalDateInputValue } from '../utils/date';
 import toast from 'react-hot-toast';
 import { getNewlyUnlockedAchievements } from '../utils/achievements';
 
@@ -54,7 +55,7 @@ const workoutReducer = (state, action) => {
     case ACTIONS.ADD_WATER_INTAKE:
       return { ...state, waterIntake: { ...state.waterIntake, amount: state.waterIntake.amount + action.payload } };
     case ACTIONS.RESET_WATER_INTAKE:
-      return { ...state, waterIntake: { date: new Date().toISOString().split('T')[0], amount: 0 } };
+      return { ...state, waterIntake: { date: getLocalDateInputValue(), amount: 0 } };
     case ACTIONS.SET_WATER_LOADING:
       return { ...state, isWaterLoading: action.payload };
     case ACTIONS.SET_WATER_HISTORY:
@@ -71,7 +72,7 @@ const initialState = {
   workouts: [],
   currentWorkout: null,
   isLoading: true,
-  waterIntake: { date: new Date().toISOString().split('T')[0], amount: 0 },
+  waterIntake: { date: getLocalDateInputValue(), amount: 0 },
   isWaterLoading: true,
   waterHistory: [],
   isWaterHistoryLoading: true,
@@ -328,7 +329,7 @@ export const WorkoutProvider = ({ children }) => {
 
   // Water intake methods
   const addWaterIntake = async (amount) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateInputValue();
     const currentWaterIntake = waterIntakeRef.current;
     const currentHistory = waterHistoryRef.current;
     const currentAmount = currentWaterIntake.date === today ? currentWaterIntake.amount : 0;
@@ -370,7 +371,7 @@ export const WorkoutProvider = ({ children }) => {
   };
 
   const resetWaterIntake = async () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateInputValue();
     const waterData = { date: today, amount: 0 };
     waterIntakeRef.current = waterData;
     dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
@@ -399,7 +400,7 @@ export const WorkoutProvider = ({ children }) => {
   // Load water intake from Supabase or localStorage
   useEffect(() => {
     const loadWaterIntake = async () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateInputValue();
 
       // Signal that water data is being fetched — UI should show skeleton
       dispatch({ type: ACTIONS.SET_WATER_LOADING, payload: true });
@@ -448,7 +449,7 @@ export const WorkoutProvider = ({ children }) => {
   // Load water intake history (for weekly/monthly stats)
   useEffect(() => {
     const loadWaterHistory = async () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateInputValue();
       dispatch({ type: ACTIONS.SET_WATER_HISTORY_LOADING, payload: true });
 
       if (user) {

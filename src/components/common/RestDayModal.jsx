@@ -4,9 +4,10 @@ import { motion } from 'framer-motion';
 import Modal from './Modal';
 import Button from './Button';
 import { Star, Calendar } from 'lucide-react';
+import { getLocalDateInputValue } from '../../utils/date';
 
 const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateInputValue();
   
   const [restDayData, setRestDayData] = useState({
     date: initialData?.date || today,

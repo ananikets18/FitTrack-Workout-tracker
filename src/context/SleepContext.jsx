@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
+import { getLocalDateInputValue } from '../utils/date';
 
 const SleepContext = createContext();
 
@@ -139,7 +140,7 @@ export const SleepProvider = ({ children }) => {
 
     // Get sleep log for specific date
     const getSleepForDate = (date) => {
-        const dateStr = typeof date === 'string' ? date : date.toISOString().split('T')[0];
+        const dateStr = typeof date === 'string' ? date : getLocalDateInputValue(date);
         return sleepLogs.find(log => log.date === dateStr);
     };
 
