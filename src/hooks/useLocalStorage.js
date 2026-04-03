@@ -19,19 +19,20 @@ export const useLocalStorage = (key, initialValue) => {
 
   const setValue = useCallback((value) => {
     if (!isBrowser) {
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
+      setStoredValue((currentValue) => (value instanceof Function ? value(currentValue) : value));
       return;
     }
 
     try {
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      setStoredValue((currentValue) => {
+        const valueToStore = value instanceof Function ? value(currentValue) : value;
+        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        return valueToStore;
+      });
     } catch (error) {
       console.error('Error writing to localStorage:', error);
     }
-  }, [key, storedValue]);
+  }, [key]);
 
   useEffect(() => {
     if (!isBrowser) {

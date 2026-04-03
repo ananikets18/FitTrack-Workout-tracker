@@ -124,8 +124,12 @@ export const TemplateProvider = ({ children }) => {
         throw error;
       }
     } else {
-      const updatedTemplate = { ...updates, id };
-      setTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+      let updatedTemplate = null;
+      setTemplates(prev => {
+        const existingTemplate = prev.find(t => t.id === id);
+        updatedTemplate = existingTemplate ? { ...existingTemplate, ...updates } : { ...updates, id };
+        return prev.map(t => t.id === id ? updatedTemplate : t);
+      });
       return updatedTemplate;
     }
   };

@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { db as supabase, transformWorkoutFromDB } from '../lib/supabase';
 import { sanitizeWorkout } from '../utils/validation';
@@ -142,6 +142,16 @@ const fireAchievementToasts = (newlyUnlocked) => {
 export const WorkoutProvider = ({ children }) => {
   const [state, dispatch] = useReducer(workoutReducer, initialState);
   const { user } = useAuth();
+  const waterIntakeRef = useRef(initialState.waterIntake);
+  const waterHistoryRef = useRef(initialState.waterHistory);
+
+  useEffect(() => {
+    waterIntakeRef.current = state.waterIntake;
+  }, [state.waterIntake]);
+
+  useEffect(() => {
+    waterHistoryRef.current = state.waterHistory;
+  }, [state.waterHistory]);
 
   // Load workouts from Supabase
   const loadWorkouts = useCallback(async () => {
@@ -319,19 +329,24 @@ export const WorkoutProvider = ({ children }) => {
   // Water intake methods
   const addWaterIntake = async (amount) => {
     const today = new Date().toISOString().split('T')[0];
-    const currentAmount = state.waterIntake.date === today ? state.waterIntake.amount : 0;
+    const currentWaterIntake = waterIntakeRef.current;
+    const currentHistory = waterHistoryRef.current;
+    const currentAmount = currentWaterIntake.date === today ? currentWaterIntake.amount : 0;
 
     // Reset if it's a new day
-    if (state.waterIntake.date !== today) {
+    if (currentWaterIntake.date !== today) {
       dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
     }
 
     const newAmount = Math.max(0, currentAmount + amount); // Prevent negative values
     const waterData = { date: today, amount: newAmount };
 
+    waterIntakeRef.current = waterData;
+
     dispatch({ type: ACTIONS.SET_WATER_INTAKE, payload: waterData });
 
-    const updatedHistory = upsertWaterHistoryEntry(state.waterHistory, today, newAmount);
+    const updatedHistory = upsertWaterHistoryEntry(currentHistory, today, newAmount);
+    waterHistoryRef.current = updatedHistory;
     dispatch({ type: ACTIONS.SET_WATER_HISTORY, payload: updatedHistory });
 
     // Save to Supabase if user is logged in
@@ -357,9 +372,11 @@ export const WorkoutProvider = ({ children }) => {
   const resetWaterIntake = async () => {
     const today = new Date().toISOString().split('T')[0];
     const waterData = { date: today, amount: 0 };
+    waterIntakeRef.current = waterData;
     dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
 
-    const updatedHistory = upsertWaterHistoryEntry(state.waterHistory, today, 0);
+    const updatedHistory = upsertWaterHistoryEntry(waterHistoryRef.current, today, 0);
+    waterHistoryRef.current = updatedHistory;
     dispatch({ type: ACTIONS.SET_WATER_HISTORY, payload: updatedHistory });
 
     if (user) {
