@@ -319,13 +319,14 @@ export const WorkoutProvider = ({ children }) => {
   // Water intake methods
   const addWaterIntake = async (amount) => {
     const today = new Date().toISOString().split('T')[0];
+    const currentAmount = state.waterIntake.date === today ? state.waterIntake.amount : 0;
 
     // Reset if it's a new day
     if (state.waterIntake.date !== today) {
       dispatch({ type: ACTIONS.RESET_WATER_INTAKE });
     }
 
-    const newAmount = Math.max(0, state.waterIntake.amount + amount); // Prevent negative values
+    const newAmount = Math.max(0, currentAmount + amount); // Prevent negative values
     const waterData = { date: today, amount: newAmount };
 
     dispatch({ type: ACTIONS.SET_WATER_INTAKE, payload: waterData });

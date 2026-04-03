@@ -161,6 +161,23 @@ export const db = {
       }
     }
 
+    const { data: fullWorkout, error: fetchError } = await supabase
+      .from('workouts')
+      .select(`
+        *,
+        exercises (
+          *,
+          sets (*)
+        ),
+        rest_day_activities (*)
+      `)
+      .eq('id', workoutData.id)
+      .single();
+
+    if (!fetchError && fullWorkout) {
+      return fullWorkout;
+    }
+
     return workoutData;
   },
 
@@ -257,6 +274,26 @@ export const db = {
         duration: template.duration,
         exercises: template.exercises, // Store as JSONB
       })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async updateTemplate(templateId, userId, updates) {
+    const payload = {
+      name: updates.name,
+      duration: updates.duration,
+      exercises: updates.exercises,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from('templates')
+      .update(payload)
+      .eq('id', templateId)
+      .eq('user_id', userId)
       .select()
       .single();
 

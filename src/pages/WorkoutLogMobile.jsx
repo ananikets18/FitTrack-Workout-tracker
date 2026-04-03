@@ -280,7 +280,7 @@ const WorkoutLogMobile = () => {
     vibrate(30);
   };
 
-  const handleSaveWorkout = () => {
+  const handleSaveWorkout = async () => {
     if (!workoutName.trim()) {
       toast.error('Please enter a workout name');
       return;
@@ -303,20 +303,23 @@ const WorkoutLogMobile = () => {
       notes,
     };
 
-    if (isEditMode) {
-      // Update existing workout
-      updateWorkout({ ...workoutData, id: editingWorkoutId, createdAt: currentWorkout.createdAt });
-      toast.success('Workout updated! 🎉');
-      clearCurrentWorkout();
-    } else {
-      // Add new workout
-      addWorkout(workoutData);
-      toast.success('Workout saved! 🎉');
-    }
+    try {
+      if (isEditMode) {
+        // Update existing workout
+        await updateWorkout({ ...workoutData, id: editingWorkoutId, createdAt: currentWorkout.createdAt });
+        clearCurrentWorkout();
+      } else {
+        // Add new workout
+        await addWorkout(workoutData);
+      }
 
-    setHasUnsavedChanges(false); // Clear unsaved changes flag
-    vibrate([100, 50, 100, 50, 100]);
-    setTimeout(() => navigate('/history'), 1000);
+      setHasUnsavedChanges(false); // Clear unsaved changes flag
+      vibrate([100, 50, 100, 50, 100]);
+      setTimeout(() => navigate('/history'), 1000);
+    } catch (error) {
+      console.error('Error saving workout:', error);
+      toast.error(isEditMode ? 'Failed to update workout' : 'Failed to save workout');
+    }
   };
 
   const handleSaveAsTemplate = () => {

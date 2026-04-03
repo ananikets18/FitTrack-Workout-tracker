@@ -116,14 +116,17 @@ export const TemplateProvider = ({ children }) => {
   const updateTemplate = async (id, updates) => {
     if (useSupabase && user) {
       try {
-        // Supabase doesn't have an update method for templates, so we'll handle it locally
-        setTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+        const updatedTemplate = await db.updateTemplate(id, user.id, updates);
+        setTemplates(prev => prev.map(t => t.id === id ? updatedTemplate : t));
+        return updatedTemplate;
       } catch (error) {
         console.error('Error updating template in Supabase:', error);
         throw error;
       }
     } else {
+      const updatedTemplate = { ...updates, id };
       setTemplates(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+      return updatedTemplate;
     }
   };
 

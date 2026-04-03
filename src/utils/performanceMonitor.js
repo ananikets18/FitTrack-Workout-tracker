@@ -102,10 +102,18 @@ class PerformanceMonitor {
 
     window.addEventListener('load', () => {
       setTimeout(() => {
+        const navigationEntry = performance.getEntriesByType('navigation')[0];
         const perfData = performance.timing;
-        const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
-        const domReadyTime = perfData.domContentLoadedEventEnd - perfData.navigationStart;
-        const connectTime = perfData.responseEnd - perfData.requestStart;
+
+        const pageLoadTime = navigationEntry
+          ? navigationEntry.loadEventEnd - navigationEntry.startTime
+          : perfData.loadEventEnd - perfData.navigationStart;
+        const domReadyTime = navigationEntry
+          ? navigationEntry.domContentLoadedEventEnd - navigationEntry.startTime
+          : perfData.domContentLoadedEventEnd - perfData.navigationStart;
+        const connectTime = navigationEntry
+          ? navigationEntry.responseEnd - navigationEntry.requestStart
+          : perfData.responseEnd - perfData.requestStart;
 
         logger.info('📊 Page Performance:');
         logger.info(`  - Page Load: ${pageLoadTime}ms`);
