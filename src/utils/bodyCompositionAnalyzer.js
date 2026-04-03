@@ -1,4 +1,5 @@
 import { differenceInDays } from 'date-fns';
+import { getLocalDateInputValue } from './date';
 
 // ============================================
 // BODY COMPOSITION ANALYZER
@@ -111,7 +112,7 @@ export const analyzeBodyComposition = (measurements, workouts, nutritionLogs = [
             
             prediction = {
                 weeksToGoal: Math.abs(weeksToGoal).toFixed(1),
-                estimatedDate: estimatedDate.toISOString().split('T')[0],
+                estimatedDate: getLocalDateInputValue(estimatedDate),
                 onTrack: (weightChange > 0 && weightToGo > 0) || (weightChange < 0 && weightToGo < 0),
                 message: Math.abs(weeksToGoal) < 52 
                     ? `At this rate, you'll reach ${targetWeight}kg in ${Math.abs(weeksToGoal).toFixed(0)} weeks`

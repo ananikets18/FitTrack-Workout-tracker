@@ -105,60 +105,74 @@ export const db = {
 
     if (workoutError) throw workoutError;
 
-    // Handle rest day activities
-    if (workout.type === 'rest_day' && workout.activities?.length > 0) {
-      const { error: activitiesError } = await supabase
-        .from('rest_day_activities')
-        .insert(
-          workout.activities.map((activity) => ({
-            workout_id: workoutData.id,
-            activity,
-            recovery_quality: workout.recoveryQuality || 3,
-          }))
-        );
+    try {
+      // Handle rest day activities
+      if (workout.type === 'rest_day' && workout.activities?.length > 0) {
+        const { error: activitiesError } = await supabase
+          .from('rest_day_activities')
+          .insert(
+            workout.activities.map((activity) => ({
+              workout_id: workoutData.id,
+              activity,
+              recovery_quality: workout.recoveryQuality || 3,
+            }))
+          );
 
-      if (activitiesError) throw activitiesError;
-    }
+        if (activitiesError) throw activitiesError;
+      }
 
-    // Handle exercises for regular workouts
-    if (workout.exercises?.length > 0) {
-      for (let i = 0; i < workout.exercises.length; i++) {
-        const exercise = workout.exercises[i];
+      // Handle exercises for regular workouts
+      if (workout.exercises?.length > 0) {
+        for (let i = 0; i < workout.exercises.length; i++) {
+          const exercise = workout.exercises[i];
 
-        const { data: exerciseData, error: exerciseError } = await supabase
-          .from('exercises')
-          .insert({
-            workout_id: workoutData.id,
-            name: exercise.name,
-            category: exercise.category,
-            notes: exercise.notes,
-            order: i,
-          })
-          .select()
-          .single();
+          const { data: exerciseData, error: exerciseError } = await supabase
+            .from('exercises')
+            .insert({
+              workout_id: workoutData.id,
+              name: exercise.name,
+              category: exercise.category,
+              notes: exercise.notes,
+              order: i,
+            })
+            .select()
+            .single();
 
-        if (exerciseError) throw exerciseError;
+          if (exerciseError) throw exerciseError;
 
-        // Insert sets
-        if (exercise.sets?.length > 0) {
-          const { error: setsError } = await supabase
-            .from('sets')
-            .insert(
-              exercise.sets.map((set, setIndex) => ({
-                exercise_id: exerciseData.id,
-                reps: set.reps || 0,
-                weight: set.weight || 0,
-                duration: set.duration !== undefined && set.duration !== null && set.duration !== '' ? set.duration : null,
-                incline: set.incline !== undefined && set.incline !== null && set.incline !== '' ? set.incline : null,
-                speed: set.speed !== undefined && set.speed !== null && set.speed !== '' ? set.speed : null,
-                completed: set.completed || false,
-                order: setIndex,
-              }))
-            );
+          // Insert sets
+          if (exercise.sets?.length > 0) {
+            const { error: setsError } = await supabase
+              .from('sets')
+              .insert(
+                exercise.sets.map((set, setIndex) => ({
+                  exercise_id: exerciseData.id,
+                  reps: set.reps || 0,
+                  weight: set.weight || 0,
+                  duration: set.duration !== undefined && set.duration !== null && set.duration !== '' ? set.duration : null,
+                  incline: set.incline !== undefined && set.incline !== null && set.incline !== '' ? set.incline : null,
+                  speed: set.speed !== undefined && set.speed !== null && set.speed !== '' ? set.speed : null,
+                  completed: set.completed || false,
+                  order: setIndex,
+                }))
+              );
 
-          if (setsError) throw setsError;
+            if (setsError) throw setsError;
+          }
         }
       }
+    } catch (error) {
+      const { error: rollbackError } = await supabase
+        .from('workouts')
+        .delete()
+        .eq('id', workoutData.id)
+        .eq('user_id', userId);
+
+      if (rollbackError) {
+        console.error('Workout rollback failed after create error:', rollbackError);
+      }
+
+      throw error;
     }
 
     const { data: fullWorkout, error: fetchError } = await supabase
@@ -197,7 +211,12 @@ export const db = {
     if (workoutError) throw workoutError;
 
     // Delete existing exercises and sets (cascade will handle sets)
-    await supabase.from('exercises').delete().eq('workout_id', workoutId);
+    const { error: deleteExercisesError } = await supabase
+      .from('exercises')
+      .delete()
+      .eq('workout_id', workoutId);
+
+    if (deleteExercisesError) throw deleteExercisesError;
 
     // Re-insert exercises and sets
     if (workout.exercises?.length > 0) {

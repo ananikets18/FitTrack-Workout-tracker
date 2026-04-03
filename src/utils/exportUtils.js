@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { formatDate, calculateTotalVolume, calculateTotalSets } from './calculations';
 import { validateImportedData } from './validation';
+import { getLocalDateInputValue } from './date';
 
 // Export workouts as CSV
 export const exportToCSV = (workouts) => {
@@ -63,7 +64,7 @@ export const exportToCSV = (workouts) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `fittrack-workouts-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `fittrack-workouts-${getLocalDateInputValue()}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -154,10 +155,10 @@ export const exportToJSON = (workouts, dateRange = null) => {
     // Create filename with date range info if applicable
     let filename = 'fittrack-workouts';
     if (dateRange && dateRange.period) {
-      const dateStr = dateRange.date ? new Date(dateRange.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+      const dateStr = dateRange.date ? getLocalDateInputValue(dateRange.date) : getLocalDateInputValue();
       filename += `-${dateRange.period}-${dateStr}`;
     } else {
-      filename += `-${new Date().toISOString().split('T')[0]}`;
+      filename += `-${getLocalDateInputValue()}`;
     }
     link.download = `${filename}.json`;
 
@@ -260,7 +261,7 @@ export const exportToExcel = (workouts) => {
     XLSX.utils.book_append_sheet(wb, ws2, 'Exercise Details');
 
     // Save file
-    XLSX.writeFile(wb, `fittrack-workouts-${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(wb, `fittrack-workouts-${getLocalDateInputValue()}.xlsx`);
     return true;
   } catch (error) {
     console.error('Error exporting to Excel:', error);

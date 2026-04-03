@@ -21,6 +21,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 import { createLogger } from './logger';
+import { getLocalDateInputValue } from './date';
 
 const logger = createLogger('ML-Service');
 
@@ -172,8 +173,7 @@ class MLModelService {
                 recoveryDays: recoveryDays,
                 recoveryHours: recoveryDays * 24,
                 message: `Personalized recovery: ${recoveryDays.toFixed(1)} days`,
-                nextWorkoutDate: new Date(Date.now() + recoveryDays * 24 * 60 * 60 * 1000)
-                    .toISOString().split('T')[0]
+                nextWorkoutDate: getLocalDateInputValue(new Date(Date.now() + recoveryDays * 24 * 60 * 60 * 1000))
             };
         } catch (error) {
             console.error('Prediction error:', error);

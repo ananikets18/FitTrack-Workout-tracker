@@ -313,10 +313,10 @@ export const WorkoutProvider = ({ children }) => {
   const cloneWorkout = (workout) => {
     const clonedWorkout = {
       ...workout,
-      exercises: workout.exercises.map(exercise => ({
+      exercises: (workout.exercises || []).map(exercise => ({
         ...exercise,
         id: crypto.randomUUID(),
-        sets: exercise.sets.map(set => ({
+        sets: (exercise.sets || []).map(set => ({
           ...set,
           completed: false
         }))
