@@ -6,13 +6,14 @@ import toast from 'react-hot-toast';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { user, signIn, signUp } = useAuth();
+  const { user, signIn, signUp, resetPassword } = useAuth();
 
   const [view, setView] = useState('sign_in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Redirect if already logged in (page refresh / direct access)
@@ -97,9 +98,30 @@ const Login = () => {
         toast.success('Welcome back!', { duration: 2000 });
         navigate('/', { replace: true });
       }
-    } catch (err) {
-      setError('Invalid credentials. Please try again.');
+      } catch (error) {
+        setError(error?.message || 'Invalid credentials. Please try again.');
       setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setError('Enter your email address to receive a reset link');
+      return;
+    }
+
+    setResetLoading(true);
+    setError('');
+
+    try {
+      await resetPassword(normalizedEmail);
+      toast.success('Password reset email sent', { duration: 4000 });
+    } catch (error) {
+      setError(error?.message || 'Could not send reset email. Please try again.');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -193,6 +215,17 @@ const Login = () => {
             >
               {loading ? 'Loading...' : view === 'sign_in' ? 'Sign In' : 'Sign Up'}
             </button>
+
+            {view === 'sign_in' && (
+              <button
+                type="button"
+                onClick={handlePasswordReset}
+                disabled={resetLoading}
+                className="w-full text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
+              >
+                {resetLoading ? 'Sending reset email...' : 'Forgot password?'}
+              </button>
+            )}
           </form>
         </div>
       </div>

@@ -19,6 +19,7 @@ const History = lazy(() => import('./pages/History'));
 const Statistics = lazy(() => import('./pages/Statistics'));
 const Wellness = lazy(() => import('./pages/Wellness'));
 const Login = lazy(() => import('./pages/Login'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 
 // Loading component
 const PageLoader = () => (
@@ -73,6 +74,14 @@ function App() {
                           element={
                             <Suspense fallback={<PageLoader />}>
                               <Login />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="/reset-password"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <ResetPassword />
                             </Suspense>
                           }
                         />
