@@ -15,6 +15,19 @@ import toast, { Toaster } from 'react-hot-toast';
 import { searchExercises, getExercisesByCategory, getCategoryForExercise, isBarbellExercise, getEffectiveWeight } from '../data/exercises';
 import { getLocalDateInputValue } from '../utils/date';
 
+const HYPEREXTENSION_BODYWEIGHT_KG = 83;
+
+const isHyperextensionExercise = (exerciseName = '') => {
+  const lowerName = exerciseName.toLowerCase().trim();
+  return lowerName.includes('hyperextension') || lowerName.includes('hyperextention');
+};
+
+const getHyperextensionDefaultWeight = (exerciseName, fallbackWeight = 0) => {
+  if (!isHyperextensionExercise(exerciseName)) return fallbackWeight;
+  const parsedFallback = parseFloat(fallbackWeight) || 0;
+  return parsedFallback > 0 ? parsedFallback : HYPEREXTENSION_BODYWEIGHT_KG;
+};
+
 const WorkoutLogMobile = () => {
   const navigate = useNavigate();
   const { addWorkout, updateWorkout, currentWorkout, clearCurrentWorkout } = useWorkouts();
@@ -99,7 +112,12 @@ const WorkoutLogMobile = () => {
   ];
 
   const handleExerciseNameChange = (value) => {
-    setNewExercise({ ...newExercise, name: value });
+    const updatedSets = newExercise.sets.map(set => ({
+      ...set,
+      weight: getHyperextensionDefaultWeight(value, set.weight)
+    }));
+
+    setNewExercise({ ...newExercise, name: value, sets: updatedSets });
 
     if (value.trim().length > 0) {
       // Search across ALL categories when typing, not just the selected one
@@ -116,10 +134,16 @@ const WorkoutLogMobile = () => {
 
   const handleSelectExercise = (exerciseName) => {
     const category = getCategoryForExercise(exerciseName);
+    const updatedSets = newExercise.sets.map(set => ({
+      ...set,
+      weight: getHyperextensionDefaultWeight(exerciseName, set.weight)
+    }));
+
     setNewExercise({
       ...newExercise,
       name: exerciseName,
-      category: category || newExercise.category // Use detected category or keep current
+      category: category || newExercise.category, // Use detected category or keep current
+      sets: updatedSets
     });
     setShowSuggestions(false);
     vibrate(30);
@@ -154,7 +178,14 @@ const WorkoutLogMobile = () => {
     const lastSet = newExercise.sets[newExercise.sets.length - 1];
     setNewExercise({
       ...newExercise,
-      sets: [...newExercise.sets, { reps: lastSet.reps, weight: lastSet.weight, duration: lastSet.duration || 30, incline: lastSet.incline || 0, speed: lastSet.speed || 0, completed: false }],
+      sets: [...newExercise.sets, {
+        reps: lastSet.reps,
+        weight: getHyperextensionDefaultWeight(newExercise.name, lastSet.weight),
+        duration: lastSet.duration || 30,
+        incline: lastSet.incline || 0,
+        speed: lastSet.speed || 0,
+        completed: false
+      }],
     });
     vibrate(30);
   };
@@ -249,7 +280,7 @@ const WorkoutLogMobile = () => {
 
         const newSet = {
           reps: isCardio ? 0 : (lastSet.reps || 10),
-          weight: lastSet.weight || 0,
+          weight: getHyperextensionDefaultWeight(ex.name, lastSet.weight),
           duration: isCardio ? (lastSet.duration || 30) : undefined,
           incline: isTreadmill ? (lastSet.incline || 0) : undefined,
           speed: isTreadmill ? (lastSet.speed || 0) : undefined,

@@ -9,6 +9,19 @@ import { Plus, Trash2, Check, X, Save, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { isBarbellExercise, getEffectiveWeight } from '../data/exercises';
 
+const HYPEREXTENSION_BODYWEIGHT_KG = 83;
+
+const isHyperextensionExercise = (exerciseName = '') => {
+  const lowerName = exerciseName.toLowerCase().trim();
+  return lowerName.includes('hyperextension') || lowerName.includes('hyperextention');
+};
+
+const getHyperextensionDefaultWeight = (exerciseName, fallbackWeight = 0) => {
+  if (!isHyperextensionExercise(exerciseName)) return fallbackWeight;
+  const parsedFallback = parseFloat(fallbackWeight) || 0;
+  return parsedFallback > 0 ? parsedFallback : HYPEREXTENSION_BODYWEIGHT_KG;
+};
+
 const WorkoutLog = () => {
   const navigate = useNavigate();
   const { addWorkout, updateWorkout, currentWorkout, clearCurrentWorkout } = useWorkouts();
@@ -41,10 +54,27 @@ const WorkoutLog = () => {
   ];
 
   const handleAddSet = () => {
+    const lastSet = newExercise.sets[newExercise.sets.length - 1];
     setNewExercise({
       ...newExercise,
-      sets: [...newExercise.sets, { reps: '', weight: '', duration: '', incline: '', speed: '', completed: false }],
+      sets: [...newExercise.sets, {
+        reps: lastSet.reps,
+        weight: getHyperextensionDefaultWeight(newExercise.name, lastSet.weight),
+        duration: lastSet.duration,
+        incline: lastSet.incline,
+        speed: lastSet.speed,
+        completed: false
+      }],
     });
+  };
+
+  const handleExerciseNameChange = (value) => {
+    const updatedSets = newExercise.sets.map(set => ({
+      ...set,
+      weight: getHyperextensionDefaultWeight(value, set.weight)
+    }));
+
+    setNewExercise({ ...newExercise, name: value, sets: updatedSets });
   };
 
   const handleRemoveSet = (index) => {
@@ -120,7 +150,7 @@ const WorkoutLog = () => {
 
         const newSet = {
           reps: isCardio ? 0 : (lastSet.reps || 10),
-          weight: lastSet.weight || 0,
+          weight: getHyperextensionDefaultWeight(ex.name, lastSet.weight),
           duration: isCardio ? (lastSet.duration || 30) : undefined,
           incline: isTreadmill ? (lastSet.incline || 0) : undefined,
           speed: isTreadmill ? (lastSet.speed || 0) : undefined,
@@ -482,7 +512,7 @@ const WorkoutLog = () => {
           <Input
             label="Exercise Name"
             value={newExercise.name}
-            onChange={(e) => setNewExercise({ ...newExercise, name: e.target.value })}
+            onChange={(e) => handleExerciseNameChange(e.target.value)}
             placeholder="e.g., Bench Press"
             required
           />
