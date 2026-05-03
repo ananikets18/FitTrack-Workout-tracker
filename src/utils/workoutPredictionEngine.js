@@ -168,7 +168,7 @@ export const predictNextWorkout = (workouts, analyzeDays = 10) => {
             return null;
         }
 
-        const predictedSets = lastSets.map((set) => {
+        let predictedSets = lastSets.map((set) => {
             const recentSets = progression.slice(-3); // Last 3 instances
 
             if (recentSets.length === 0) {
@@ -202,6 +202,15 @@ export const predictNextWorkout = (workouts, analyzeDays = 10) => {
                 predicted: true
             };
         });
+
+        if (overloadCheck.ready && overloadCheck.suggestion?.action === 'increase_sets') {
+            const targetSets = overloadCheck.suggestion.targetSets || predictedSets.length;
+            const templateSet = predictedSets[predictedSets.length - 1] || { reps: 0, weight: 0, duration: null, predicted: true };
+
+            while (predictedSets.length < targetSets) {
+                predictedSets.push({ ...templateSet });
+            }
+        }
 
         return {
             name,

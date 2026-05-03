@@ -15,9 +15,56 @@ const WEIGHT_INCREMENTS = {
 
 // Exercise categories for increment selection
 const EXERCISE_CATEGORIES = {
-    smallIncrement: ['curl', 'lateral raise', 'front raise', 'tricep extension', 'cable fly', 'face pull'],
+    smallIncrement: ['curl', 'lateral raise', 'front raise', 'tricep extension', 'cable fly', 'face pull', 'hyperextension', 'back extension', 'pull-up', 'pull up', 'chin-up', 'chin up', 'dip'],
     largeIncrement: ['squat', 'deadlift', 'leg press', 'hack squat'],
     // Everything else uses medium increment
+};
+
+const isBackExtensionExercise = (exerciseName = '') => {
+    const lowerName = exerciseName.toLowerCase();
+    return lowerName.includes('hyperextension') || lowerName.includes('back extension');
+};
+
+const isPullupDipBodyweightExercise = (exerciseName = '') => {
+    const lowerName = exerciseName.toLowerCase();
+    const isWeightedOrAssisted = ['weighted', 'assisted', 'machine'].some(keyword => lowerName.includes(keyword));
+
+    if (isWeightedOrAssisted) return false;
+
+    return (
+        lowerName.includes('pull-up') ||
+        lowerName.includes('pull up') ||
+        lowerName.includes('chin-up') ||
+        lowerName.includes('chin up') ||
+        lowerName.includes('dip')
+    );
+};
+
+const getProgressionProfile = (exerciseName = '') => {
+    if (isBackExtensionExercise(exerciseName)) {
+        return {
+            isBodyweightDominant: true,
+            targetReps: 10,
+            upperReps: 15,
+            minSetsBeforeLoad: 3
+        };
+    }
+
+    if (isPullupDipBodyweightExercise(exerciseName)) {
+        return {
+            isBodyweightDominant: true,
+            targetReps: 6,
+            upperReps: 12,
+            minSetsBeforeLoad: 3
+        };
+    }
+
+    return {
+        isBodyweightDominant: false,
+        targetReps: 8,
+        upperReps: 12,
+        minSetsBeforeLoad: 0
+    };
 };
 
 // Determine appropriate weight increment for an exercise
@@ -121,10 +168,12 @@ export const checkOverloadReadiness = (exerciseName, workouts) => {
         };
     }
 
+    const progressionProfile = getProgressionProfile(exerciseName);
+    const { isBodyweightDominant, targetReps, upperReps, minSetsBeforeLoad } = progressionProfile;
+
     // Check if reps are consistently high
     const avgRepsRecent = recent.reduce((sum, s) => sum + s.avgReps, 0) / recent.length;
-    const targetReps = 8; // Standard hypertrophy range lower bound
-    const upperReps = 12; // Upper bound
+    const avgSetsRecent = recent.reduce((sum, s) => sum + (s.totalSets || 0), 0) / recent.length;
 
     // Check if all sets are being completed successfully
     const allSetsCompleted = recent.every(session => {
@@ -133,6 +182,25 @@ export const checkOverloadReadiness = (exerciseName, workouts) => {
 
     // Calculate days since last session
     const daysSinceLastSession = differenceInDays(new Date(), recent[recent.length - 1].date);
+
+    // Hyperextension / Back Extension: build baseline set volume before load progression.
+    if (isBodyweightDominant && avgSetsRecent < minSetsBeforeLoad) {
+        const currentSets = Math.max(1, Math.round(avgSetsRecent));
+        return {
+            ready: true,
+            reason: `Build to ${minSetsBeforeLoad} working sets before adding load`,
+            suggestion: {
+                action: 'increase_sets',
+                currentWeight,
+                currentSets,
+                targetSets: minSetsBeforeLoad,
+                targetReps: upperReps,
+                message: `For ${exerciseName}, move from ${currentSets} to ${minSetsBeforeLoad} sets at ${Math.round(currentWeight)}kg bodyweight before increasing load`,
+                confidence: 92,
+                systemicReadiness
+            }
+        };
+    }
 
     // READY FOR WEIGHT INCREASE (with systemic readiness check)
     if (allSetsCompleted && avgRepsRecent >= upperReps) {
@@ -191,6 +259,20 @@ export const checkOverloadReadiness = (exerciseName, workouts) => {
     });
 
     if (strugglingRecently && daysSinceLastSession <= 7) {
+        if (isBodyweightDominant && currentWeight >= 40) {
+            return {
+                ready: false,
+                reason: 'Performance dipped - keep bodyweight stable and rebuild reps',
+                suggestion: {
+                    action: 'maintain',
+                    currentWeight,
+                    message: `Maintain at ${Math.round(currentWeight)}kg bodyweight and work back toward ${targetReps}-${upperReps} reps before changing load`,
+                    confidence: 88,
+                    systemicReadiness
+                }
+            };
+        }
+
         const deloadWeight = Math.round(currentWeight * 0.9); // 10% reduction
 
         // If low readiness, strongly recommend deload
