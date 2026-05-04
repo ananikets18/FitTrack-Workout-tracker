@@ -44,22 +44,22 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <Dumbbell className="w-8 h-8 text-primary-600" />
-            <span className="text-xl font-bold text-gray-900">FitTrack</span>
+          <Link to="/" className="flex items-center space-x-3">
+            <Dumbbell className="w-9 h-9 text-primary-600" />
+            <span className="text-2xl font-bold text-gray-900">FitTrack</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-2">
             <nav className="flex space-x-1">
               {/* eslint-disable-next-line no-unused-vars */}
               {navItems.map(({ path, label, icon: NavIcon }) => (
                 <Link
                   key={path}
                   to={path}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${isActive(path)
-                    ? 'bg-primary-50 text-primary-600 font-semibold'
-                    : 'text-gray-600 hover:bg-gray-100'
+                  className={`flex items-center space-x-2 px-5 py-3 rounded-2xl transition-all duration-200 ${isActive(path)
+                    ? 'bg-primary-100 text-primary-700 font-semibold shadow-soft'
+                    : 'text-gray-600 hover:bg-gray-100 hover:shadow-none'
                     }`}
                 >
                   <NavIcon className="w-5 h-5" />
@@ -69,8 +69,8 @@ const Header = () => {
             </nav>
 
             {/* User Menu */}
-            <div className="ml-2 flex items-center space-x-2">
-              <div className="px-3 py-1 rounded-lg bg-gray-100 flex items-center space-x-2">
+            <div className="ml-2 flex items-center space-x-3">
+              <div className="px-4 py-1.5 rounded-2xl bg-gray-100 flex items-center space-x-2">
                 <User className="w-4 h-4 text-gray-600" />
                 <span className="text-sm text-gray-600">
                   {user?.user_metadata?.name || user?.email?.split('@')[0]}
@@ -78,7 +78,7 @@ const Header = () => {
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                className="p-3 rounded-2xl text-red-600 hover:bg-red-50 transition-colors"
                 aria-label="Logout"
                 title="Logout"
               >
@@ -91,7 +91,7 @@ const Header = () => {
           <div className="flex md:hidden">
             <button
               onClick={handleLogout}
-              className="flex items-center justify-center p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors active:scale-95"
+              className="flex items-center justify-center p-3 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-150 active:scale-95"
               aria-label="Logout"
               title="Logout"
             >

@@ -6,19 +6,19 @@ const Card = ({
   gradient = false,
   elevated = false,
 }) => {
-  const baseStyles = 'bg-white rounded-xl transition-all duration-300 ease-out';
+  const baseStyles = 'bg-white rounded-2xl transition-all duration-300 ease-out';
 
-  const shadowStyles = 'shadow-card';
+  const shadowStyles = 'shadow-soft';
 
   const hoverStyles = hover
-    ? 'hover:shadow-card-hover hover:-translate-y-1 cursor-pointer active:scale-[0.98] active:shadow-card'
+    ? 'hover:shadow-lifted hover:-translate-y-1 cursor-pointer active:scale-[0.98] active:shadow-soft'
     : '';
 
   const gradientStyles = gradient
     ? 'bg-gradient-card backdrop-blur-sm border border-gray-100/50 '
     : 'border border-gray-100/80 ';
 
-  const paddingStyles = 'p-5 sm:p-6';
+  const paddingStyles = 'p-6 sm:p-7';
 
   return (
     <div
