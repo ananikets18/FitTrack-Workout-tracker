@@ -82,7 +82,7 @@ const Modal = ({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className={`relative bg-white h-full md:h-auto md:rounded-2xl shadow-2xl w-full ${sizes[size]} flex flex-col md:max-h-[90vh]`}
+              className={`relative bg-white h-[100dvh] max-h-[100dvh] md:h-auto md:rounded-2xl shadow-2xl w-full ${sizes[size]} flex flex-col md:max-h-[90vh]`}
             >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-5 border-b border-gray-200 flex-shrink-0 bg-white">
@@ -97,7 +97,10 @@ const Modal = ({
               </div>
               
               {/* Content - Scrollable */}
-              <div className="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div
+                className={`flex-1 overflow-y-auto overscroll-contain p-4 md:p-6${footer ? ' pb-24 md:pb-6' : ''}`}
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
                 {children}
               </div>
               
