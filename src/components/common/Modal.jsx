@@ -62,7 +62,7 @@ const Modal = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-labelledby="modal-title">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
