@@ -520,12 +520,12 @@ const WorkoutLogMobile = () => {
           dragElastic={0.2}
           onDragEnd={handleDragEnd}
           style={{ x }}
-          className={`bg-white rounded-xl p-4 shadow-sm cursor-grab active:cursor-grabbing ${set.completed ? 'opacity-60' : ''
+          className={`bg-white rounded-xl p-2 shadow-sm cursor-grab active:cursor-grabbing ${set.completed ? 'opacity-60' : ''
             }`}
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4 flex-1">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100">
+            <div className="flex items-center space-x-2 flex-1">
+              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
                 <span className="font-bold text-gray-700">{setIndex + 1}</span>
               </div>
 
@@ -533,7 +533,7 @@ const WorkoutLogMobile = () => {
                 {/* Clickable set values for editing */}
                 <button
                   onClick={onEdit}
-                  className="flex items-center space-x-2 text-lg hover:bg-gray-50 px-2 py-1 rounded-lg transition-colors group"
+                  className="flex items-center space-x-2 text-sm lg:text-md hover:bg-gray-50 px-1 lg:px-2 py-1 rounded-lg transition-colors group"
                 >
                   {exercise.category === 'cardio' ? (
                     <>
@@ -587,7 +587,7 @@ const WorkoutLogMobile = () => {
 
               <button
                 onClick={onToggle}
-                className={`flex items-center justify-center w-12 h-12 rounded-full transition-all ${set.completed
+                className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${set.completed
                   ? 'bg-green-500'
                   : 'bg-gray-200 hover:bg-primary-100'
                   }`}
@@ -595,7 +595,7 @@ const WorkoutLogMobile = () => {
                 {set.completed ? (
                   <Check className="w-6 h-6 text-white" />
                 ) : (
-                  <div className="w-6 h-6 border-2 border-gray-400 rounded-full" />
+                  <div className="w-4 h-4 border-2 border-gray-400 rounded-full" />
                 )}
               </button>
             </div>
