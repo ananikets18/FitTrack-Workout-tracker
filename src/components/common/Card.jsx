@@ -6,7 +6,7 @@ const Card = ({
   gradient = false,
   elevated = false,
 }) => {
-  const baseStyles = 'bg-white rounded-2xl transition-all duration-300 ease-out';
+  const baseStyles = 'bg-white dark:bg-gray-800 rounded-2xl transition-colors duration-300 ease-out';
 
   const shadowStyles = 'shadow-soft';
 
@@ -15,8 +15,8 @@ const Card = ({
     : '';
 
   const gradientStyles = gradient
-    ? 'bg-gradient-card backdrop-blur-sm border border-gray-100/50 '
-    : 'border border-gray-100/80 ';
+    ? 'bg-gradient-card dark:bg-gray-800 backdrop-blur-sm border border-gray-100/50 dark:border-gray-700/50 '
+    : 'border border-gray-100/80 dark:border-gray-700/80 ';
 
   const paddingStyles = 'p-6 sm:p-7';
 

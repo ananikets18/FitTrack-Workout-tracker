@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Dumbbell, Home, History, BarChart3, Plus, LogOut, User } from 'lucide-react';
+import { Dumbbell, Home, History, BarChart3, Plus, LogOut, User, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { lightHaptic } from '../../utils/haptics';
 import toast from 'react-hot-toast';
 import MobileMenu from './MobileMenu';
@@ -10,6 +11,7 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
@@ -40,13 +42,13 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-40">
+    <header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-40 transition-colors duration-200 border-b border-gray-100 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <Dumbbell className="w-9 h-9 text-primary-600" />
-            <span className="text-2xl font-bold text-gray-900">FitTrack</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white transition-colors">FitTrack</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -58,8 +60,8 @@ const Header = () => {
                   key={path}
                   to={path}
                   className={`flex items-center space-x-2 px-5 py-3 rounded-2xl transition-all duration-200 ${isActive(path)
-                    ? 'bg-primary-100 text-primary-700 font-semibold shadow-soft'
-                    : 'text-gray-600 hover:bg-gray-100 hover:shadow-none'
+                    ? 'bg-primary-100 text-primary-700 font-semibold shadow-soft dark:bg-primary-900/50 dark:text-primary-300'
+                    : 'text-gray-600 hover:bg-gray-100 hover:shadow-none dark:text-gray-300 dark:hover:bg-gray-800'
                     }`}
                 >
                   <NavIcon className="w-5 h-5" />
@@ -69,16 +71,24 @@ const Header = () => {
             </nav>
 
             {/* User Menu */}
-            <div className="ml-2 flex items-center space-x-3">
-              <div className="px-4 py-1.5 rounded-2xl bg-gray-100 flex items-center space-x-2">
-                <User className="w-4 h-4 text-gray-600" />
-                <span className="text-sm text-gray-600">
+            <div className="ml-2 flex items-center space-x-2">
+              <button
+                onClick={toggleTheme}
+                className="p-3 rounded-2xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
+                aria-label="Toggle Theme"
+                title="Toggle Theme"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <div className="px-4 py-1.5 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center space-x-2 transition-colors">
+                <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                <span className="text-sm text-gray-600 dark:text-gray-300">
                   {user?.user_metadata?.name || user?.email?.split('@')[0]}
                 </span>
               </div>
               <button
                 onClick={handleLogout}
-                className="p-3 rounded-2xl text-red-600 hover:bg-red-50 transition-colors"
+                className="p-3 rounded-2xl text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 transition-colors"
                 aria-label="Logout"
                 title="Logout"
               >
@@ -87,11 +97,18 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Mobile: Logout Button (Right Side) */}
-          <div className="flex md:hidden">
+          {/* Mobile: Actions (Right Side) */}
+          <div className="flex md:hidden items-center space-x-1">
+            <button
+              onClick={toggleTheme}
+              className="p-3 rounded-2xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             <button
               onClick={handleLogout}
-              className="flex items-center justify-center p-3 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-150 active:scale-95"
+              className="flex items-center justify-center p-3 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-all duration-150 active:scale-95"
               aria-label="Logout"
               title="Logout"
             >

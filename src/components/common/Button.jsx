@@ -25,7 +25,7 @@ const Button = ({
   
   const variants = {
     primary: 'bg-gradient-primary text-white shadow-soft hover:shadow-lifted hover:-translate-y-1 active:shadow-soft',
-    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 shadow-soft hover:-translate-y-1',
+    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 shadow-soft hover:-translate-y-1',
     danger: 'bg-gradient-danger text-white shadow-soft hover:shadow-lifted hover:-translate-y-1 active:shadow-soft',
     success: 'bg-gradient-success text-white shadow-soft hover:shadow-lifted hover:-translate-y-1 active:shadow-soft',
     outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100 hover:-translate-y-1',

@@ -8,6 +8,7 @@ import { SleepProvider } from './context/SleepContext';
 import { NutritionProvider } from './context/NutritionContext';
 import { BodyMeasurementsProvider } from './context/BodyMeasurementsContext';
 import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from './context/ThemeContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -31,7 +32,8 @@ const PageLoader = () => (
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
         <PreferencesProvider>
           <SleepProvider>
             <NutritionProvider>
@@ -145,6 +147,7 @@ function App() {
           </SleepProvider>
         </PreferencesProvider>
       </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary >
   );
 }

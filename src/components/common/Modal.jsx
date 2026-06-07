@@ -68,7 +68,7 @@ const Modal = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50"
+            className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70"
             onClick={onClose}
             aria-hidden="true"
           />
@@ -82,17 +82,17 @@ const Modal = ({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className={`relative bg-white h-[100dvh] max-h-[100dvh] md:h-auto md:rounded-2xl shadow-2xl w-full ${sizes[size]} flex flex-col md:max-h-[90vh]`}
+              className={`relative bg-white dark:bg-gray-900 h-[100dvh] max-h-[100dvh] md:h-auto md:rounded-2xl shadow-2xl w-full ${sizes[size]} flex flex-col md:max-h-[90vh] transition-colors`}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-5 border-b border-gray-200 flex-shrink-0 bg-white">
-                <h2 id="modal-title" className="text-lg md:text-2xl font-bold text-gray-900 truncate pr-2">{title}</h2>
+              <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-5 border-b border-gray-200 dark:border-gray-800 flex-shrink-0 bg-white dark:bg-gray-900 transition-colors">
+                <h2 id="modal-title" className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white truncate pr-2 transition-colors">{title}</h2>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors active:scale-95"
                   aria-label="Close modal"
                 >
-                  <X className="w-6 h-6 text-gray-500" />
+                  <X className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
               
@@ -106,7 +106,7 @@ const Modal = ({
               
               {/* Footer - Fixed at bottom, not scrollable */}
               {footer && (
-                <div className="flex-shrink-0 border-t border-gray-200 p-3 md:p-4 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] safe-bottom z-10">
+                <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-800 p-3 md:p-4 bg-white dark:bg-gray-900 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] dark:shadow-none safe-bottom z-10 transition-colors">
                   {footer}
                 </div>
               )}
