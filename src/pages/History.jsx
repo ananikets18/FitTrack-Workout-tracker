@@ -36,14 +36,14 @@ const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
               <Hotel className="w-5 h-5 md:w-6 md:h-6 text-purple-600 " />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 ">Rest Day</h3>
-              <div className="flex items-center space-x-2 mt-1 md:mt-2 text-gray-600 ">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white transition-colors">Rest Day</h3>
+              <div className="flex items-center space-x-2 mt-1 md:mt-2 text-gray-600 dark:text-gray-400 transition-colors">
                 <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
                 <span className="text-xs md:text-sm">{formatDate(workout.date)}</span>
               </div>
               <div className="flex items-center space-x-2 md:space-x-3 mt-2 md:mt-3">
                 <div className="flex items-center space-x-1">
-                  <span className="text-xs md:text-sm text-gray-600 ">Recovery:</span>
+                  <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400 transition-colors">Recovery:</span>
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -86,12 +86,12 @@ const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
       ) : (
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg md:text-xl font-semibold text-gray-900 truncate">{workout.name || 'Unnamed Workout'}</h3>
-            <div className="flex items-center space-x-2 mt-1 md:mt-2 text-gray-600 ">
+            <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white truncate transition-colors">{workout.name || 'Unnamed Workout'}</h3>
+            <div className="flex items-center space-x-2 mt-1 md:mt-2 text-gray-600 dark:text-gray-400 transition-colors">
               <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
               <span className="text-xs md:text-sm">{formatDate(workout.date)}</span>
             </div>
-            <div className="flex items-center space-x-2 md:space-x-4 mt-2 md:mt-3 text-xs md:text-sm text-gray-600 flex-wrap">
+            <div className="flex items-center space-x-2 md:space-x-4 mt-2 md:mt-3 text-xs md:text-sm text-gray-600 dark:text-gray-400 flex-wrap transition-colors">
               <span className="font-semibold">{workout.exercises?.length || 0} exercises</span>
               <span className="hidden sm:inline">•</span>
               <span>{calculateTotalSets(workout)} sets</span>
@@ -106,13 +106,13 @@ const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
               {workout.exercises?.slice(0, 3).map((ex, idx) => (
                 <span
                   key={idx}
-                  className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full truncate max-w-[120px] md:max-w-none"
+                  className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full truncate max-w-[120px] md:max-w-none transition-colors"
                 >
                   {ex?.name || 'Unknown Exercise'}
                 </span>
               ))}
               {workout.exercises?.length > 3 && (
-                <span className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-full">
+                <span className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full transition-colors">
                   +{workout.exercises.length - 3} more
                 </span>
               )}
@@ -534,8 +534,8 @@ const History = () => {
       <div>
         <div className="flex items-start justify-between gap-3 mb-3 md:mb-0">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 ">Workout History</h1>
-            <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">View and manage your past workouts</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white transition-colors">Workout History</h1>
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1 md:mt-2 transition-colors">View and manage your past workouts</p>
           </div>
 
           {/* Import/Export Buttons - Desktop */}
@@ -654,7 +654,7 @@ const History = () => {
                 placeholder="Search workouts or exercises..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
               />
             </div>
 
@@ -666,7 +666,7 @@ const History = () => {
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
-                  className="h-10 appearance-none pl-9 pr-8 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50"
+                  className="h-10 appearance-none pl-9 pr-8 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <option value="all">All Types</option>
                   <option value="workout">Workouts</option>
@@ -681,7 +681,7 @@ const History = () => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="h-10 w-full appearance-none pl-9 pr-8 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50"
+                  className="h-10 w-full appearance-none pl-9 pr-8 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <option value="date-desc">Newest First</option>
                   <option value="date-asc">Oldest First</option>
@@ -697,8 +697,8 @@ const History = () => {
               <button
                 onClick={() => setGroupByDate(!groupByDate)}
                 className={`flex h-10 items-center gap-2 px-3 border rounded-lg text-sm font-medium transition-colors ${groupByDate
-                  ? 'bg-primary-50 border-primary-200 text-primary-700'
-                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300'
+                  : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 title="Toggle date grouping"
               >
@@ -714,12 +714,12 @@ const History = () => {
           <div className="flex flex-col md:flex-row gap-3">
             {/* Date Range Filter */}
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Date Range</label>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5 transition-colors">Date Range</label>
               <div className="flex gap-2">
                 <select
                   value={dateRange}
                   onChange={(e) => setDateRange(e.target.value)}
-                  className="flex-1 h-9 px-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  className="flex-1 h-9 px-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm dark:text-gray-200 transition-colors"
                 >
                   <option value="all">All Time</option>
                   <option value="7days">Last 7 Days</option>
@@ -762,12 +762,12 @@ const History = () => {
 
             {/* Muscle Group Filter */}
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Muscle Group</label>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5 transition-colors">Muscle Group</label>
               <div className="flex gap-2">
                 <select
                   value={muscleGroupFilter}
                   onChange={(e) => setMuscleGroupFilter(e.target.value)}
-                  className="flex-1 h-9 px-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm capitalize"
+                  className="flex-1 h-9 px-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm capitalize dark:text-gray-200 transition-colors"
                 >
                   <option value="all">All Muscles</option>
                   <option value="chest">Chest</option>
@@ -829,10 +829,10 @@ const History = () => {
       ) : filteredWorkouts.length === 0 ? (
         <Card className="text-center py-12">
           <div className="text-4xl mb-4">📋</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 transition-colors">
             {searchTerm ? 'No workouts found' : 'No workouts yet'}
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400 transition-colors">
             {searchTerm
               ? 'Try adjusting your search terms or filters'
               : 'Start logging workouts to see them here'}
@@ -844,7 +844,7 @@ const History = () => {
             // Grouped View
             Object.entries(groupedWorkouts).map(([group, groupWorkouts]) => (
               <div key={group} className="space-y-3">
-                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider pl-1 sticky top-0 bg-gray-50/95 backdrop-blur-sm py-2 z-10 w-full">
+                <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-1 sticky top-0 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-sm py-2 z-10 w-full transition-colors">
                   {group}
                 </h3>
                 <div className="space-y-4">
