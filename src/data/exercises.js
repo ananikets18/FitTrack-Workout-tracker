@@ -564,12 +564,12 @@ export const isBarbellExercise = (exerciseName) => {
  * @param {number} barbellKg    - Weight of the barbell (default 20 kg)
  * @returns {number} The effective / total lifted weight
  */
-export const getEffectiveWeight = (plateWeight, exerciseName, barbellKg = 20) => {
-  const plate = parseFloat(plateWeight) || 0;
+export const getEffectiveWeight = (plateWeightPerSide, exerciseName, barbellKg = 20) => {
+  const platePerSide = parseFloat(plateWeightPerSide) || 0;
   if (isBarbellExercise(exerciseName)) {
-    return plate + barbellKg;
+    return (platePerSide * 2) + barbellKg;
   }
-  return plate;
+  return platePerSide;
 };
 
 /**

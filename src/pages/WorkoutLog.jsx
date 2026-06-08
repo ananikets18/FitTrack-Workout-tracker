@@ -438,7 +438,7 @@ const WorkoutLog = () => {
                       <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-gray-700">
                         <div>Set</div>
                         <div>{isIsometricExercise(exercise.name) ? 'Duration (secs)' : 'Reps'}</div>
-                        <div>{isBarbellExercise(exercise.name) ? 'Plate Load — Total (kg)' : 'Weight (kg)'}</div>
+                        <div>{isBarbellExercise(exercise.name) ? 'Plates Per Side (kg)' : 'Weight (kg)'}</div>
                         <div className="text-center">Actions</div>
                         <div className="text-center">Done</div>
                       </div>
@@ -647,13 +647,13 @@ const WorkoutLog = () => {
                         <div className="flex-1 flex flex-col">
                           <Input
                             type="number"
-                            placeholder={isBarbellExercise(newExercise.name) ? 'Plate Load (kg)' : 'Weight (kg)'}
+                            placeholder={isBarbellExercise(newExercise.name) ? 'Plates Per Side (kg)' : 'Weight (kg)'}
                             value={set.weight}
                             onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
                           />
                           {isBarbellExercise(newExercise.name) && set.weight !== '' && (
                             <span className="text-xs text-blue-600 font-semibold mt-0.5">
-                              = {getEffectiveWeight(set.weight, newExercise.name)} kg total
+                              = {getEffectiveWeight(set.weight, newExercise.name)} kg total (bar + both sides)
                             </span>
                           )}
                         </div>
@@ -794,7 +794,7 @@ const WorkoutLog = () => {
                 />
 
                 <Input
-                  label={isBarbellExercise(editingSet.exercise.name) ? 'Plate Load (kg)' : 'Weight (kg)'}
+                  label={isBarbellExercise(editingSet.exercise.name) ? 'Plates Per Side (kg)' : 'Weight (kg)'}
                   type="number"
                   step="2.5"
                   value={editingSet.set.weight || 0}
@@ -807,7 +807,7 @@ const WorkoutLog = () => {
                 />
                 {isBarbellExercise(editingSet.exercise.name) && (
                   <p className="text-xs text-blue-600 font-semibold mt-1">
-                    = {getEffectiveWeight(editingSet.set.weight, editingSet.exercise.name)} kg total (20 kg bar included)
+                    = {getEffectiveWeight(editingSet.set.weight, editingSet.exercise.name)} kg total (bar + both sides)
                   </p>
                 )}
               </>

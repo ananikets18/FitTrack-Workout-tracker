@@ -1072,8 +1072,8 @@ const WorkoutLogMobile = () => {
                       ) : (
                         // Weight training: Reps and Weight
                         // For barbell exercises (bench press / deadlift), the label says
-                        // "Plate Load" to remind the user to enter only the plates they
-                        // added. The app adds the 20 kg barbell automatically.
+                        // "Plates / Side" to remind the user to enter only the plates they
+                        // added to one side. The app calculates total plates + 20kg bar.
                         <>
                           <NumberPicker
                             label="Reps"
@@ -1085,7 +1085,7 @@ const WorkoutLogMobile = () => {
                           />
                           <div className="flex flex-col">
                             <NumberPicker
-                              label={isBarbellExercise(newExercise.name) ? 'Plate Load' : 'Weight'}
+                              label={isBarbellExercise(newExercise.name) ? 'Plates / Side' : 'Weight'}
                               value={set.weight}
                               onChange={(val) => handleSetChange(index, 'weight', val)}
                               min={0}
@@ -1096,7 +1096,7 @@ const WorkoutLogMobile = () => {
                             />
                             {isBarbellExercise(newExercise.name) && (
                               <span className="text-xs text-blue-600 font-semibold text-center mt-1">
-                                = {getEffectiveWeight(set.weight, newExercise.name)} kg total (bar incl.)
+                                = {getEffectiveWeight(set.weight, newExercise.name)} kg total (bar + both sides)
                               </span>
                             )}
                           </div>
@@ -1331,7 +1331,7 @@ const WorkoutLogMobile = () => {
 
                 <div>
                   <label className="text-sm font-semibold text-gray-700 mb-2 block">
-                    {isBarbellExercise(editingSet.exercise.name) ? 'Plate Load (kg)' : 'Weight (kg)'}
+                    {isBarbellExercise(editingSet.exercise.name) ? 'Plates / Side (kg)' : 'Weight (kg)'}
                   </label>
                   <NumberPicker
                     value={editingSet.set.weight || 0}
@@ -1345,7 +1345,7 @@ const WorkoutLogMobile = () => {
                   />
                   {isBarbellExercise(editingSet.exercise.name) && (
                     <p className="text-xs text-blue-600 font-semibold text-center mt-2">
-                      = {getEffectiveWeight(editingSet.set.weight, editingSet.exercise.name)} kg total (20 kg bar included)
+                      = {getEffectiveWeight(editingSet.set.weight, editingSet.exercise.name)} kg total (bar + both sides)
                     </p>
                   )}
                 </div>
