@@ -12,7 +12,7 @@ import Modal from '../components/common/Modal';
 import BatchEditModal from '../components/common/BatchEditModal';
 import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar, BookmarkPlus, FileText, ChevronRight, Sliders } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-import { searchExercises, getExercisesByCategory, getCategoryForExercise, isBarbellExercise, getEffectiveWeight } from '../data/exercises';
+import { searchExercises, getExercisesByCategory, getCategoryForExercise, isBarbellExercise, getEffectiveWeight, isIsometricExercise } from '../data/exercises';
 import { getLocalDateInputValue } from '../utils/date';
 
 const HYPEREXTENSION_BODYWEIGHT_KG = 83;
@@ -557,6 +557,18 @@ const WorkoutLogMobile = () => {
                         </>
                       )}
                     </>
+                  ) : isIsometricExercise(exercise.name) ? (
+                    <>
+                      <span className="font-bold text-gray-900">{set.duration || set.reps || 0}</span>
+                      <span className="text-gray-500">secs</span>
+                      {set.weight > 0 && (
+                        <>
+                          <span className="text-gray-400 mx-1">|</span>
+                          <span className="font-bold text-gray-900">{set.weight}</span>
+                          <span className="text-gray-500">kg</span>
+                        </>
+                      )}
+                    </>
                   ) : (
                     <>
                       <span className="font-bold text-gray-900">{set.reps}</span>
@@ -951,6 +963,7 @@ const WorkoutLogMobile = () => {
               {newExercise.sets.map((set, index) => {
                 const isCardio = newExercise.category === 'cardio';
                 const isTreadmill = isCardio && newExercise.name.toLowerCase().includes('treadmill');
+                const isIsometric = isIsometricExercise(newExercise.name);
 
                 return (
                   <div key={index} className="bg-gray-50 rounded-lg p-2.5 md:p-3">
@@ -1011,6 +1024,28 @@ const WorkoutLogMobile = () => {
                           <div className="flex items-center justify-center text-gray-400">
                             <span className="text-sm">No weight needed</span>
                           </div>
+                        </>
+                      ) : isIsometric ? (
+                        // Isometric exercises: Duration + Optional Weight
+                        <>
+                          <NumberPicker
+                            label="Duration (secs)"
+                            value={set.duration || set.reps || 30}
+                            onChange={(val) => handleSetChange(index, 'duration', val)}
+                            min={1}
+                            max={600}
+                            quickIncrements={[-10, -5, 5, 10]}
+                          />
+                          <NumberPicker
+                            label="Weight (optional)"
+                            value={set.weight}
+                            onChange={(val) => handleSetChange(index, 'weight', val)}
+                            min={0}
+                            max={100}
+                            step={2.5}
+                            quickIncrements={[-10, -5, 5, 10]}
+                            unit="kg"
+                          />
                         </>
                       ) : newExercise.category === 'core' ? (
                         // Core exercises: Reps + Optional Weight
@@ -1239,6 +1274,41 @@ const WorkoutLogMobile = () => {
                     </div>
                   </>
                 )}
+              </>
+            ) : isIsometricExercise(editingSet.exercise.name) ? (
+              <>
+                {/* Isometric Exercise */}
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    Duration (seconds)
+                  </label>
+                  <NumberPicker
+                    value={editingSet.set.duration || editingSet.set.reps || 0}
+                    onChange={(value) => setEditingSet({
+                      ...editingSet,
+                      set: { ...editingSet.set, duration: value }
+                    })}
+                    min={0}
+                    max={600}
+                    step={1}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                    Weight (kg)
+                  </label>
+                  <NumberPicker
+                    value={editingSet.set.weight || 0}
+                    onChange={(value) => setEditingSet({
+                      ...editingSet,
+                      set: { ...editingSet.set, weight: value }
+                    })}
+                    min={0}
+                    max={500}
+                    step={2.5}
+                  />
+                </div>
               </>
             ) : (
               <>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { format, differenceInDays } from 'date-fns';
 import { Trophy, TrendingUp, Award, Zap, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getEffectiveWeight, isBarbellExercise } from '../../data/exercises';
+import { getEffectiveWeight, isBarbellExercise, isIsometricExercise } from '../../data/exercises';
 
 /**
  * Personal Records Timeline - Visual PR history with milestones
@@ -245,7 +245,11 @@ const PRTimeline = ({ workouts }) => {
                                                         key={idx}
                                                         className="px-2 py-1 bg-gray-100 rounded text-xs font-medium text-gray-700"
                                                     >
-                                                        {set.reps} reps @ {getEffectiveWeight(set.weight, pr.exercise)} kg
+                                                        {isIsometricExercise(pr.exercise) ? (
+                                                            `${set.duration || set.reps || 0}s @ ${getEffectiveWeight(set.weight, pr.exercise)} kg`
+                                                        ) : (
+                                                            `${set.reps} reps @ ${getEffectiveWeight(set.weight, pr.exercise)} kg`
+                                                        )}
                                                         {isBarbellExercise(pr.exercise) && (
                                                             <span className="text-blue-500 ml-1">(bar+plates)</span>
                                                         )}

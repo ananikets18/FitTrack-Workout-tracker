@@ -572,3 +572,12 @@ export const getEffectiveWeight = (plateWeight, exerciseName, barbellKg = 20) =>
   return plate;
 };
 
+/**
+ * Returns true if the exercise is an isometric hold (e.g. Plank, Wall Sit),
+ * where duration is tracked instead of reps.
+ */
+export const isIsometricExercise = (exerciseName) => {
+  if (!exerciseName) return false;
+  const lower = exerciseName.toLowerCase().trim();
+  return lower.includes('plank') || lower.includes('wall sit') || lower.includes('l-sit') || lower.includes('hold');
+};

@@ -7,7 +7,7 @@ import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import { Plus, Trash2, Check, X, Save, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { isBarbellExercise, getEffectiveWeight } from '../data/exercises';
+import { isBarbellExercise, getEffectiveWeight, isIsometricExercise } from '../data/exercises';
 
 const HYPEREXTENSION_BODYWEIGHT_KG = 83;
 
@@ -98,15 +98,16 @@ const WorkoutLog = () => {
 
     const isCardio = newExercise.category === 'cardio';
     const isTreadmill = isCardio && newExercise.name.toLowerCase().includes('treadmill');
+    const isIsometric = isIsometricExercise(newExercise.name);
 
     const exercise = {
       id: crypto.randomUUID(),
       name: newExercise.name,
       category: newExercise.category,
       sets: newExercise.sets.map(set => ({
-        reps: isCardio ? 0 : (parseInt(set.reps) || 0),
+        reps: isCardio || isIsometric ? 0 : (parseInt(set.reps) || 0),
         weight: parseFloat(set.weight) || 0,
-        duration: isCardio ? (parseInt(set.duration) || 0) : undefined,
+        duration: isCardio || isIsometric ? (parseInt(set.duration) || 0) : undefined,
         incline: isTreadmill ? (parseFloat(set.incline) || 0) : undefined,
         speed: isTreadmill ? (parseFloat(set.speed) || 0) : undefined,
         completed: set.completed,
@@ -147,11 +148,12 @@ const WorkoutLog = () => {
         const lastSet = ex.sets[ex.sets.length - 1];
         const isCardio = ex.category === 'cardio';
         const isTreadmill = isCardio && ex.name.toLowerCase().includes('treadmill');
+        const isIsometric = isIsometricExercise(ex.name);
 
         const newSet = {
-          reps: isCardio ? 0 : (lastSet.reps || 10),
+          reps: isCardio || isIsometric ? 0 : (lastSet.reps || 10),
           weight: getHyperextensionDefaultWeight(ex.name, lastSet.weight),
-          duration: isCardio ? (lastSet.duration || 30) : undefined,
+          duration: isCardio || isIsometric ? (lastSet.duration || (isIsometric ? 60 : 30)) : undefined,
           incline: isTreadmill ? (lastSet.incline || 0) : undefined,
           speed: isTreadmill ? (lastSet.speed || 0) : undefined,
           completed: false
@@ -435,7 +437,7 @@ const WorkoutLog = () => {
                     <>
                       <div className="grid grid-cols-5 gap-2 text-sm font-semibold text-gray-700">
                         <div>Set</div>
-                        <div>Reps</div>
+                        <div>{isIsometricExercise(exercise.name) ? 'Duration (secs)' : 'Reps'}</div>
                         <div>{isBarbellExercise(exercise.name) ? 'Plate Load — Total (kg)' : 'Weight (kg)'}</div>
                         <div className="text-center">Actions</div>
                         <div className="text-center">Done</div>
@@ -443,7 +445,7 @@ const WorkoutLog = () => {
                       {exercise.sets.map((set, index) => (
                         <div key={index} className="grid grid-cols-5 gap-2 items-center">
                           <div className="text-gray-600">{index + 1}</div>
-                          <div className="text-gray-900 font-semibold">{set.reps}</div>
+                          <div className="text-gray-900 font-semibold">{isIsometricExercise(exercise.name) ? (set.duration || set.reps || 0) : set.reps}</div>
                           <div className="text-gray-900 font-semibold">
                             {isBarbellExercise(exercise.name)
                               ? <span>{set.weight} → {getEffectiveWeight(set.weight, exercise.name)} kg</span>
@@ -548,6 +550,7 @@ const WorkoutLog = () => {
                 const isCardio = newExercise.category === 'cardio';
                 const isCore = newExercise.category === 'core';
                 const isTreadmill = isCardio && newExercise.name.toLowerCase().includes('treadmill');
+                const isIsometric = isIsometricExercise(newExercise.name);
 
                 return (
                   <div key={index} className="flex items-center space-x-2">
@@ -593,6 +596,24 @@ const WorkoutLog = () => {
                         <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
                           No weight needed
                         </div>
+                      </>
+                    ) : isIsometric ? (
+                      // Isometric: Duration + Optional Weight
+                      <>
+                        <Input
+                          type="number"
+                          placeholder="Duration (secs)"
+                          value={set.duration || set.reps || ''} // fallback for old sets
+                          onChange={(e) => handleSetChange(index, 'duration', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Weight (optional)"
+                          value={set.weight}
+                          onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+                          className="flex-1"
+                        />
                       </>
                     ) : isCore ? (
                       // Core: Reps + Optional Weight
@@ -729,6 +750,33 @@ const WorkoutLog = () => {
                     />
                   </>
                 )}
+              </>
+            ) : isIsometricExercise(editingSet.exercise.name) ? (
+              <>
+                {/* Isometric Exercise */}
+                <Input
+                  label="Duration (seconds)"
+                  type="number"
+                  value={editingSet.set.duration || editingSet.set.reps || 0}
+                  onChange={(e) => setEditingSet({
+                    ...editingSet,
+                    set: { ...editingSet.set, duration: parseInt(e.target.value) || 0 }
+                  })}
+                  min={0}
+                  max={600}
+                />
+                <Input
+                  label="Weight (kg)"
+                  type="number"
+                  step="2.5"
+                  value={editingSet.set.weight || 0}
+                  onChange={(e) => setEditingSet({
+                    ...editingSet,
+                    set: { ...editingSet.set, weight: parseFloat(e.target.value) || 0 }
+                  })}
+                  min={0}
+                  max={500}
+                />
               </>
             ) : (
               <>

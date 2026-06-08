@@ -3,7 +3,7 @@ import Modal from './Modal';
 import { TrendingUp, Award, Calendar, Weight, Target } from 'lucide-react';
 import { formatDate, kgToTons } from '../../utils/calculations';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getEffectiveWeight, isBarbellExercise } from '../../data/exercises';
+import { getEffectiveWeight, isBarbellExercise, isIsometricExercise } from '../../data/exercises';
 
 const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
     const [viewMode, setViewMode] = useState('chart'); // 'chart' or 'list'
@@ -24,9 +24,10 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                 .filter(w => w > 0);
             const maxWeight = effectiveWeights.length > 0 ? Math.max(...effectiveWeights) : 0;
             const totalVolume = exercise.sets.reduce((sum, set) => {
-                return sum + (getEffectiveWeight(set.weight, exerciseName) * set.reps);
+                const multiplier = isIsometricExercise(exerciseName) ? (set.duration || set.reps || 0) : set.reps;
+                return sum + (getEffectiveWeight(set.weight, exerciseName) * multiplier);
             }, 0);
-            const totalReps = exercise.sets.reduce((sum, set) => sum + set.reps, 0);
+            const totalReps = exercise.sets.reduce((sum, set) => sum + (isIsometricExercise(exerciseName) ? (set.duration || set.reps || 0) : set.reps), 0);
 
             // Treadmill-specific metrics
             const totalDuration = exercise.sets.reduce((sum, set) => sum + (set.duration || 0), 0);
@@ -327,7 +328,7 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                                                 <span className="font-medium">{session.setCount}</span> sets
                                             </div>
                                             <div>
-                                                <span className="font-medium">{session.totalReps}</span> reps
+                                                <span className="font-medium">{session.totalReps}</span> {isIsometricExercise(exerciseName) ? 'secs' : 'reps'}
                                             </div>
                                             <div>
                                                 <span className="font-medium">{session.totalVolume}kg</span> volume
@@ -346,6 +347,8 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                                                 >
                                                     {isTreadmill ? (
                                                         `${set.duration}min @ ${set.speed}km/h, ${set.incline}%`
+                                                    ) : isIsometricExercise(exerciseName) ? (
+                                                        `${set.duration || set.reps || 0}s${set.weight > 0 ? ` @ ${set.weight}kg` : ''}`
                                                     ) : (
                                                         `${getEffectiveWeight(set.weight, exerciseName)}kg × ${set.reps}${isBarbellExercise(exerciseName) ? ' (bar+plates)' : ''}`
                                                     )}
