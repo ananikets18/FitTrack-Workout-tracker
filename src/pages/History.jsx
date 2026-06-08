@@ -11,6 +11,7 @@ import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExc
 import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { calculateWeightedMuscleSets } from '../utils/exerciseMuscleMapping';
+import { getEffectiveWeight, isBarbellExercise } from '../data/exercises';
 import { getLocalDateInputValue } from '../utils/date';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, subDays } from 'date-fns';
 // Sub-component for individual workout card
@@ -1004,7 +1005,7 @@ const History = () => {
                   {selectedWorkout.exercises?.map((exercise) => {
                     if (!exercise) return null;
                     const exerciseVolume = calculateExerciseVolume(exercise);
-                    const weights = Array.isArray(exercise.sets) ? exercise.sets.map(s => s?.weight || 0) : [0];
+                    const weights = Array.isArray(exercise.sets) ? exercise.sets.map(s => getEffectiveWeight(s?.weight || 0, exercise.name)) : [0];
                     const maxWeight = weights.length > 0 ? Math.max(...weights) : 0;
                     const progressData = getProgressiveOverload(exercise?.name, selectedWorkout, workouts);
                     const isCardioOrBodyweight = exercise.category === 'cardio' || maxWeight === 0;
@@ -1091,7 +1092,8 @@ const History = () => {
                               </div>
                               {Array.isArray(exercise.sets) && exercise.sets.map((set, index) => {
                                 if (!set) return null;
-                                const setVolume = (set.reps || 0) * (set.weight || 0);
+                                const effectiveWeight = getEffectiveWeight(set.weight || 0, exercise.name);
+                                const setVolume = (set.reps || 0) * effectiveWeight;
                                 return (
                                   <div
                                     key={index}
@@ -1099,7 +1101,12 @@ const History = () => {
                                       } py-1.5 md:py-2 px-1.5 md:px-2 rounded`}
                                   >
                                     <div className="font-medium">{index + 1}</div>
-                                    <div className="font-semibold truncate">{set.weight || 0}×{set.reps || 0}</div>
+                                    <div className="font-semibold truncate">
+                                      {effectiveWeight}×{set.reps || 0}
+                                      {isBarbellExercise(exercise.name) && (
+                                        <span className="text-[10px] text-gray-500 font-normal ml-1">({set.weight || 0}/side)</span>
+                                      )}
+                                    </div>
                                     <div className="text-right font-medium truncate">{setVolume}</div>
                                     <div className="text-right text-xs">
                                       {set.completed ? '✓' : '-'}
