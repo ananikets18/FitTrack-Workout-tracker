@@ -508,6 +508,8 @@ export const getCategoryForExercise = (exerciseName) => {
 const BARBELL_BENCH_PRESS_PATTERNS = [
   'bench press',
   'barbell bench press',
+  'incline bench press',
+  'incline barbell press',
   'decline barbell press',
   'close-grip bench press',
   'wide-grip bench press',
@@ -542,9 +544,7 @@ export const isBarbellExercise = (exerciseName) => {
   const isExcludedVariant =
     lower.includes('dumbbell') ||
     lower.includes('machine') ||
-    lower.startsWith('db ') ||
-    lower.includes('incline bench press') ||
-    lower.includes('incline barbell press');
+    lower.startsWith('db ');
 
   if (!isExcludedVariant && BARBELL_BENCH_PRESS_PATTERNS.some(p => lower.includes(p))) {
     return true;
