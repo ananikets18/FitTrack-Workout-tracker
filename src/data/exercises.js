@@ -515,15 +515,6 @@ const BARBELL_BENCH_PRESS_PATTERNS = [
   'wide-grip bench press',
 ];
 
-const DEADLIFT_PATTERNS = [
-  'deadlift',
-  'romanian deadlift',
-  'rdl',
-  'sumo deadlift',
-  'trap bar deadlift',
-  'stiff-leg deadlift',
-];
-
 /**
  * Returns true when the named exercise uses the 20 kg gym barbell,
  * meaning the user's weight input is plate-load only (not total weight).
