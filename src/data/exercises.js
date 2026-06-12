@@ -531,14 +531,10 @@ const DEADLIFT_PATTERNS = [
  * Rules:
  *  - Barbell bench press family: name contains "bench press" but is NOT
  *    a dumbbell or machine variant.
- *  - All deadlift family names (Romanian, Sumo, Stiff-Leg, Trap Bar, etc.)
  */
 export const isBarbellExercise = (exerciseName) => {
   if (!exerciseName) return false;
   const lower = exerciseName.toLowerCase().trim();
-
-  // Check deadlift patterns first (all deadlifts use the barbell)
-  if (DEADLIFT_PATTERNS.some(p => lower.includes(p))) return true;
 
   // Check bench press patterns — but exclude dumbbell / machine / incline variants
   const isExcludedVariant =
