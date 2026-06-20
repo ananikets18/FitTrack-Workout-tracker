@@ -140,49 +140,6 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
   const muscleChartData = Object.entries(muscleGroupData).map(([name, value]) => ({ name, value }));
   const COLORS = ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1'];
 
-  // 2. PROGRESSIVE OVERLOAD TRACKER (Enhanced for Cardio)
-  const getProgressiveOverloadData = () => {
-    const exerciseProgress = {};
-
-    const sortedWorkouts = [...regularWorkouts].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    sortedWorkouts.forEach(workout => {
-      workout.exercises?.forEach(exercise => {
-        const isCardio = exercise.category === 'cardio';
-
-        // For cardio: track duration, for weights: track max weight
-        const metric = isCardio
-          ? exercise.sets.reduce((sum, s) => sum + (s.duration || 0), 0) // Total duration
-          : Math.max(...exercise.sets.map(s => getEffectiveWeight(s.weight, exercise.name)), 0); // Max effective weight
-
-        if (!exerciseProgress[exercise.name]) {
-          exerciseProgress[exercise.name] = { records: [], isCardio };
-        }
-        exerciseProgress[exercise.name].records.push({ metric, date: workout.date });
-      });
-    });
-
-    const trends = [];
-    Object.entries(exerciseProgress).forEach(([name, data]) => {
-      if (data.records.length >= 2) {
-        const recent = data.records.slice(-2);
-        const change = recent[1].metric - recent[0].metric;
-        const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'flat';
-        trends.push({
-          name,
-          change,
-          trend,
-          currentMetric: recent[1].metric,
-          isCardio: data.isCardio
-        });
-      }
-    });
-
-    return trends.sort((a, b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 5);
-  };
-
-  const progressData = getProgressiveOverloadData();
-
   // 3. ENERGY ZONES (Light/Moderate/Heavy sets)
   const energyZonesData = last7Days.map(day => {
     const dayWorkouts = last7DaysWorkouts.filter(w =>
@@ -242,7 +199,6 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
 
   const tabs = [
     { id: 'muscles', label: 'Muscles', icon: '💪' },
-    { id: 'progress', label: 'Progress', icon: '📈' },
     { id: 'zones', label: 'Intensity', icon: '⚡' },
     { id: 'prs', label: 'PRs', icon: '🏆' }
   ];
@@ -312,42 +268,7 @@ export const TrainingIntelligenceChart = ({ workouts }) => {
           </div>
         )}
 
-        {/* PROGRESSIVE OVERLOAD TRACKER */}
-        {activeTab === 'progress' && (
-          <div className="space-y-3">
-            {progressData.length > 0 ? (
-              progressData.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${item.trend === 'up' ? 'bg-green-100' :
-                      item.trend === 'down' ? 'bg-red-100' : 'bg-gray-200'
-                      }`}>
-                      {item.trend === 'up' ? '↑' : item.trend === 'down' ? '↓' : '→'}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{item.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {item.isCardio ? `${item.currentMetric} mins` : `${item.currentMetric} kg`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`font-bold ${item.trend === 'up' ? 'text-green-600' :
-                    item.trend === 'down' ? 'text-red-600' : 'text-gray-600'
-                    }`}>
-                    {item.change > 0 ? '+' : ''}{item.change} {item.isCardio ? 'mins' : 'kg'}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex items-center justify-center h-64 text-gray-500">
-                <p>Need at least 2 workouts per exercise to track progress</p>
-              </div>
-            )}
-          </div>
-        )}
+
 
         {/* ENERGY ZONES */}
         {activeTab === 'zones' && (
