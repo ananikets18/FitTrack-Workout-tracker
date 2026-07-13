@@ -79,19 +79,7 @@ const Login = () => {
 
         if (signupError) throw signupError;
 
-        if (data?.user && !data?.session) {
-          toast.success('Check your email to verify your account!', {
-            duration: 6000,
-            icon: '📧'
-          });
-        } else if (data?.session) {
-          toast.success('Account created successfully!', { duration: 3000 });
-        }
-
-        setView('sign_in');
-        setEmail('');
-        setPassword('');
-        setName('');
+        toast.success('Account created successfully!', { duration: 3000 });
         setLoading(false);
       } else {
         await signIn(normalizedEmail, password);
