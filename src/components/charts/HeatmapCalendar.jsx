@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { format, eachDayOfInterval, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, subMonths, addMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar, Hotel } from 'lucide-react';
+import { format, eachDayOfInterval, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameDay, subMonths, addMonths, startOfDay } from 'date-fns';
+import { ChevronLeft, ChevronRight, Calendar, Hotel, AlertCircle, Clock } from 'lucide-react';
 import { calculateTotalActivity } from '../../utils/calculations';
 
 /**
  * GitHub-style Heatmap Calendar for workout activity visualization
- * Shows workout intensity with color-coded cells & distinct Rest Day badges
+ * Shows workout intensity, Rest Days, Missed/Unlogged Days, and Future Days.
  */
 const HeatmapCalendar = ({ workouts }) => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -20,6 +20,8 @@ const HeatmapCalendar = ({ workouts }) => {
         start: calendarStart,
         end: calendarEnd,
     });
+
+    const today = startOfDay(new Date());
 
     // Calculate activity & rest day state for each day
     const getActivityForDay = (day) => {
@@ -49,25 +51,35 @@ const HeatmapCalendar = ({ workouts }) => {
         1
     );
 
-    // Get color intensity based on activity & rest day status
-    const getColorIntensity = (dayData) => {
+    // Get color intensity & border style based on day state
+    const getDayStyle = (dayData, day) => {
         const { activity, hasRestDay, count } = dayData;
+        const checkDay = startOfDay(day);
+        const isFutureDay = checkDay > today;
 
-        // Pure rest day (logged rest day with no active workout)
+        // 1. Logged Rest Day (pure rest day with no active workout)
         if (hasRestDay && count === 0) {
-            return 'bg-purple-100 border-purple-300 text-purple-900 hover:bg-purple-200';
+            return 'bg-purple-100 border-purple-300 text-purple-900 hover:bg-purple-200 hover:scale-110 cursor-pointer';
         }
 
-        // Empty unlogged day
-        if (activity === 0) return 'bg-gray-100 border-gray-200';
+        // 2. Logged Workout Day (has activity points)
+        if (activity > 0) {
+            const intensity = activity / maxActivity;
+            let bgClass = 'bg-primary-200 border-primary-300';
+            if (intensity >= 0.75) bgClass = 'bg-primary-600 border-primary-700 shadow-sm';
+            else if (intensity >= 0.5) bgClass = 'bg-primary-500 border-primary-600';
+            else if (intensity >= 0.25) bgClass = 'bg-primary-300 border-primary-400';
 
-        // Active workout day
-        const intensity = activity / maxActivity;
+            return `${bgClass} hover:scale-110 cursor-pointer`;
+        }
 
-        if (intensity >= 0.75) return 'bg-primary-600 border-primary-700 shadow-sm';
-        if (intensity >= 0.5) return 'bg-primary-500 border-primary-600';
-        if (intensity >= 0.25) return 'bg-primary-300 border-primary-400';
-        return 'bg-primary-200 border-primary-300';
+        // 3. Unlogged Future Day
+        if (isFutureDay) {
+            return 'bg-gray-50/40 border-dashed border-gray-200 text-gray-400 opacity-50';
+        }
+
+        // 4. Unlogged Past Day (Missed log)
+        return 'bg-amber-50/60 border-dashed border-amber-300 text-amber-800 hover:border-amber-400 hover:bg-amber-100/70 hover:scale-105 cursor-pointer';
     };
 
     // Navigation handlers
@@ -83,16 +95,26 @@ const HeatmapCalendar = ({ workouts }) => {
         .filter(day => day.getMonth() === currentMonth.getMonth())
         .reduce((stats, day) => {
             const dayData = getActivityForDay(day);
+            const checkDay = startOfDay(day);
+            const isPastOrToday = checkDay <= today;
+
+            const isWorkout = dayData.count > 0;
+            const isRest = dayData.hasRestDay && !isWorkout;
+            const isUnlogged = isPastOrToday && !isWorkout && !isRest;
+
             return {
                 totalWorkouts: stats.totalWorkouts + dayData.count,
                 totalActivity: stats.totalActivity + dayData.activity,
-                activeDays: stats.activeDays + (dayData.count > 0 ? 1 : 0),
-                restDays: stats.restDays + (dayData.hasRestDay && dayData.count === 0 ? 1 : 0),
+                activeDays: stats.activeDays + (isWorkout ? 1 : 0),
+                restDays: stats.restDays + (isRest ? 1 : 0),
+                unloggedDays: stats.unloggedDays + (isUnlogged ? 1 : 0),
+                elapsedDays: stats.elapsedDays + (isPastOrToday ? 1 : 0),
             };
-        }, { totalWorkouts: 0, totalActivity: 0, activeDays: 0, restDays: 0 });
+        }, { totalWorkouts: 0, totalActivity: 0, activeDays: 0, restDays: 0, unloggedDays: 0, elapsedDays: 0 });
 
-    const daysInMonth = calendarDays.filter(day => day.getMonth() === currentMonth.getMonth()).length;
-    const consistencyRate = (((monthlyStats.activeDays + monthlyStats.restDays) / daysInMonth) * 100).toFixed(0);
+    const consistencyRate = monthlyStats.elapsedDays > 0
+        ? (((monthlyStats.activeDays + monthlyStats.restDays) / monthlyStats.elapsedDays) * 100).toFixed(0)
+        : 0;
 
     return (
         <div className="space-y-6">
@@ -107,7 +129,7 @@ const HeatmapCalendar = ({ workouts }) => {
                             {format(currentMonth, 'MMMM yyyy')}
                         </h3>
                         <p className="text-xs md:text-sm text-gray-600">
-                            {monthlyStats.activeDays} active days • {monthlyStats.restDays} rest days • {consistencyRate}% consistency
+                            {monthlyStats.activeDays} active • {monthlyStats.restDays} rest • {monthlyStats.unloggedDays} unlogged • {consistencyRate}% consistency
                         </p>
                     </div>
                 </div>
@@ -156,18 +178,20 @@ const HeatmapCalendar = ({ workouts }) => {
                         const dayData = getActivityForDay(day);
                         const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
                         const isToday = isSameDay(day, new Date());
+                        const checkDay = startOfDay(day);
+                        const isFutureDay = checkDay > today;
                         const isRestDayOnly = dayData.hasRestDay && dayData.count === 0;
-                        const hasLoggedActivity = dayData.count > 0 || dayData.hasRestDay;
+                        const isWorkoutDay = dayData.count > 0;
+                        const isUnloggedPast = !isWorkoutDay && !isRestDayOnly && !isFutureDay;
 
                         return (
                             <div
                                 key={index}
                                 className={`
                   aspect-square rounded-lg border-2 transition-all duration-200
-                  ${getColorIntensity(dayData)}
-                  ${!isCurrentMonth ? 'opacity-30' : 'opacity-100'}
-                  ${isToday ? 'ring-2 ring-primary-600 ring-offset-2' : ''}
-                  ${hasLoggedActivity ? 'hover:scale-110 cursor-pointer' : ''}
+                  ${getDayStyle(dayData, day)}
+                  ${!isCurrentMonth ? 'opacity-30' : ''}
+                  ${isToday ? 'ring-2 ring-primary-600 ring-offset-2 font-bold' : ''}
                   group relative
                 `}
                             >
@@ -175,9 +199,13 @@ const HeatmapCalendar = ({ workouts }) => {
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <span className={`text-xs font-medium ${
                                         dayData.activity > maxActivity * 0.5
-                                            ? 'text-white'
+                                            ? 'text-white font-bold'
                                             : isRestDayOnly
                                             ? 'text-purple-900 font-semibold'
+                                            : isUnloggedPast
+                                            ? 'text-amber-800'
+                                            : isFutureDay
+                                            ? 'text-gray-400'
                                             : 'text-gray-700'
                                     }`}>
                                         {format(day, 'd')}
@@ -189,42 +217,59 @@ const HeatmapCalendar = ({ workouts }) => {
                                     <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-purple-500" />
                                 )}
 
+                                {/* Unlogged Past Day indicator icon */}
+                                {isUnloggedPast && isCurrentMonth && (
+                                    <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-400 opacity-70" />
+                                )}
+
                                 {/* Tooltip on hover */}
-                                {hasLoggedActivity && (
-                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 pointer-events-none">
-                                        <div className="bg-gray-900 text-white text-xs rounded-xl px-3 py-2.5 shadow-lifted whitespace-nowrap space-y-1">
-                                            <div className="font-semibold text-gray-200">{format(day, 'MMM d, yyyy')}</div>
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 pointer-events-none">
+                                    <div className="bg-gray-900 text-white text-xs rounded-xl px-3 py-2.5 shadow-lifted whitespace-nowrap space-y-1">
+                                        <div className="font-semibold text-gray-200">{format(day, 'MMM d, yyyy')}</div>
 
-                                            {dayData.count > 0 && (
-                                                <>
-                                                    <div className="text-gray-300">
-                                                        {dayData.count} workout{dayData.count !== 1 ? 's' : ''}
-                                                    </div>
-                                                    <div className="text-primary-300 font-bold">
-                                                        {dayData.activity} activity points
-                                                    </div>
-                                                </>
-                                            )}
-
-                                            {dayData.hasRestDay && (
-                                                <div className="pt-0.5 text-purple-300 font-medium flex items-center gap-1.5">
-                                                    <Hotel className="w-3.5 h-3.5 inline text-purple-400" />
-                                                    <span>Rest & Recovery Day</span>
-                                                    {dayData.restDay?.recoveryQuality && (
-                                                        <span className="text-purple-200 text-[10px] bg-purple-900/60 px-1.5 py-0.5 rounded">
-                                                            {dayData.restDay.recoveryQuality}/5 Quality
-                                                        </span>
-                                                    )}
+                                        {isWorkoutDay && (
+                                            <>
+                                                <div className="text-gray-300">
+                                                    {dayData.count} workout{dayData.count !== 1 ? 's' : ''}
                                                 </div>
-                                            )}
+                                                <div className="text-primary-300 font-bold">
+                                                    {dayData.activity} activity points
+                                                </div>
+                                            </>
+                                        )}
 
-                                            {/* Arrow */}
-                                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
-                                                <div className="border-4 border-transparent border-t-gray-900" />
+                                        {isRestDayOnly && (
+                                            <div className="pt-0.5 text-purple-300 font-medium flex items-center gap-1.5">
+                                                <Hotel className="w-3.5 h-3.5 inline text-purple-400" />
+                                                <span>Rest & Recovery Day</span>
+                                                {dayData.restDay?.recoveryQuality && (
+                                                    <span className="text-purple-200 text-[10px] bg-purple-900/60 px-1.5 py-0.5 rounded">
+                                                        {dayData.restDay.recoveryQuality}/5 Quality
+                                                    </span>
+                                                )}
                                             </div>
+                                        )}
+
+                                        {isUnloggedPast && (
+                                            <div className="text-amber-300 font-medium flex items-center gap-1.5">
+                                                <AlertCircle className="w-3.5 h-3.5 inline text-amber-400" />
+                                                <span>Unlogged Day (No entry)</span>
+                                            </div>
+                                        )}
+
+                                        {isFutureDay && (
+                                            <div className="text-gray-400 font-medium flex items-center gap-1.5">
+                                                <Clock className="w-3.5 h-3.5 inline text-gray-400" />
+                                                <span>Upcoming Day</span>
+                                            </div>
+                                        )}
+
+                                        {/* Arrow */}
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
+                                            <div className="border-4 border-transparent border-t-gray-900" />
                                         </div>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         );
                     })}
@@ -234,36 +279,51 @@ const HeatmapCalendar = ({ workouts }) => {
             {/* Legend */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 border-t border-gray-200">
                 <div className="flex flex-wrap items-center gap-3">
+                    {/* Activity Scale */}
                     <div className="flex items-center gap-1.5">
                         <span className="text-xs text-gray-600 font-medium">Less</span>
                         <div className="flex gap-1 items-center">
-                            <div className="w-4 h-4 rounded bg-gray-100 border border-gray-200" title="No activity" />
-                            <div className="w-4 h-4 rounded bg-primary-200 border border-primary-300" title="Low activity" />
-                            <div className="w-4 h-4 rounded bg-primary-300 border border-primary-400" title="Moderate activity" />
-                            <div className="w-4 h-4 rounded bg-primary-500 border border-primary-600" title="High activity" />
-                            <div className="w-4 h-4 rounded bg-primary-600 border border-primary-700" title="Peak activity" />
+                            <div className="w-3.5 h-3.5 rounded bg-primary-200 border border-primary-300" title="Low activity" />
+                            <div className="w-3.5 h-3.5 rounded bg-primary-300 border border-primary-400" title="Moderate activity" />
+                            <div className="w-3.5 h-3.5 rounded bg-primary-500 border border-primary-600" title="High activity" />
+                            <div className="w-3.5 h-3.5 rounded bg-primary-600 border border-primary-700" title="Peak activity" />
                         </div>
                         <span className="text-xs text-gray-600 font-medium">More</span>
                     </div>
 
+                    {/* Rest Day Legend */}
                     <div className="flex items-center gap-1.5 pl-2 border-l border-gray-200">
-                        <div className="w-4 h-4 rounded bg-purple-100 border border-purple-300 flex items-center justify-center">
-                            <Hotel className="w-2.5 h-2.5 text-purple-600" />
+                        <div className="w-3.5 h-3.5 rounded bg-purple-100 border border-purple-300 flex items-center justify-center">
+                            <Hotel className="w-2 h-2 text-purple-600" />
                         </div>
                         <span className="text-xs text-purple-700 font-semibold">Rest Day</span>
+                    </div>
+
+                    {/* Unlogged Day Legend */}
+                    <div className="flex items-center gap-1.5 pl-2 border-l border-gray-200">
+                        <div className="w-3.5 h-3.5 rounded bg-amber-50/80 border border-dashed border-amber-300 flex items-center justify-center">
+                            <AlertCircle className="w-2 h-2 text-amber-600" />
+                        </div>
+                        <span className="text-xs text-amber-700 font-semibold">Unlogged</span>
+                    </div>
+
+                    {/* Future Legend */}
+                    <div className="flex items-center gap-1.5 pl-2 border-l border-gray-200">
+                        <div className="w-3.5 h-3.5 rounded bg-gray-50/40 border border-dashed border-gray-200 opacity-60" />
+                        <span className="text-xs text-gray-400">Future</span>
                     </div>
                 </div>
 
                 {/* Monthly summary */}
-                <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-3 text-xs">
                     <div className="text-gray-600">
                         <span className="font-bold text-gray-900">{monthlyStats.totalWorkouts}</span> workouts
                     </div>
                     <div className="text-gray-600">
-                        <span className="font-bold text-purple-700">{monthlyStats.restDays}</span> rest days
+                        <span className="font-bold text-purple-700">{monthlyStats.restDays}</span> rest
                     </div>
                     <div className="text-gray-600">
-                        <span className="font-bold text-primary-600">{monthlyStats.totalActivity.toLocaleString()}</span> pts
+                        <span className="font-bold text-amber-700">{monthlyStats.unloggedDays}</span> unlogged
                     </div>
                 </div>
             </div>
@@ -272,4 +332,5 @@ const HeatmapCalendar = ({ workouts }) => {
 };
 
 export default HeatmapCalendar;
+
 
