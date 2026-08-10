@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Dumbbell, Home, History, BarChart3, Plus, LogOut, User, Moon, Sun } from 'lucide-react';
+import { Dumbbell, Home, History, BarChart3, Plus, LogOut, User, Moon, Sun, Wifi, WifiOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import useOnlineStatus from '../../hooks/useOnlineStatus';
 import { lightHaptic } from '../../utils/haptics';
 import toast from 'react-hot-toast';
 import MobileMenu from './MobileMenu';
@@ -12,6 +13,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const isOnline = useOnlineStatus();
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
@@ -72,6 +74,28 @@ const Header = () => {
 
             {/* User Menu */}
             <div className="ml-2 flex items-center space-x-2">
+              {/* Online/Offline Connection Status Badge */}
+              <div
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-2xl text-xs font-medium transition-all ${
+                  isOnline
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                    : 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 animate-pulse'
+                }`}
+                title={isOnline ? 'Online (Cloud Sync Active)' : 'Offline (Local PWA Storage)'}
+              >
+                {isOnline ? (
+                  <>
+                    <Wifi className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Online</span>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Offline</span>
+                  </>
+                )}
+              </div>
+
               <button
                 onClick={toggleTheme}
                 className="p-3 rounded-2xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
@@ -99,6 +123,16 @@ const Header = () => {
 
           {/* Mobile: Actions (Right Side) */}
           <div className="flex md:hidden items-center space-x-1">
+            <div
+              className={`p-2 rounded-xl text-xs flex items-center space-x-1 ${
+                isOnline
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+              }`}
+              title={isOnline ? 'Online' : 'Offline'}
+            >
+              {isOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+            </div>
             <button
               onClick={toggleTheme}
               className="p-3 rounded-2xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
