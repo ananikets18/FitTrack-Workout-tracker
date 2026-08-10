@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-// eslint-disable-next-line no-unused-vars
+ 
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { mediumHaptic } from '../../utils/haptics';

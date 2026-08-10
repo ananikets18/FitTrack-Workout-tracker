@@ -19,7 +19,7 @@ import HeatmapCalendar from '../components/charts/HeatmapCalendar';
 import PRTimeline from '../components/charts/PRTimeline';
 import InteractiveChart from '../components/charts/InteractiveChart';
 import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, ChevronDown, Calendar, Trophy, BarChart3 } from 'lucide-react';
-// eslint-disable-next-line no-unused-vars
+ 
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Statistics = () => {

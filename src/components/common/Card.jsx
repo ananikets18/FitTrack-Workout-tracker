@@ -8,7 +8,7 @@ const Card = ({
 }) => {
   const baseStyles = 'bg-white dark:bg-gray-800 rounded-2xl transition-colors duration-300 ease-out';
 
-  const shadowStyles = 'shadow-soft';
+  const shadowStyles = elevated ? 'shadow-lg dark:shadow-gray-900/50' : 'shadow-soft';
 
   const hoverStyles = hover
     ? 'hover:shadow-lifted hover:-translate-y-1 cursor-pointer active:scale-[0.98] active:shadow-soft'

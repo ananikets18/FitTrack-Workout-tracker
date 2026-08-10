@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Menu } from 'lucide-react';
-// eslint-disable-next-line no-unused-vars
+ 
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MobileMenu = ({ children }) => {

@@ -63,7 +63,7 @@ const BodyMeasurementsTracker = () => {
                 await addMeasurement(measurementData);
             }
             handleCloseModal();
-        } catch (error) {
+        } catch (_error) {
             // Error handled in context
         }
     };
@@ -112,7 +112,7 @@ const BodyMeasurementsTracker = () => {
 
     const latestMeasurement = getLatestMeasurement();
     const weightTrend = getWeightTrend(30);
-    const changes = getMeasurementChanges();
+    const _changes = getMeasurementChanges();
     const weightChangeRate = predictWeightChangeRate(4);
 
     // Get BMI if we have weight and height from profile

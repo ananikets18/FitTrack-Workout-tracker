@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
@@ -20,7 +20,7 @@ export const NutritionProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     // Fetch nutrition logs
-    const fetchNutritionLogs = async (days = 30) => {
+    const fetchNutritionLogs = useCallback(async (days = 30) => {
         if (!user) {
             setNutritionLogs([]);
             setLoading(false);
@@ -54,7 +54,7 @@ export const NutritionProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
     // Add nutrition log
     const addNutritionLog = async (nutritionData) => {
@@ -196,7 +196,7 @@ export const NutritionProvider = ({ children }) => {
 
     useEffect(() => {
         fetchNutritionLogs();
-    }, [user]);
+    }, [fetchNutritionLogs]);
 
     const value = {
         nutritionLogs,

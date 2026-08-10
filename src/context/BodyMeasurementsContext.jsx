@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
@@ -20,7 +20,7 @@ export const BodyMeasurementsProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     // Fetch body measurements
-    const fetchMeasurements = async () => {
+    const fetchMeasurements = useCallback(async () => {
         if (!user) {
             setMeasurements([]);
             setLoading(false);
@@ -52,7 +52,7 @@ export const BodyMeasurementsProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
     // Add body measurement
     const addMeasurement = async (measurementData) => {
@@ -244,7 +244,7 @@ export const BodyMeasurementsProvider = ({ children }) => {
 
     useEffect(() => {
         fetchMeasurements();
-    }, [user]);
+    }, [fetchMeasurements]);
 
     const value = {
         measurements,

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Logger Utility
  * Provides controlled logging based on environment

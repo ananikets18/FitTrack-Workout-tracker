@@ -7,7 +7,6 @@ import {
     detectMuscleGroupsWeighted
 } from './exerciseMuscleMapping';
 import {
-    getSystemicReadiness,
     calculateSystemicStress
 } from './intensityClassification';
 import { checkNutritionAdequacy } from './nutritionChecker';

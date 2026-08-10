@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Plus, History, BarChart3, Activity } from 'lucide-react';
-// eslint-disable-next-line no-unused-vars
+ 
 import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { lightHaptic, mediumHaptic } from '../../utils/haptics';
 import { useState } from 'react';

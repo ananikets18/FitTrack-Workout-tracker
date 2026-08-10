@@ -71,7 +71,7 @@ const Login = () => {
 
     try {
       if (view === 'sign_up') {
-        const { data, error: signupError } = await signUp(
+        const { error: signupError } = await signUp(
           normalizedEmail,
           password,
           { name: name.trim() }
