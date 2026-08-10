@@ -57,7 +57,7 @@ export const exportToCSV = (workouts) => {
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\\n');
+    ].join('\n');
 
     // Download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -392,5 +392,31 @@ export const importFromExcel = (file) => {
     reader.onerror = () => reject(new Error('Error reading file'));
     reader.readAsArrayBuffer(file);
   });
+};
+
+/**
+ * Validate structure of exported JSON data schema
+ * @param {Object} data - Parsed JSON import data
+ * @returns {Object} Validation status and workout list
+ */
+export const validateExportSchema = (data) => {
+  if (!data) return { isValid: false, reason: 'Empty data payload', workouts: [] };
+  
+  let workouts = [];
+  if (Array.isArray(data)) {
+    workouts = data;
+  } else if (typeof data === 'object' && Array.isArray(data.workouts)) {
+    workouts = data.workouts;
+  } else {
+    return { isValid: false, reason: 'JSON missing array of workouts', workouts: [] };
+  }
+
+  const validWorkouts = workouts.filter(w => w && (w.name || w.type === 'rest_day') && (w.date || w.id));
+  return {
+    isValid: validWorkouts.length > 0,
+    totalCount: workouts.length,
+    validCount: validWorkouts.length,
+    workouts: validWorkouts
+  };
 };
 
