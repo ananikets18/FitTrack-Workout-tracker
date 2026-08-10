@@ -6,6 +6,11 @@ export default defineConfig({
   plugins: [
     react(),
   ],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    include: ['src/**/*.{test,spec}.{js,jsx}'],
+  },
   
   build: {
     // Generate source maps for production debugging (can be disabled for smaller bundle)
