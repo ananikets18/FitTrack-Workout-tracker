@@ -26,12 +26,15 @@ export default [
     rules: {
       ...reactHooks.configs.recommended.rules,
       'no-unused-vars': ['warn', {
-        varsIgnorePattern: '^[A-Z_]',
+        varsIgnorePattern: '^(_|motion|[A-Z_])',
         argsIgnorePattern: '^_',
         ignoreRestSiblings: true
       }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'react-refresh/only-export-components': ['warn', {
+        allowConstantExport: true,
+        allowExportNames: ['useAuth', 'useBodyMeasurements', 'useNutrition', 'usePreferences', 'useSleep', 'useTheme', 'useWorkout', 'useTemplate']
+      }],
     },
   },
 ]

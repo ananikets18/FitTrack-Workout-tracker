@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Minus, Plus } from 'lucide-react';
-// eslint-disable-next-line no-unused-vars
+ 
 import { motion } from 'framer-motion';
 
 const NumberPicker = ({

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
@@ -20,7 +20,7 @@ export const SleepProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     // Fetch sleep logs
-    const fetchSleepLogs = async () => {
+    const fetchSleepLogs = useCallback(async () => {
         if (!user) {
             setSleepLogs([]);
             setLoading(false);
@@ -52,7 +52,7 @@ export const SleepProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
     // Add sleep log
     const addSleepLog = async (sleepData) => {
@@ -177,7 +177,7 @@ export const SleepProvider = ({ children }) => {
 
     useEffect(() => {
         fetchSleepLogs();
-    }, [user]);
+    }, [fetchSleepLogs]);
 
     const value = {
         sleepLogs,

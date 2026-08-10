@@ -129,7 +129,7 @@ self.addEventListener('activate', (event) => {
           cacheNames
             .filter((cacheName) => !currentCaches.includes(cacheName))
             .map((cacheName) => {
-              console.log('Deleting old cache:', cacheName);
+              console.warn('Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             })
         );

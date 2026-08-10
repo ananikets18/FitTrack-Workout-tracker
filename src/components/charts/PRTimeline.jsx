@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format, differenceInDays } from 'date-fns';
 import { Trophy, TrendingUp, Award, Zap, Target } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { getEffectiveWeight, isBarbellExercise, isIsometricExercise } from '../../data/exercises';
 
 /**
@@ -10,7 +10,6 @@ import { getEffectiveWeight, isBarbellExercise, isIsometricExercise } from '../.
  */
 const PRTimeline = ({ workouts }) => {
     const [selectedExercise, setSelectedExercise] = useState(null);
-    const [viewMode, setViewMode] = useState('all'); // 'all' or 'exercise'
 
     // Filter out rest days
     const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');

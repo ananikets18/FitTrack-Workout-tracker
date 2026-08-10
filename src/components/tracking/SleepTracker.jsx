@@ -14,7 +14,6 @@ const SleepTracker = () => {
         addSleepLog,
         updateSleepLog,
         deleteSleepLog,
-        getSleepForDate,
         getAverageSleep,
         getSleepTrend
     } = useSleep();
@@ -49,7 +48,7 @@ const SleepTracker = () => {
                 await addSleepLog(sleepData);
             }
             handleCloseModal();
-        } catch (error) {
+        } catch (_error) {
             // Error handled in context
         }
     };

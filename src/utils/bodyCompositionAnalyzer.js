@@ -16,7 +16,7 @@ import { getLocalDateInputValue } from './date';
  * @param {Object} userProfile - User profile data (optional)
  * @returns {Object} Analysis with insights and predictions
  */
-export const analyzeBodyComposition = (measurements, workouts, nutritionLogs = [], userProfile = {}) => {
+export const analyzeBodyComposition = (measurements, workouts, _nutritionLogs = [], userProfile = {}) => {
     if (!measurements || measurements.length < 2) {
         return {
             status: 'insufficient_data',

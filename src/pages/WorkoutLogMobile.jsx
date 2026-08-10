@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useWorkouts } from '../context/WorkoutContext';
 import { useTemplates } from '../context/TemplateContext';
 import { useMotionValue, useTransform } from 'framer-motion';
-// eslint-disable-next-line no-unused-vars
+ 
 import { motion } from 'framer-motion';
 import Card from '../components/common/Card';
 import NumberPicker from '../components/common/NumberPicker';

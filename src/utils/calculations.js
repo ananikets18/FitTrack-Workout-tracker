@@ -3,18 +3,15 @@ import {
   detectCardioType,
   calculateCardioStress,
   classifyWorkoutCardio,
-  getCardioTypeLabel,
   CARDIO_TYPES
 } from './cardioClassification';
 import {
-  getExerciseMuscleDistribution,
   calculateWeightedMuscleSets
 } from './exerciseMuscleMapping';
 import {
   calculateSystemicStress,
   getSystemicReadiness,
-  getWorkoutIntensityClassification,
-  classifyExerciseIntensity
+  getWorkoutIntensityClassification
 } from './intensityClassification';
 import { getEffectiveWeight } from '../data/exercises';
 

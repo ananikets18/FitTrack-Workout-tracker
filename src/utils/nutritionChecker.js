@@ -42,7 +42,7 @@ export const checkNutritionAdequacy = (nutritionLogs, userProfile = {}, workouts
     const avgCalories = dailyTotals.reduce((sum, day) => sum + day.calories, 0) / dailyTotals.length;
     const avgProtein = dailyTotals.reduce((sum, day) => sum + day.protein, 0) / dailyTotals.length;
     const avgCarbs = dailyTotals.reduce((sum, day) => sum + day.carbs, 0) / dailyTotals.length;
-    const avgFats = dailyTotals.reduce((sum, day) => sum + day.fats, 0) / dailyTotals.length;
+    const _avgFats = dailyTotals.reduce((sum, day) => sum + day.fats, 0) / dailyTotals.length;
 
     // Get recent training volume
     const recentWorkouts = workouts.filter(w => w.type !== 'rest_day').slice(0, 7);
@@ -203,7 +203,7 @@ export const getDailyTotals = (nutritionLogs, date) => {
  * @returns {Object} Average nutrition
  */
 export const getAverageNutrition = (nutritionLogs, days = 7) => {
-    const recentDates = [...new Set(nutritionLogs.map(log => log.date))].slice(0, 7);
+    const recentDates = [...new Set(nutritionLogs.map(log => log.date))].slice(0, days);
 
     if (recentDates.length === 0) {
         return {

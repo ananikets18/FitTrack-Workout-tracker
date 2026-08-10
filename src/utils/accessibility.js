@@ -123,7 +123,7 @@ export const createSkipLink = (targetId, label = 'Skip to main content') => {
 /**
  * Ensure minimum contrast ratio (WCAG AA: 4.5:1 for normal text, 3:1 for large text)
  */
-export const getContrastRatio = (color1, color2) => {
+export const getContrastRatio = (_color1, _color2) => {
   // Simplified version - in production, use a proper color library
   // Returns true if contrast is sufficient
   return true; // Placeholder

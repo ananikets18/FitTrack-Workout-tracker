@@ -21,7 +21,7 @@ import SkeletonStatCard from '../components/common/SkeletonStatCard';
 import { TrendingUp, Calendar, Flame, ChevronRight, ChevronDown, Dumbbell, Hotel, Plus, RotateCcw, Zap, Brain, AlertCircle, Droplet, Minus } from 'lucide-react';
 import { formatDate } from '../utils/calculations';
 import toast from 'react-hot-toast';
-// eslint-disable-next-line no-unused-vars
+ 
 import { motion } from 'framer-motion';
 
 const Home = () => {
