@@ -12,6 +12,7 @@ const WorkoutContext = createContext();
 const ACTIONS = {
   SET_WORKOUTS: 'SET_WORKOUTS',
   ADD_WORKOUT: 'ADD_WORKOUT',
+  ADD_WORKOUTS: 'ADD_WORKOUTS',
   UPDATE_WORKOUT: 'UPDATE_WORKOUT',
   DELETE_WORKOUT: 'DELETE_WORKOUT',
   SET_CURRENT_WORKOUT: 'SET_CURRENT_WORKOUT',
@@ -34,6 +35,8 @@ const workoutReducer = (state, action) => {
       return { ...state, workouts: action.payload, isLoading: false };
     case ACTIONS.ADD_WORKOUT:
       return { ...state, workouts: [action.payload, ...state.workouts] };
+    case ACTIONS.ADD_WORKOUTS:
+      return { ...state, workouts: [...action.payload, ...state.workouts] };
     case ACTIONS.UPDATE_WORKOUT:
       return {
         ...state,
@@ -251,6 +254,61 @@ export const WorkoutProvider = ({ children }) => {
     } catch (error) {
       console.error('Error adding rest day:', error);
       toast.error('Failed to log rest day');
+      throw error;
+    }
+  };
+
+  // Add bulk rest days - Direct to Supabase
+  const addBulkRestDays = async (bulkRestDayData) => {
+    if (!user) {
+      toast.error('Please log in to save rest days');
+      return [];
+    }
+
+    try {
+      const { dates, recoveryQuality = 3, activities = [], notes = '' } = bulkRestDayData;
+
+      if (!dates || !Array.isArray(dates) || dates.length === 0) {
+        toast.error('No dates selected for rest days');
+        return [];
+      }
+
+      const quality = Math.max(1, Math.min(5, parseInt(recoveryQuality) || 3));
+      const cleanActivities = Array.isArray(activities) ? activities : [];
+      const cleanNotes = (notes || '').trim().slice(0, 1000);
+
+      const restDaysToCreate = dates.map(dateInput => {
+        const selectedDate = new Date(dateInput);
+        selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
+
+        return {
+          type: 'rest_day',
+          date: selectedDate.toISOString(),
+          recoveryQuality: quality,
+          activities: cleanActivities,
+          notes: cleanNotes,
+        };
+      });
+
+      const previousWorkouts = state.workouts;
+
+      // Save directly to Supabase
+      const newRestDays = await supabase.createBulkRestDays(restDaysToCreate, user.id);
+
+      // Update local state
+      dispatch({ type: ACTIONS.ADD_WORKOUTS, payload: newRestDays });
+
+      toast.success(`Logged ${newRestDays.length} rest day${newRestDays.length > 1 ? 's' : ''}! 🛌`);
+
+      // Check for newly unlocked achievements
+      const updatedWorkouts = [...newRestDays, ...previousWorkouts];
+      const newlyUnlocked = getNewlyUnlockedAchievements(updatedWorkouts, previousWorkouts);
+      if (newlyUnlocked.length > 0) fireAchievementToasts(newlyUnlocked);
+
+      return newRestDays;
+    } catch (error) {
+      console.error('Error adding bulk rest days:', error);
+      toast.error('Failed to log bulk rest days');
       throw error;
     }
   };
@@ -520,6 +578,7 @@ export const WorkoutProvider = ({ children }) => {
     isWaterHistoryLoading: state.isWaterHistoryLoading,
     addWorkout,
     addRestDay,
+    addBulkRestDays,
     updateWorkout,
     deleteWorkout,
     setCurrentWorkout,

@@ -3,12 +3,31 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Modal from './Modal';
 import Button from './Button';
+import BulkRestDayModal from './BulkRestDayModal';
 import { Star, Calendar } from 'lucide-react';
 import { getLocalDateInputValue } from '../../utils/date';
+import { useWorkouts } from '../../context/WorkoutContext';
 
-const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
+const RestDayModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  onSaveBulk = null,
+  initialData = null,
+  initialMode = 'single'
+}) => {
+  const { addBulkRestDays } = useWorkouts();
   const today = getLocalDateInputValue();
-  
+  const [activeTab, setActiveTab] = useState(initialMode);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      setActiveTab(initialMode);
+    }
+  }
+
   const [restDayData, setRestDayData] = useState({
     date: initialData?.date || today,
     recoveryQuality: initialData?.recoveryQuality || 3,
@@ -67,12 +86,48 @@ const RestDayModal = ({ isOpen, onClose, onSave, initialData = null }) => {
     onClose();
   };
 
+  if (activeTab === 'bulk') {
+    return (
+      <BulkRestDayModal
+        isOpen={isOpen}
+        onClose={handleClose}
+        onSaveBulk={async (bulkData) => {
+          if (onSaveBulk) {
+            await onSaveBulk(bulkData);
+          } else {
+            await addBulkRestDays(bulkData);
+          }
+        }}
+        onSwitchToSingle={() => setActiveTab('single')}
+      />
+    );
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Log Rest Day">
       <div className="space-y-6">
+        {/* Mode Switcher */}
+        {!initialData && (
+          <div className="flex items-center justify-between p-1.5 bg-gray-100 dark:bg-gray-800 rounded-xl">
+            <button
+              type="button"
+              className="flex-1 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm"
+            >
+              Single Day
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('bulk')}
+              className="flex-1 py-2 text-sm font-semibold rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              Bulk Add
+            </button>
+          </div>
+        )}
+
         {/* Date Picker */}
         <div>
-          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-2">
+          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
             <Calendar className="w-4 h-4" />
             <span>Date</span>
           </label>

@@ -17,15 +17,18 @@ import {
   addMonths,
   subMonths
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Hotel, Star, Weight, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Hotel, Star, Weight, Clock, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { calculateTotalVolume, kgToTons, groupWorkoutsByDate } from '../utils/calculations';
+import RestDayModal from '../components/common/RestDayModal';
 
 const Calendar = () => {
-  const { workouts } = useWorkouts();
+  const { workouts, addRestDay, addBulkRestDays } = useWorkouts();
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
+  const [restDayModalMode, setRestDayModalMode] = useState('bulk');
 
   // Get calendar dates
   const monthStart = startOfMonth(currentMonth);
@@ -54,15 +57,8 @@ const Calendar = () => {
 
   const handleDateClick = (date) => {
     const density = getWorkoutDensity(date);
-    if (density.count > 0 || density.hasRestDay) {
-      setSelectedDate({ date, ...density });
-      setIsSheetOpen(true);
-    } else if (isFuture(date)) {
-      // Future date - prompt to schedule workout
-      if (window.confirm('Would you like to schedule a workout for this date?')) {
-        navigate('/log');
-      }
-    }
+    setSelectedDate({ date, ...density });
+    setIsSheetOpen(true);
   };
 
   const handlePrevMonth = () => {
@@ -218,10 +214,24 @@ const Calendar = () => {
   return (
     <div className="space-y-6 pb-safe">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 ">Calendar</h1>
           <p className="text-gray-600 mt-1">View your workout schedule</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => {
+              setRestDayModalMode('bulk');
+              setIsRestDayModalOpen(true);
+            }}
+            className="flex items-center text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 "
+          >
+            <Hotel className="w-4 h-4 mr-2 text-purple-600" />
+            <span>Rest Days</span>
+          </Button>
         </div>
       </div>
 
@@ -431,124 +441,179 @@ const Calendar = () => {
       >
         {selectedDate && (
           <div className="space-y-4">
-            {selectedDate.workouts.map((workout, idx) => (
-              <div key={idx} className={`rounded-xl p-4 space-y-3 ${workout.type === 'rest_day'
-                ? 'bg-purple-50 border-2 border-purple-200 '
-                : 'bg-gray-50 '
-                }`}>
-                {workout.type === 'rest_day' ? (
-                  <>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="bg-purple-200 rounded-xl p-2">
-                          <Hotel className="w-5 h-5 text-purple-600 " />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-lg text-gray-900 ">Rest Day</h4>
-                          <p className="text-sm text-gray-500 mt-1">
-                            {new Date(workout.date).toLocaleTimeString('en-US', {
-                              hour: 'numeric',
-                              minute: '2-digit',
-                              hour12: true
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-purple-200 ">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm text-gray-600 ">Recovery:</span>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      {workout.activities && workout.activities.length > 0 && (
-                        <div>
-                          <span className="text-sm text-gray-600 block mb-2">Activities:</span>
-                          <div className="flex flex-wrap gap-2">
-                            {workout.activities.map((activity, actIdx) => (
-                              <span
-                                key={actIdx}
-                                className="px-2 py-1 text-xs font-semibold bg-purple-200 text-purple-700 rounded-lg"
-                              >
-                                {activity.replace('_', ' ')}
-                              </span>
-                            ))}
+            {selectedDate.workouts.length === 0 ? (
+              <div className="py-6 text-center space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto text-gray-400">
+                  <CalendarIcon className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 ">No activity logged</h4>
+                  <p className="text-xs text-gray-500 mt-1">Schedule a workout or record a rest day for this date</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <Button
+                    variant="primary"
+                    className="flex-1"
+                    onClick={() => {
+                      setIsSheetOpen(false);
+                      navigate('/log');
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-1.5" />
+                    Log Workout
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="flex-1 text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 "
+                    onClick={() => {
+                      setIsSheetOpen(false);
+                      setRestDayModalMode('single');
+                      setIsRestDayModalOpen(true);
+                    }}
+                  >
+                    <Hotel className="w-4 h-4 mr-1.5 text-purple-600" />
+                    Log Rest Day
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {selectedDate.workouts.map((workout, idx) => (
+                  <div key={idx} className={`rounded-xl p-4 space-y-3 ${workout.type === 'rest_day'
+                    ? 'bg-purple-50 border-2 border-purple-200 '
+                    : 'bg-gray-50 '
+                    }`}>
+                    {workout.type === 'rest_day' ? (
+                      <>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-purple-200 rounded-xl p-2">
+                              <Hotel className="w-5 h-5 text-purple-600 " />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-lg text-gray-900 ">Rest Day</h4>
+                              <p className="text-sm text-gray-500 mt-1">
+                                {new Date(workout.date).toLocaleTimeString('en-US', {
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      )}
-                    </div>
 
-                    {workout.notes && (
-                      <p className="text-sm text-gray-600 italic pt-2 border-t border-purple-200 ">
-                        {workout.notes}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-bold text-lg text-gray-900 ">{workout.name}</h4>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {new Date(workout.date).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
-                          })}
-                        </p>
-                      </div>
-                      <div className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-sm font-semibold">
-                        {workout.exercises?.length || 0} exercises
-                      </div>
-                    </div>
+                        <div className="pt-2 border-t border-purple-200 ">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-sm text-gray-600 ">Recovery:</span>
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${i < workout.recoveryQuality ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 '}`}
+                                />
+                              ))}
+                            </div>
+                          </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 ">
-                      {workout.duration > 0 && (
-                        <div className="flex items-center space-x-2">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600 ">{workout.duration} min</span>
+                          {workout.activities && workout.activities.length > 0 && (
+                            <div>
+                              <span className="text-sm text-gray-600 block mb-2">Activities:</span>
+                              <div className="flex flex-wrap gap-2">
+                                {workout.activities.map((activity, actIdx) => (
+                                  <span
+                                    key={actIdx}
+                                    className="px-2 py-1 text-xs font-semibold bg-purple-200 text-purple-700 rounded-lg"
+                                  >
+                                    {activity.replace('_', ' ')}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      <div className="flex items-center space-x-2">
-                        <Weight className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 ">
-                          {kgToTons(calculateTotalVolume(workout))}T moved
-                        </span>
-                      </div>
-                    </div>
 
-                    {workout.notes && (
-                      <p className="text-sm text-gray-600 italic pt-2 border-t border-gray-200 ">
-                        {workout.notes}
-                      </p>
+                        {workout.notes && (
+                          <p className="text-sm text-gray-600 italic pt-2 border-t border-purple-200 ">
+                            {workout.notes}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-bold text-lg text-gray-900 ">{workout.name}</h4>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {new Date(workout.date).toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </p>
+                          </div>
+                          <div className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-sm font-semibold">
+                            {workout.exercises?.length || 0} exercises
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 ">
+                          {workout.duration > 0 && (
+                            <div className="flex items-center space-x-2">
+                              <Clock className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm text-gray-600 ">{workout.duration} min</span>
+                            </div>
+                          )}
+                          <div className="flex items-center space-x-2">
+                            <Weight className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm text-gray-600 ">
+                              {kgToTons(calculateTotalVolume(workout))}T moved
+                            </span>
+                          </div>
+                        </div>
+
+                        {workout.notes && (
+                          <p className="text-sm text-gray-600 italic pt-2 border-t border-gray-200 ">
+                            {workout.notes}
+                          </p>
+                        )}
+                      </>
                     )}
-                  </>
-                )}
-              </div>
-            ))}
+                  </div>
+                ))}
 
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={() => {
-                setIsSheetOpen(false);
-                navigate('/history');
-              }}
-              className="w-full"
-            >
-              View Full Details
-            </Button>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={() => {
+                    setIsSheetOpen(false);
+                    navigate('/history');
+                  }}
+                  className="w-full"
+                >
+                  View Full Details
+                </Button>
+              </>
+            )}
           </div>
         )}
       </BottomSheet>
+
+      {/* Rest Day Modal */}
+      <RestDayModal
+        isOpen={isRestDayModalOpen}
+        onClose={() => setIsRestDayModalOpen(false)}
+        initialMode={restDayModalMode}
+        initialData={selectedDate ? { date: format(selectedDate.date, 'yyyy-MM-dd') } : null}
+        onSave={async (restDayData) => {
+          await addRestDay(restDayData);
+          setIsRestDayModalOpen(false);
+        }}
+        onSaveBulk={async (bulkData) => {
+          await addBulkRestDays(bulkData);
+          setIsRestDayModalOpen(false);
+        }}
+      />
     </div>
   );
 };

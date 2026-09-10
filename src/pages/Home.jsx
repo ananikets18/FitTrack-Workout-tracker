@@ -29,6 +29,7 @@ const Home = () => {
     workouts,
     isLoading,
     addRestDay,
+    addBulkRestDays,
     cloneWorkout,
     waterIntake,
     addWaterIntake,
@@ -130,10 +131,14 @@ const Home = () => {
     toast.success('Setup complete! 🎉 Smart recommendations enabled', { duration: TOAST_DURATION.LONG });
   };
 
-  const handleSaveRestDay = (restDayData) => {
-    addRestDay(restDayData);
+  const handleSaveRestDay = async (restDayData) => {
+    await addRestDay(restDayData);
     setIsRestDayModalOpen(false);
-    toast.success('Rest day logged! 🛌');
+  };
+
+  const handleSaveBulkRestDays = async (bulkData) => {
+    await addBulkRestDays(bulkData);
+    setIsRestDayModalOpen(false);
   };
 
   // Calculate this week's workouts
@@ -720,6 +725,7 @@ const Home = () => {
         isOpen={isRestDayModalOpen}
         onClose={() => setIsRestDayModalOpen(false)}
         onSave={handleSaveRestDay}
+        onSaveBulk={handleSaveBulkRestDays}
       />
 
       {/* Setup Wizard */}

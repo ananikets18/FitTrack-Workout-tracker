@@ -195,6 +195,64 @@ export const db = {
     return workoutData;
   },
 
+  async createBulkRestDays(restDays, userId) {
+    if (!restDays || restDays.length === 0) return [];
+
+    const workoutsToInsert = restDays.map(rd => ({
+      user_id: userId,
+      type: 'rest_day',
+      name: null,
+      date: rd.date,
+      duration: null,
+      notes: (rd.notes || '').trim().slice(0, 1000) || null,
+    }));
+
+    const { data: createdWorkouts, error: workoutsError } = await supabase
+      .from('workouts')
+      .insert(workoutsToInsert)
+      .select();
+
+    if (workoutsError) throw workoutsError;
+
+    // Handle rest_day_activities for all rest days that have activities
+    const activitiesToInsert = [];
+    createdWorkouts.forEach((workoutData, idx) => {
+      const originalRd = restDays[idx];
+      if (originalRd.activities && originalRd.activities.length > 0) {
+        originalRd.activities.forEach(activity => {
+          activitiesToInsert.push({
+            workout_id: workoutData.id,
+            activity,
+            recovery_quality: Math.max(1, Math.min(5, parseInt(originalRd.recoveryQuality) || 3)),
+          });
+        });
+      }
+    });
+
+    if (activitiesToInsert.length > 0) {
+      const { error: activitiesError } = await supabase
+        .from('rest_day_activities')
+        .insert(activitiesToInsert);
+
+      if (activitiesError) {
+        console.error('Failed to insert rest day activities in bulk:', activitiesError);
+      }
+    }
+
+    return createdWorkouts.map((w, idx) => {
+      const originalRd = restDays[idx];
+      return {
+        id: w.id,
+        type: 'rest_day',
+        date: w.date,
+        notes: w.notes,
+        recoveryQuality: Math.max(1, Math.min(5, parseInt(originalRd.recoveryQuality) || 3)),
+        activities: Array.isArray(originalRd.activities) ? originalRd.activities : [],
+        createdAt: w.created_at,
+      };
+    });
+  },
+
   async updateWorkout(workoutId, workout, userId) {
     // Update main workout
     const { error: workoutError } = await supabase
