@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format, differenceInDays } from 'date-fns';
 import { Trophy, TrendingUp, Award, Zap, Target } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getEffectiveWeight, isBarbellExercise, isIsometricExercise } from '../../data/exercises';
 
 /**
