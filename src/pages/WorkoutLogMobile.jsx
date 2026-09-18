@@ -10,6 +10,8 @@ import NumberPicker from '../components/common/NumberPicker';
 import RestTimer from '../components/workout/RestTimer';
 import Modal from '../components/common/Modal';
 import BatchEditModal from '../components/common/BatchEditModal';
+import VoiceLogButton from '../components/common/VoiceLogButton';
+import { formatParsedSummary } from '../utils/voiceParser';
 import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar, BookmarkPlus, FileText, ChevronRight, Sliders } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { searchExercises, getExercisesByCategory, getCategoryForExercise, isBarbellExercise, getEffectiveWeight, isIsometricExercise } from '../data/exercises';
@@ -242,6 +244,13 @@ const WorkoutLogMobile = () => {
       sets: [{ reps: 10, weight: 0, duration: 30, incline: 0, speed: 0, completed: false }],
       notes: '',
     });
+  };
+
+  // Voice input handler — adds exercise from parsed speech
+  const handleVoiceExercise = (exercise) => {
+    setExercises(prev => [...prev, exercise]);
+    toast.success(`🎤 ${formatParsedSummary(exercise)}`, { duration: 3000 });
+    vibrate([50, 100, 50]);
   };
 
   const handleRemoveExercise = (id) => {
@@ -1403,6 +1412,9 @@ const WorkoutLogMobile = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Voice Log Button */}
+      <VoiceLogButton onExerciseParsed={handleVoiceExercise} />
     </div>
   );
 };
