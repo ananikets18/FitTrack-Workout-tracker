@@ -13,7 +13,11 @@ import { useState, useRef, useCallback, useEffect } from 'react';
  *   stopListening   – call to end recognition
  *   resetTranscript – call to clear the transcript
  */
-const useVoiceInput = ({ lang = 'en-US', continuous = true, silenceTimeout = 3000 } = {}) => {
+const useVoiceInput = ({
+  lang = typeof navigator !== 'undefined' ? navigator.language || 'en-US' : 'en-US',
+  continuous = false,
+  silenceTimeout = 3500,
+} = {}) => {
   const [transcript, setTranscript] = useState('');
   const [interimText, setInterimText] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -62,7 +66,7 @@ const useVoiceInput = ({ lang = 'en-US', continuous = true, silenceTimeout = 300
     }, silenceTimeout);
   }, [silenceTimeout]);
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     if (!isSupported) {
       setError('Speech recognition is not supported in this browser.');
       return;
@@ -72,6 +76,24 @@ const useVoiceInput = ({ lang = 'en-US', continuous = true, silenceTimeout = 300
     setError(null);
     setTranscript('');
     setInterimText('');
+
+    // Pre-flight microphone permission check if mediaDevices is available
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Immediately release the audio track so SpeechRecognition can bind cleanly
+        stream.getTracks().forEach((track) => track.stop());
+      } catch (err) {
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          setError('Microphone permission denied. Please allow mic access in your browser.');
+          return;
+        }
+        if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          setError('No microphone found. Please connect a microphone or use text input.');
+          return;
+        }
+      }
+    }
 
     const recognition = new SpeechRecognition();
     recognition.lang = lang;
@@ -111,9 +133,20 @@ const useVoiceInput = ({ lang = 'en-US', continuous = true, silenceTimeout = 300
       if (event.error === 'no-speech') {
         setError('No speech detected. Please try again.');
       } else if (event.error === 'not-allowed' || event.error === 'permission-denied') {
-        setError('Microphone permission denied. Please allow mic access.');
+        setError('Microphone permission denied. Please allow mic access in your browser and Windows privacy settings.');
+      } else if (event.error === 'audio-capture') {
+        setError('Microphone is busy or unavailable.');
       } else if (event.error === 'network') {
-        setError('Network error — voice input requires an internet connection.');
+        const isBrave =
+          typeof navigator !== 'undefined' &&
+          (Boolean(navigator.brave) ||
+            Boolean(navigator.userAgentData?.brands?.some((b) => b.brand === 'Brave')));
+
+        if (isBrave) {
+          setError('Brave blocks Google Speech Services by default. Enable it at brave://settings/system ("Use Google services for speech recognition"), or use text input below.');
+        } else {
+          setError('Speech service unreachable. Ensure microphone access is allowed, check for VPN/firewall blocks, or use text input below.');
+        }
       } else {
         setError(`Voice error: ${event.error}`);
       }

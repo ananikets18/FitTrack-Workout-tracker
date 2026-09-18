@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, X, Check, RotateCcw, WifiOff, AlertCircle } from 'lucide-react';
+import { Mic, MicOff, X, Check, RotateCcw, WifiOff, AlertCircle, Keyboard } from 'lucide-react';
 import useVoiceInput from '../../hooks/useVoiceInput';
 import { parseVoiceTranscript } from '../../utils/voiceParser';
 
 /**
- * VoiceLogButton — Floating mic button that records speech
- * and parses it into structured exercise data.
+ * VoiceLogButton — Floating mic & quick-text button that records speech
+ * or natural language text and parses it into structured exercise data.
  *
  * Props:
  *   onExerciseParsed(exercise)  – called when a valid exercise is parsed
@@ -30,6 +30,11 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
   // Track the transcript we last processed so we only parse once per new transcript
   const [lastProcessed, setLastProcessed] = useState('');
 
+  // Fallback text input state
+  const [manualText, setManualText] = useState('');
+  const [manualResult, setManualResult] = useState(null);
+  const [showTextInput, setShowTextInput] = useState(false);
+
   // Track online status
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -42,29 +47,40 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
     };
   }, []);
 
-  // Derive parsed result from transcript (no setState in effects)
+  // Derive parsed result from transcript or manual input (no setState in effects)
   const parsedResult = useMemo(() => {
+    if (manualResult) return manualResult;
     if (!transcript || isListening || dismissed) return null;
     if (transcript === lastProcessed) return null;
     const result = parseVoiceTranscript(transcript);
     return result;
-  }, [transcript, isListening, dismissed, lastProcessed]);
+  }, [manualResult, transcript, isListening, dismissed, lastProcessed]);
 
   // Derive the current stage from state
   const stage = useMemo(() => {
     if (isListening) return 'listening';
+    if (showTextInput) return 'textInput';
     if (dismissed) return 'idle';
     if (voiceError) return 'error';
     if (parsedResult?.success) return 'preview';
     if (parsedResult && !parsedResult.success) return 'error';
     return 'idle';
-  }, [isListening, dismissed, voiceError, parsedResult]);
+  }, [isListening, showTextInput, dismissed, voiceError, parsedResult]);
 
   const displayError = useMemo(() => {
     if (voiceError) return voiceError;
     if (parsedResult && !parsedResult.success) return parsedResult.error;
     return null;
   }, [voiceError, parsedResult]);
+
+  const handleManualSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (!manualText.trim()) return;
+    const result = parseVoiceTranscript(manualText.trim());
+    setManualResult(result);
+    setShowTextInput(false);
+    setDismissed(false);
+  };
 
   const handleMicClick = () => {
     if (!isSupported) {
@@ -75,10 +91,13 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
       return;
     }
 
+    setShowTextInput(false);
+
     if (isListening) {
       stopListening();
     } else {
       setDismissed(false);
+      setManualResult(null);
       setLastProcessed('');
       startListening();
     }
@@ -94,6 +113,8 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
 
   const handleRetry = () => {
     resetTranscript();
+    setManualResult(null);
+    setShowTextInput(false);
     setDismissed(false);
     setLastProcessed('');
     setTimeout(() => startListening(), 300);
@@ -102,6 +123,8 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
   const handleDismiss = () => {
     setLastProcessed(transcript || '');
     setDismissed(true);
+    setManualResult(null);
+    setShowTextInput(false);
     resetTranscript();
     if (isListening) stopListening();
   };
@@ -113,55 +136,142 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
 
   return (
     <>
-      {/* Floating Mic Button */}
-      <motion.button
-        whileTap={{ scale: 0.9 }}
-        onClick={handleMicClick}
-        className={`fixed bottom-24 right-5 z-40 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-colors ${
-          isListening
-            ? 'bg-red-500 shadow-red-500/40'
-            : !isOnline
-              ? 'bg-gray-400'
-              : 'bg-gradient-to-br from-violet-500 to-indigo-600 shadow-indigo-500/40'
-        }`}
-        aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
-      >
-        {/* Pulse rings while listening */}
-        {isListening && (
-          <>
-            <motion.span
-              className="absolute inset-0 rounded-full bg-red-400"
-              initial={{ scale: 1, opacity: 0.5 }}
-              animate={{ scale: 1.8, opacity: 0 }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
-            />
-            <motion.span
-              className="absolute inset-0 rounded-full bg-red-400"
-              initial={{ scale: 1, opacity: 0.4 }}
-              animate={{ scale: 1.5, opacity: 0 }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut', delay: 0.4 }}
-            />
-          </>
-        )}
+      {/* Floating Buttons Group */}
+      <div className="fixed bottom-24 right-5 z-40 flex items-center space-x-2">
+        {/* Quick Text Input Toggle */}
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => {
+            if (isListening) stopListening();
+            setShowTextInput((prev) => !prev);
+            setDismissed(false);
+          }}
+          className="flex items-center justify-center w-11 h-11 rounded-full bg-white/95 text-gray-700 hover:text-indigo-600 shadow-md border border-gray-200 hover:border-indigo-300 transition-colors"
+          title="Quick text entry"
+          aria-label="Quick text entry"
+        >
+          <Keyboard className="w-5 h-5" />
+        </motion.button>
 
-        {/* Idle subtle pulse */}
-        {stage === 'idle' && isOnline && (
-          <motion.span
-            className="absolute inset-0 rounded-full bg-indigo-400"
-            initial={{ scale: 1, opacity: 0 }}
-            animate={{ scale: 1.2, opacity: [0, 0.3, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        )}
+        {/* Floating Mic Button */}
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={handleMicClick}
+          className={`flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-colors ${
+            isListening
+              ? 'bg-red-500 shadow-red-500/40'
+              : !isOnline
+                ? 'bg-gray-400'
+                : 'bg-gradient-to-br from-violet-500 to-indigo-600 shadow-indigo-500/40'
+          }`}
+          aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
+        >
+          {/* Pulse rings while listening */}
+          {isListening && (
+            <>
+              <motion.span
+                className="absolute inset-0 rounded-full bg-red-400"
+                initial={{ scale: 1, opacity: 0.5 }}
+                animate={{ scale: 1.8, opacity: 0 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+              />
+              <motion.span
+                className="absolute inset-0 rounded-full bg-red-400"
+                initial={{ scale: 1, opacity: 0.4 }}
+                animate={{ scale: 1.5, opacity: 0 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut', delay: 0.4 }}
+              />
+            </>
+          )}
 
-        {!isOnline ? (
-          <WifiOff className="w-6 h-6 text-white relative z-10" />
-        ) : isListening ? (
-          <MicOff className="w-6 h-6 text-white relative z-10" />
-        ) : (
-          <Mic className="w-6 h-6 text-white relative z-10" />
+          {/* Idle subtle pulse */}
+          {stage === 'idle' && isOnline && (
+            <motion.span
+              className="absolute inset-0 rounded-full bg-indigo-400"
+              initial={{ scale: 1, opacity: 0 }}
+              animate={{ scale: 1.2, opacity: [0, 0.3, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          )}
+
+          {!isOnline ? (
+            <WifiOff className="w-6 h-6 text-white relative z-10" />
+          ) : isListening ? (
+            <MicOff className="w-6 h-6 text-white relative z-10" />
+          ) : (
+            <Mic className="w-6 h-6 text-white relative z-10" />
+          )}
+        </motion.button>
+      </div>
+
+      {/* Quick Text Input Card */}
+      <AnimatePresence>
+        {stage === 'textInput' && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed bottom-40 right-5 left-5 z-50 max-w-md mx-auto"
+          >
+            <div className="bg-white rounded-2xl shadow-2xl border border-indigo-100 overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
+                      <Keyboard className="w-4 h-4 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-sm">Quick Workout Logger</h3>
+                      <p className="text-xs text-gray-500">Type or paste natural language</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleDismiss}
+                    className="text-gray-400 hover:text-gray-600 p-1"
+                    aria-label="Close"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleManualSubmit} className="mt-3 space-y-3">
+                  <div>
+                    <input
+                      type="text"
+                      value={manualText}
+                      onChange={(e) => setManualText(e.target.value)}
+                      placeholder='e.g. "bench press 4 sets 12 reps 60 kg"'
+                      autoFocus
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 placeholder:text-gray-400"
+                    />
+                    <p className="text-[11px] text-gray-400 mt-1.5">
+                      Supports uniform sets, pyramid/varied sets (&ldquo;12 at 60, 10 at 70&rdquo;), or duration (&ldquo;plank 60s&rdquo;).
+                    </p>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <button
+                      type="submit"
+                      disabled={!manualText.trim()}
+                      className="flex-1 flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl disabled:opacity-50 transition-colors shadow-sm"
+                    >
+                      <span>Parse &amp; Preview</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDismiss}
+                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-xl transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </motion.div>
         )}
-      </motion.button>
+      </AnimatePresence>
 
       {/* Live transcript bubble (while listening) */}
       <AnimatePresence>
@@ -309,11 +419,15 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
                     <AlertCircle className="w-5 h-5 text-red-500" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900 mb-1">Couldn&apos;t parse that</p>
-                    <p className="text-sm text-gray-600">{displayError}</p>
-                    <p className="text-xs text-gray-400 mt-2">
-                      Try: &ldquo;bench press 3 sets 12 reps 60 kg&rdquo;
+                    <p className="font-semibold text-gray-900 mb-1">
+                      {voiceError ? 'Voice Connection Issue' : "Couldn't parse that"}
                     </p>
+                    <p className="text-sm text-gray-600 leading-relaxed">{displayError}</p>
+                    {!voiceError && (
+                      <p className="text-xs text-gray-400 mt-2">
+                        Try: &ldquo;bench press 3 sets 12 reps 60 kg&rdquo;
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -324,7 +438,7 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
                     className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl transition-colors"
                   >
                     <RotateCcw className="w-4 h-4" />
-                    <span>Try Again</span>
+                    <span>Try Mic Again</span>
                   </motion.button>
                   <motion.button
                     whileTap={{ scale: 0.95 }}
@@ -333,6 +447,30 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
                   >
                     Dismiss
                   </motion.button>
+                </div>
+
+                {/* Inline Text Fallback */}
+                <div className="mt-3.5 pt-3 border-t border-gray-100">
+                  <p className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
+                    <Keyboard className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Or type/paste your workout:</span>
+                  </p>
+                  <form onSubmit={handleManualSubmit} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={manualText}
+                      onChange={(e) => setManualText(e.target.value)}
+                      placeholder='e.g. "bench press 3 sets 12 reps 60 kg"'
+                      className="flex-1 text-xs px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!manualText.trim()}
+                      className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-xl disabled:opacity-40 transition-colors shadow-sm"
+                    >
+                      Parse
+                    </button>
+                  </form>
                 </div>
               </div>
             </div>
