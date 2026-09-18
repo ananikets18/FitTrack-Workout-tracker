@@ -8,6 +8,8 @@ import Modal from '../components/common/Modal';
 import { Plus, Trash2, Check, X, Save, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { isBarbellExercise, getEffectiveWeight, isIsometricExercise } from '../data/exercises';
+import VoiceLogButton from '../components/common/VoiceLogButton';
+import { formatParsedSummary } from '../utils/voiceParser';
 
 const HYPEREXTENSION_BODYWEIGHT_KG = 83;
 
@@ -125,6 +127,12 @@ const WorkoutLog = () => {
       sets: [{ reps: '', weight: '', duration: '', incline: '', speed: '', completed: false }],
       notes: '',
     });
+  };
+
+  // Voice input handler — adds exercise from parsed speech
+  const handleVoiceExercise = (exercise) => {
+    setExercises(prev => [...prev, exercise]);
+    toast.success(`🎤 ${formatParsedSummary(exercise)}`, { duration: 3000 });
   };
 
   const handleRemoveExercise = (id) => {
@@ -826,6 +834,9 @@ const WorkoutLog = () => {
           </div>
         </Modal>
       )}
+
+      {/* Voice Log Button */}
+      <VoiceLogButton onExerciseParsed={handleVoiceExercise} />
     </div>
   );
 };
