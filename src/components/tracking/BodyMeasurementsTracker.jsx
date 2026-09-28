@@ -63,7 +63,7 @@ const BodyMeasurementsTracker = () => {
                 await addMeasurement(measurementData);
             }
             handleCloseModal();
-        } catch (_error) {
+        } catch {
             // Error handled in context
         }
     };

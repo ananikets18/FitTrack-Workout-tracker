@@ -216,8 +216,8 @@ const Calendar = () => {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 ">Calendar</h1>
-          <p className="text-gray-600 mt-1">View your workout schedule</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Calendar</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">View your workout schedule</p>
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -227,9 +227,9 @@ const Calendar = () => {
               setRestDayModalMode('bulk');
               setIsRestDayModalOpen(true);
             }}
-            className="flex items-center text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 "
+            className="flex items-center text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 dark:text-purple-200 dark:bg-purple-900/30 dark:border-purple-800 dark:hover:bg-purple-900/50"
           >
-            <Hotel className="w-4 h-4 mr-2 text-purple-600" />
+            <Hotel className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-300" aria-hidden="true" />
             <span>Rest Days</span>
           </Button>
         </div>

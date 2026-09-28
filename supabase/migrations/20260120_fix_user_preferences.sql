@@ -56,6 +56,7 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id ON user_preferences(user_id);
 
 -- Add trigger for updated_at if it doesn't exist
+-- Uses public.handle_updated_at() (defined in supabase/schema.sql)
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -65,7 +66,7 @@ BEGIN
         CREATE TRIGGER update_user_preferences_updated_at
             BEFORE UPDATE ON user_preferences
             FOR EACH ROW
-            EXECUTE FUNCTION update_updated_at_column();
+            EXECUTE FUNCTION public.handle_updated_at();
     END IF;
 END $$;
 

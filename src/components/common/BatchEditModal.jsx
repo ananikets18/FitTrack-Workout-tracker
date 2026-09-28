@@ -56,22 +56,22 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
                   if (type.id === 'reps') setValue(2);
                   if (type.id === 'sets') setValue(1);
                 }}
-                className={`flex items-start space-x-3 p-4 rounded-xl border-2 transition-all text-left ${
+                className={`flex items-start space-x-3 p-4 rounded-xl border-2 transition-all text-left min-h-[48px] ${
                   editType === type.id
-                    ? 'bg-blue-50 border-blue-500 '
-                    : 'bg-white border-gray-200 hover:border-gray-300 '
+                    ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-500 '
+                    : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 '
                 }`}
               >
                 <div className={`p-2 rounded-lg ${
                   editType === type.id 
-                    ? 'bg-blue-100 ' 
-                    : 'bg-gray-100 '
+                    ? 'bg-primary-200 dark:bg-primary-900/50 ' 
+                    : 'bg-gray-100 dark:bg-gray-800 '
                 }`}>
                   <type.icon className={`w-5 h-5 ${
                     editType === type.id 
-                      ? 'text-blue-600 ' 
-                      : 'text-gray-600 '
-                  }`} />
+                      ? 'text-primary-600 dark:text-primary-300 ' 
+                      : 'text-gray-600 dark:text-gray-400 '
+                  }`} aria-hidden="true" />
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-gray-900 ">{type.label}</div>
@@ -91,10 +91,10 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={() => setOperation('add')}
-              className={`flex items-center justify-center space-x-2 p-4 rounded-xl border-2 transition-all font-semibold ${
+              className={`flex items-center justify-center space-x-2 p-4 rounded-xl border-2 transition-all font-semibold min-h-[48px] ${
                 operation === 'add'
-                  ? 'bg-green-50 border-green-500 text-green-700 '
-                  : 'bg-white border-gray-200 text-gray-700 '
+                  ? 'bg-success-100 dark:bg-emerald-900/30 border-emerald-500 text-success-700 dark:text-emerald-300 '
+                  : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 '
               }`}
             >
               <Plus className="w-5 h-5" />
@@ -103,10 +103,10 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
             <motion.button
               whileTap={{ scale: 0.98 }}
               onClick={() => setOperation('subtract')}
-              className={`flex items-center justify-center space-x-2 p-4 rounded-xl border-2 transition-all font-semibold ${
+              className={`flex items-center justify-center space-x-2 p-4 rounded-xl border-2 transition-all font-semibold min-h-[48px] ${
                 operation === 'subtract'
-                  ? 'bg-red-50 border-red-500 text-red-700 '
-                  : 'bg-white border-gray-200 text-gray-700 '
+                  ? 'bg-danger-50 dark:bg-red-900/30 border-red-500 text-danger-700 dark:text-red-300 '
+                  : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 '
               }`}
             >
               <Minus className="w-5 h-5" />

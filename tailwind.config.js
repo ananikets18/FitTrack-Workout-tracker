@@ -23,6 +23,26 @@ export default {
           800: '#073b63',
           900: '#052a45',
         },
+        // Semantic tokens for clean minimal light system.
+        // Use these instead of ad-hoc emerald/amber/blue classes.
+        success: {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          600: '#059669',
+          700: '#047857',
+        },
+        warning: {
+          50: '#fffbeb',
+          100: '#fef3c7',
+          600: '#d97706',
+          700: '#b45309',
+        },
+        danger: {
+          50: '#fef2f2',
+          100: '#fee2e2',
+          600: '#dc2626',
+          700: '#b91c1c',
+        },
       },
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 2px 6px -2px rgba(0, 0, 0, 0.05)',

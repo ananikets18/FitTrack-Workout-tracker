@@ -83,6 +83,15 @@
   .active\:scale-98:active {
     transform: scale(0.98);
   }
+
+  .safe-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom)) !important;
+  }
+  @media (min-width: 768px) {
+    .safe-bottom {
+      padding-bottom: 1rem !important;
+    }
+  }
   
   /* Skip link for keyboard navigation */
   .skip-link {

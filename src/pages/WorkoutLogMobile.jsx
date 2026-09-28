@@ -11,10 +11,15 @@ import RestTimer from '../components/workout/RestTimer';
 import Modal from '../components/common/Modal';
 import BatchEditModal from '../components/common/BatchEditModal';
 import VoiceLogButton from '../components/common/VoiceLogButton';
+import SessionCard from '../components/log/SessionCard';
+import TemplateGallery from '../components/log/TemplateGallery';
+import ExerciseCard from '../components/log/ExerciseCard';
 import { formatParsedSummary } from '../utils/voiceParser';
-import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar, BookmarkPlus, FileText, ChevronRight, Sliders } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar, BookmarkPlus, FileText, ChevronRight, Sliders, Timer } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { searchExercises, getExercisesByCategory, getCategoryForExercise, isBarbellExercise, getEffectiveWeight, isIsometricExercise } from '../data/exercises';
+import { totalToPerSide, perSideToTotal } from '../utils/weightUtils';
+import { newId } from '../utils/ids';
 import { getLocalDateInputValue } from '../utils/date';
 
 const HYPEREXTENSION_BODYWEIGHT_KG = 83;
@@ -32,12 +37,14 @@ const getHyperextensionDefaultWeight = (exerciseName, fallbackWeight = 0) => {
 
 const WorkoutLogMobile = () => {
   const navigate = useNavigate();
-  const { addWorkout, updateWorkout, currentWorkout, clearCurrentWorkout } = useWorkouts();
+  const { addWorkout, updateWorkout, currentWorkout, clearCurrentWorkout, workouts } = useWorkouts();
   const { templates, saveTemplate } = useTemplates();
 
   // Check if we're editing an existing workout
   const isEditMode = !!currentWorkout;
   const editingWorkoutId = currentWorkout?.id;
+  const lastWorkout = (workouts || []).find((w) => w.type !== 'rest_day');
+  const recentNames = [...new Set((workouts || []).flatMap((w) => (w.exercises || []).map((e) => e.name)).filter(Boolean))];
 
   const [workoutName, setWorkoutName] = useState('');
   const [workoutDate, setWorkoutDate] = useState(getLocalDateInputValue()); // YYYY-MM-DD format
@@ -53,24 +60,91 @@ const WorkoutLogMobile = () => {
   const [showExitWarning, setShowExitWarning] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState(null);
   const [editingSet, setEditingSet] = useState(null); // { exerciseId, setIndex, set }
+  const [isSaving, setIsSaving] = useState(false);
+  const [collapsedIds, setCollapsedIds] = useState(() => new Set());
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const initialSnapshotRef = useRef(null);
+
+  useEffect(() => {
+    const onScroll = () => setShowBackToTop(window.scrollY > 600);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const toggleCollapse = (id) => {
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const jumpToExercise = (id) => {
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    requestAnimationFrame(() => {
+      document.getElementById(`exercise-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const snapshotOf = (name, date, list, dur, nts) =>
+    JSON.stringify({
+      name: (name || '').trim(),
+      date: date || '',
+      dur: (dur || '').toString().trim(),
+      nts: (nts || '').trim(),
+      list: (list || []).map((ex) => ({
+        id: ex.id,
+        name: ex.name,
+        category: ex.category,
+        notes: ex.notes || '',
+        sets: (ex.sets || []).map((s) => ({
+          id: s.id,
+          reps: s.reps,
+          weight: s.weight,
+          duration: s.duration ?? null,
+          incline: s.incline ?? null,
+          speed: s.speed ?? null,
+          completed: !!s.completed,
+        })),
+      })),
+    });
 
   // Load workout data if in edit mode
   useEffect(() => {
     if (currentWorkout) {
-      setWorkoutName(currentWorkout.name || '');
-      setWorkoutDate(currentWorkout.date ? getLocalDateInputValue(currentWorkout.date) : getLocalDateInputValue());
-      setExercises(currentWorkout.exercises || []);
-      setDuration(currentWorkout.duration?.toString() || '');
-      setNotes(currentWorkout.notes || '');
+      const name = currentWorkout.name || '';
+      const date = currentWorkout.date ? getLocalDateInputValue(currentWorkout.date) : getLocalDateInputValue();
+      const list = currentWorkout.exercises || [];
+      const dur = currentWorkout.duration?.toString() || '';
+      const nts = currentWorkout.notes || '';
+      setWorkoutName(name);
+      setWorkoutDate(date);
+      setExercises(list);
+      setDuration(dur);
+      setNotes(nts);
+      initialSnapshotRef.current = snapshotOf(name, date, list, dur, nts);
       toast.success('Editing workout', { duration: 2000 });
+    } else {
+      initialSnapshotRef.current = snapshotOf('', getLocalDateInputValue(), [], '', '');
     }
   }, [currentWorkout]);
 
-  // Track unsaved changes
+  // Track unsaved changes by diffing against initial snapshot (fixes over-fire on edit load)
   useEffect(() => {
-    const hasChanges = workoutName.trim() !== '' || exercises.length > 0 || duration.trim() !== '' || notes.trim() !== '';
-    setHasUnsavedChanges(hasChanges);
-  }, [workoutName, exercises, duration, notes]);
+    if (!initialSnapshotRef.current) {
+      initialSnapshotRef.current = snapshotOf(workoutName, workoutDate, exercises, duration, notes);
+      setHasUnsavedChanges(false);
+      return;
+    }
+    setHasUnsavedChanges(
+      snapshotOf(workoutName, workoutDate, exercises, duration, notes) !== initialSnapshotRef.current
+    );
+  }, [workoutName, exercises, duration, notes, workoutDate]);
 
   // Warn before unload
   useEffect(() => {
@@ -218,7 +292,7 @@ const WorkoutLogMobile = () => {
     const isTreadmill = isCardio && newExercise.name.toLowerCase().includes('treadmill');
 
     const exercise = {
-      id: crypto.randomUUID(),
+      id: newId(),
       name: newExercise.name,
       category: newExercise.category,
       sets: newExercise.sets.map(set => ({
@@ -233,9 +307,17 @@ const WorkoutLogMobile = () => {
     };
 
     setExercises([...exercises, exercise]);
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(exercise.id);
+      return next;
+    });
     setIsExerciseModalOpen(false);
     toast.success(`${newExercise.name} added!`);
     vibrate([50, 100, 50]);
+    requestAnimationFrame(() => {
+      document.getElementById(`exercise-${exercise.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
 
     // Reset form
     setNewExercise({
@@ -254,10 +336,34 @@ const WorkoutLogMobile = () => {
   };
 
   const handleRemoveExercise = (id) => {
-    const exercise = exercises.find(ex => ex.id === id);
-    setExercises(exercises.filter(ex => ex.id !== id));
-    toast.success(`${exercise.name} removed`);
+    const index = exercises.findIndex((ex) => ex.id === id);
+    if (index === -1) return;
+    const [removed] = exercises.filter((ex) => ex.id === id);
+    const next = exercises.filter((ex) => ex.id !== id);
+    setExercises(next);
     vibrate(50);
+    toast(
+      (t) => (
+        <span className="flex items-center gap-3">
+          <span>{removed?.name || 'Exercise'} removed</span>
+          <button
+            onClick={() => {
+              setExercises((prev) => {
+                const copy = [...prev];
+                copy.splice(Math.min(index, copy.length), 0, removed);
+                return copy;
+              });
+              toast.dismiss(t.id);
+              toast.success('Exercise restored');
+            }}
+            className="font-bold underline underline-offset-2"
+          >
+            Undo
+          </button>
+        </span>
+      ),
+      { duration: 5000 }
+    );
   };
 
   const handleToggleSet = (exerciseId, setIndex) => {
@@ -268,8 +374,8 @@ const WorkoutLogMobile = () => {
         updatedSets[setIndex].completed = !wasCompleted;
 
         if (!wasCompleted) {
-          // Set completed - start rest timer
-          setIsTimerOpen(true);
+          // Opt-in rest timer: toast only, user opens timer manually via header button.
+          // Previously auto-opened on every set which was interruptive during gym use.
           toast.success('Set completed! 💪');
           vibrate([100, 50, 100]);
         }
@@ -321,7 +427,92 @@ const WorkoutLogMobile = () => {
     vibrate(30);
   };
 
+  const handleUpdateSetInline = (exerciseId, setIndex, patch) => {
+    setExercises((prev) =>
+      prev.map((ex) => {
+        if (ex.id !== exerciseId) return ex;
+        const updated = [...ex.sets];
+        updated[setIndex] = { ...updated[setIndex], ...patch };
+        return { ...ex, sets: updated };
+      })
+    );
+  };
+
+  const handleDeleteSet = (exerciseId, setIndex) => {
+    const target = exercises.find((ex) => ex.id === exerciseId);
+    if (!target || target.sets.length <= 1) {
+      toast.error('Keep at least one set');
+      return;
+    }
+    const removed = target.sets[setIndex];
+    setExercises(exercises.map((ex) => {
+      if (ex.id === exerciseId) {
+        return { ...ex, sets: ex.sets.filter((_, i) => i !== setIndex) };
+      }
+      return ex;
+    }));
+    toast(
+      (t) => (
+        <span className="flex items-center gap-3">
+          <span>Set removed</span>
+          <button
+            onClick={() => {
+              setExercises((prev) =>
+                prev.map((ex) => {
+                  if (ex.id !== exerciseId) return ex;
+                  const copy = [...ex.sets];
+                  copy.splice(Math.min(setIndex, copy.length), 0, removed);
+                  return { ...ex, sets: copy };
+                })
+              );
+              toast.dismiss(t.id);
+              toast.success('Set restored');
+            }}
+            className="font-bold underline underline-offset-2"
+          >
+            Undo
+          </button>
+        </span>
+      ),
+      { duration: 5000 }
+    );
+  };
+
+  const handleCopyExercise = (exerciseId) => {
+    const src = exercises.find((ex) => ex.id === exerciseId);
+    if (!src) return;
+    const copy = {
+      ...src,
+      id: newId(),
+      sets: src.sets.map((s) => ({ ...s, id: newId(), completed: false })),
+    };
+    setExercises((prev) => {
+      const idx = prev.findIndex((ex) => ex.id === exerciseId);
+      const next = [...prev];
+      next.splice(idx + 1, 0, copy);
+      return next;
+    });
+    toast.success(`${src.name} duplicated`);
+  };
+
+  const handleQuickAddExercise = (exerciseName) => {
+    const category = getCategoryForExercise(exerciseName) || 'other';
+    const isCardio = category === 'cardio';
+    setExercises((prev) => [
+      ...prev,
+      {
+        id: newId(),
+        name: exerciseName,
+        category,
+        sets: [{ id: newId(), reps: isCardio ? 0 : 10, weight: getHyperextensionDefaultWeight(exerciseName, 0), duration: isCardio ? 30 : undefined, completed: false }],
+        notes: '',
+      },
+    ]);
+    toast.success(`${exerciseName} added`);
+  };
+
   const handleSaveWorkout = async () => {
+    if (isSaving) return;
     if (!workoutName.trim()) {
       toast.error('Please enter a workout name');
       return;
@@ -337,13 +528,14 @@ const WorkoutLogMobile = () => {
     selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
 
     const workoutData = {
-      name: workoutName,
+      name: workoutName.trim(),
       date: selectedDate.toISOString(),
       exercises,
       duration: parseInt(duration) || 0,
-      notes,
+      notes: notes.trim(),
     };
 
+    setIsSaving(true);
     try {
       if (isEditMode) {
         // Update existing workout
@@ -354,12 +546,16 @@ const WorkoutLogMobile = () => {
         await addWorkout(workoutData);
       }
 
+      initialSnapshotRef.current = snapshotOf(workoutName, workoutDate, exercises, duration, notes);
       setHasUnsavedChanges(false); // Clear unsaved changes flag
       vibrate([100, 50, 100, 50, 100]);
-      setTimeout(() => navigate('/history'), 1000);
+      toast.success(isEditMode ? 'Workout updated' : 'Workout saved');
+      navigate('/history');
     } catch (error) {
       console.error('Error saving workout:', error);
       toast.error(isEditMode ? 'Failed to update workout' : 'Failed to save workout');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -375,7 +571,7 @@ const WorkoutLogMobile = () => {
     }
 
     const templateData = {
-      name: workoutName,
+      name: workoutName.trim(),
       exercises: exercises.map(ex => ({
         name: ex.name,
         category: ex.category,
@@ -383,6 +579,8 @@ const WorkoutLogMobile = () => {
           reps: set.reps,
           weight: set.weight,
           duration: set.duration,
+          incline: set.incline,
+          speed: set.speed,
           completed: false
         })),
         notes: ex.notes
@@ -395,16 +593,24 @@ const WorkoutLogMobile = () => {
     vibrate([50, 30, 50]);
   };
 
-  const handleLoadTemplate = (template) => {
-    setWorkoutName(template.name);
-    setExercises(template.exercises.map(ex => ({
+  const handleLoadTemplate = (template, mode = 'replace') => {
+    if (mode === 'replace' && exercises.length > 0 && !window.confirm('Replace current exercises with this template?')) {
+      return;
+    }
+    const mapped = template.exercises.map((ex) => ({
       ...ex,
-      id: crypto.randomUUID(),
-      sets: ex.sets.map(set => ({ ...set, completed: false }))
-    })));
-    setDuration(template.duration?.toString() || '');
+      id: newId(),
+      sets: ex.sets.map((set) => ({ ...set, id: newId(), completed: false })),
+    }));
+    if (mode === 'append') {
+      setExercises((prev) => [...prev, ...mapped]);
+    } else {
+      setWorkoutName(template.name);
+      setExercises(mapped);
+      setDuration(template.duration?.toString() || '');
+    }
     setIsTemplateModalOpen(false);
-    toast.success(`Loaded "${template.name}" template`);
+    toast.success(`Loaded "${template.name}" template (${mode})`);
     vibrate(30);
   };
 
@@ -608,82 +814,74 @@ const WorkoutLogMobile = () => {
 
               <button
                 onClick={onToggle}
-                className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${set.completed
-                  ? 'bg-green-500'
-                  : 'bg-gray-200 hover:bg-primary-100'
+                aria-label={set.completed ? 'Mark set not completed' : 'Mark set completed'}
+                aria-pressed={!!set.completed}
+                className={`flex items-center justify-center w-11 h-11 rounded-full transition-all ${set.completed
+                  ? 'bg-success-600'
+                  : 'bg-gray-200 dark:bg-gray-700 hover:bg-primary-100 dark:hover:bg-primary-900/40'
                   }`}
               >
                 {set.completed ? (
-                  <Check className="w-6 h-6 text-white" />
+                  <Check className="w-6 h-6 text-white" aria-hidden="true" />
                 ) : (
-                  <div className="w-4 h-4 border-2 border-gray-400 rounded-full" />
+                  <div className="w-4 h-4 border-2 border-gray-400 rounded-full" aria-hidden="true" />
                 )}
               </button>
             </div>
           </div>
         </motion.div>
 
-        {/* Swipe Hints */}
-        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white font-semibold opacity-0 pointer-events-none">
-          🗑️ Delete
-        </div>
-        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white font-semibold opacity-0 pointer-events-none">
-          ✓ Complete
-        </div>
+        {/* Swipe Hints — visible text for discoverability (was opacity-0) */}
+        <p className="mt-1 text-[13px] text-gray-500 dark:text-gray-400">
+          Swipe right to complete • swipe left to delete • or use the circle button and Edit.
+        </p>
       </motion.div>
     );
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 pb-safe">
+    <div className="max-w-2xl mx-auto space-y-4 pb-safe">
       <Toaster position="top-center" />
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header — sticky so Save stays reachable without the floating bar */}
+      <div className="sticky top-16 z-20 -mx-1 px-1 py-1.5 bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur flex items-center justify-between gap-2">
         <button
           onClick={() => {
             if (isEditMode) clearCurrentWorkout();
             handleNavigation('/');
           }}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 "
+          aria-label="Back to home"
+          className="flex items-center space-x-2 min-h-[44px] text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-6 h-6" aria-hidden="true" />
           <span className="font-semibold">Back</span>
         </button>
 
         <div className="flex items-center space-x-2">
-          {/* Load Template Button */}
-          {!isEditMode && exercises.length === 0 && templates.length > 0 && (
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsTemplateModalOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2.5 bg-gray-200 text-gray-700 font-semibold rounded-xl shadow-sm"
-            >
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Templates</span>
-            </motion.button>
+          {hasUnsavedChanges && (
+            <span className="hidden sm:inline text-[13px] font-semibold text-warning-600 dark:text-amber-400" role="status">
+              • Unsaved
+            </span>
           )}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsTimerOpen(true)}
+            aria-label="Open rest timer"
+            title="Rest timer"
+            className="flex items-center justify-center min-h-[48px] min-w-[48px] px-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            <Timer className="w-5 h-5" aria-hidden="true" />
+          </motion.button>
 
-          {/* Save as Template Button */}
-          {!isEditMode && exercises.length > 0 && (
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleSaveAsTemplate}
-              className="flex items-center space-x-2 px-4 py-2.5 bg-purple-600 text-white font-semibold rounded-xl shadow-sm"
-            >
-              <BookmarkPlus className="w-4 h-4" />
-              <span className="hidden sm:inline">Template</span>
-            </motion.button>
-          )}
-
-          {/* Save Workout Button */}
+          {/* Save Workout Button — same disabled rule as sticky bar */}
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={handleSaveWorkout}
-            className="flex items-center space-x-2 px-6 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-lg active:bg-primary-700"
+            disabled={isSaving || exercises.length === 0 || !workoutName.trim()}
+            className="flex items-center space-x-2 px-6 py-3 min-h-[48px] bg-primary-600 text-white font-semibold rounded-xl shadow-lg active:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Save className="w-5 h-5" />
-            <span>{isEditMode ? 'Update' : 'Save'}</span>
+            <Save className="w-5 h-5" aria-hidden="true" />
+            <span>{isSaving ? 'Saving…' : isEditMode ? 'Update' : 'Save'}</span>
           </motion.button>
         </div>
       </div>
@@ -696,175 +894,128 @@ const WorkoutLogMobile = () => {
       )}
 
       {/* Workout Details */}
-      <Card>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Workout Details</h2>
+      {/* Session — name first, details collapsed */}
+      <SessionCard
+        name={workoutName}
+        onName={setWorkoutName}
+        date={workoutDate}
+        onDate={setWorkoutDate}
+        duration={duration}
+        onDuration={setDuration}
+        notes={notes}
+        onNotes={setNotes}
+        isEditMode={isEditMode}
+      />
 
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2 block">
-              Workout Name *
-            </label>
-            <input
-              type="text"
-              value={workoutName}
-              onChange={(e) => setWorkoutName(e.target.value)}
-              placeholder="e.g., Chest & Triceps"
-              className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2 block">
-              Duration (minutes)
-            </label>
-            <input
-              type="number"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              placeholder="60"
-              className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
-              <Calendar className="w-4 h-4" />
-              <span>Workout Date</span>
-            </label>
-            <input
-              type="date"
-              value={workoutDate}
-              onChange={(e) => setWorkoutDate(e.target.value)}
-              max={getLocalDateInputValue()}
-              className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-      </Card>
-
-      {/* Exercises */}
+      {/* Exercises first — the gym loop stays above the fold */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900 ">Exercises</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Exercises</h2>
           <div className="flex items-center space-x-2">
             {/* Batch Edit Button - Show when exercises exist */}
             {exercises.length > 0 && (
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsBatchEditModalOpen(true)}
-                className="flex items-center space-x-2 px-3 py-3 bg-gray-600 text-white font-semibold rounded-xl shadow-lg"
+                aria-label="Batch edit all sets"
+                className="flex items-center space-x-2 px-3 py-3 min-h-[48px] bg-gray-600 text-white font-semibold rounded-xl shadow-lg"
                 title="Batch Edit All"
               >
-                <Sliders className="w-5 h-5" />
+                <Sliders className="w-5 h-5" aria-hidden="true" />
                 <span className="hidden sm:inline">Batch</span>
               </motion.button>
             )}
-            {/* Template Button - Always visible when not editing */}
+            {/* Template Button — single entry (header duplicate removed) */}
             {!isEditMode && (
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsTemplateModalOpen(true)}
-                className="flex items-center space-x-2 px-4 py-3 bg-purple-600 text-white font-semibold rounded-xl shadow-lg"
+                aria-label="Open templates"
+                className="flex items-center space-x-2 px-4 py-3 min-h-[48px] bg-purple-600 text-white font-semibold rounded-xl shadow-lg"
               >
-                <FileText className="w-5 h-5" />
+                <FileText className="w-5 h-5" aria-hidden="true" />
                 <span className="hidden sm:inline">Templates</span>
               </motion.button>
             )}
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsExerciseModalOpen(true)}
-              className="flex items-center space-x-2 px-4 py-3 bg-primary-600 text-white font-semibold rounded-xl shadow-lg"
+              className="flex items-center space-x-2 px-4 py-3 min-h-[48px] bg-primary-600 text-white font-semibold rounded-xl shadow-lg"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-5 h-5" aria-hidden="true" />
               <span>Add</span>
             </motion.button>
           </div>
         </div>
 
         {exercises.length === 0 ? (
-          <Card className="text-center py-12">
-            <div className="text-6xl mb-4">🏋️</div>
-            <p className="text-gray-600 text-lg mb-4">No exercises added yet</p>
-            <p className="text-gray-500 text-sm mb-6">Tap "Add" to get started</p>
-
-            {/* Load Template shortcut */}
-            {!isEditMode && templates.length > 0 && (
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsTemplateModalOpen(true)}
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl shadow-lg"
-              >
-                <FileText className="w-5 h-5" />
-                <span>Load from Template</span>
-              </motion.button>
-            )}
-          </Card>
+          <TemplateGallery
+            templates={templates}
+            lastWorkout={lastWorkout}
+            recentNames={recentNames}
+            onUseTemplate={(t) => handleLoadTemplate(t, 'replace')}
+            onAppendTemplate={(t) => handleLoadTemplate(t, 'append')}
+            onBlank={() => setIsExerciseModalOpen(true)}
+            onQuickAdd={handleQuickAddExercise}
+          />
         ) : (
-          <div className="space-y-6">
-            {exercises.map((exercise) => (
-              <Card key={exercise.id}>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900">{exercise.name}</h3>
-                    <span className="inline-block px-3 py-1 text-xs font-semibold text-primary-600 bg-primary-50 rounded-full mt-2">
-                      {exercise.category}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveExercise(exercise.id)}
-                    className="p-2 hover:bg-red-50 rounded-lg text-red-600"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                    Swipe right to complete, left to delete
-                  </p>
-                  {exercise.sets.map((set, setIndex) => (
-                    <SwipeableSet
-                      key={setIndex}
-                      exercise={exercise}
-                      set={set}
-                      setIndex={setIndex}
-                      onToggle={() => handleToggleSet(exercise.id, setIndex)}
-                      onEdit={() => setEditingSet({ exerciseId: exercise.id, setIndex, set, exercise })}
-                      onDelete={() => {
-                        // Remove set logic
-                        setExercises(exercises.map(ex => {
-                          if (ex.id === exercise.id && ex.sets.length > 1) {
-                            return {
-                              ...ex,
-                              sets: ex.sets.filter((_, i) => i !== setIndex)
-                            };
-                          }
-                          return ex;
-                        }));
-                        toast.success('Set removed');
-                      }}
-                    />
-                  ))}
-
-                  {/* Add Set Button */}
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleAddSetToExercise(exercise.id)}
-                    className="w-full mt-2 py-3 px-4 bg-primary-50 hover:bg-primary-100 text-primary-600 font-semibold rounded-xl border-2 border-dashed border-primary-300 flex items-center justify-center space-x-2 transition-colors"
-                  >
-                    <Plus className="w-5 h-5" />
-                    <span>Add Set</span>
-                  </motion.button>
-                </div>
-
-                {exercise.notes && (
-                  <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p className="text-sm text-amber-900">{exercise.notes}</p>
-                  </div>
-                )}
-              </Card>
-            ))}
-          </div>
+          <>
+            {/* Jump nav — no more scrolling blind through 6 exercises to find legs */}
+            <div className="sticky top-16 z-20 -mx-1 px-1 py-1.5 bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur">
+              <div className="flex items-center gap-1.5 overflow-x-auto">
+                {exercises.map((ex, i) => {
+                  const done = ex.sets.filter((s) => s.completed).length;
+                  const allDone = done === ex.sets.length && ex.sets.length > 0;
+                  return (
+                    <button
+                      key={ex.id}
+                      onClick={() => jumpToExercise(ex.id)}
+                      aria-label={`Jump to ${ex.name}, ${done} of ${ex.sets.length} sets done`}
+                      className={`flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-bold transition-colors ${
+                        allDone
+                          ? 'bg-success-100 dark:bg-emerald-900/40 text-success-700 dark:text-emerald-300'
+                          : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200'
+                      }`}
+                    >
+                      {i + 1} • {ex.name.length > 12 ? `${ex.name.slice(0, 12)}…` : ex.name} {done}/{ex.sets.length}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setCollapsedIds(new Set(exercises.map((e) => e.id)))}
+                  className="flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-semibold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800"
+                >
+                  Collapse all
+                </button>
+                <button
+                  onClick={() => setCollapsedIds(new Set())}
+                  className="flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-semibold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800"
+                >
+                  Expand all
+                </button>
+              </div>
+            </div>
+            <div className="space-y-3 mt-2">
+              {exercises.map((exercise) => (
+                <ExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  collapsed={collapsedIds.has(exercise.id)}
+                  onToggleCollapse={() => toggleCollapse(exercise.id)}
+                  onUpdateSet={handleUpdateSetInline}
+                  onToggleSet={handleToggleSet}
+                  onEditSet={(exerciseId, setIndex) => {
+                    const ex = exercises.find((e) => e.id === exerciseId);
+                    setEditingSet({ exerciseId, setIndex, set: ex.sets[setIndex], exercise: ex });
+                  }}
+                  onDeleteSet={handleDeleteSet}
+                  onAddSet={handleAddSetToExercise}
+                  onCopySet={handleCopyExercise}
+                  onRemove={handleRemoveExercise}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
 
@@ -1079,10 +1230,8 @@ const WorkoutLogMobile = () => {
                           />
                         </>
                       ) : (
-                        // Weight training: Reps and Weight
-                        // For barbell exercises (bench press / deadlift), the label says
-                        // "Plates / Side" to remind the user to enter only the plates they
-                        // added to one side. The app calculates total plates + 20kg bar.
+                        // Weight training: Reps and Total weight (total-first).
+                        // Stored set.weight stays per-side plates (legacy); UI enters TOTAL.
                         <>
                           <NumberPicker
                             label="Reps"
@@ -1094,18 +1243,18 @@ const WorkoutLogMobile = () => {
                           />
                           <div className="flex flex-col">
                             <NumberPicker
-                              label={isBarbellExercise(newExercise.name) ? 'Plates / Side' : 'Weight'}
-                              value={set.weight}
-                              onChange={(val) => handleSetChange(index, 'weight', val)}
+                              label={isBarbellExercise(newExercise.name) ? 'Total weight' : 'Weight'}
+                              value={isBarbellExercise(newExercise.name) ? perSideToTotal(set.weight, newExercise.name) : set.weight}
+                              onChange={(val) => handleSetChange(index, 'weight', isBarbellExercise(newExercise.name) ? totalToPerSide(val, newExercise.name) : val)}
                               min={0}
                               max={999}
                               step={2.5}
-                              quickIncrements={[-20, -10, -5, 5, 10, 20]}
+                              quickIncrements={isBarbellExercise(newExercise.name) ? [-10, -5, 5, 10] : [-20, -10, -5, 5, 10, 20]}
                               unit="kg"
                             />
                             {isBarbellExercise(newExercise.name) && (
-                              <span className="text-xs text-blue-600 font-semibold text-center mt-1">
-                                = {getEffectiveWeight(set.weight, newExercise.name)} kg total (bar + both sides)
+                              <span className="text-[13px] text-gray-500 dark:text-gray-400 font-medium text-center mt-1">
+                                {(parseFloat(set.weight) || 0).toFixed(1)} kg/side + 20 kg bar
                               </span>
                             )}
                           </div>
@@ -1191,16 +1340,14 @@ const WorkoutLogMobile = () => {
               </div>
             ) : (
               templates.map((template) => (
-                <motion.div
+                <div
                   key={template.id}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleLoadTemplate(template)}
-                  className="p-4 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
+                  className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-1">{template.name}</h3>
-                      <div className="flex items-center space-x-3 text-sm text-gray-600 ">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{template.name}</h3>
+                      <div className="flex items-center space-x-3 text-[13px] text-gray-600 dark:text-gray-400 ">
                         <span>{template.exercises?.length || 0} exercises</span>
                         {template.duration > 0 && (
                           <>
@@ -1210,9 +1357,22 @@ const WorkoutLogMobile = () => {
                         )}
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
                   </div>
-                </motion.div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleLoadTemplate(template, 'append')}
+                      className="min-h-[44px] rounded-lg bg-gray-200 dark:bg-gray-700 font-semibold text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Append
+                    </button>
+                    <button
+                      onClick={() => handleLoadTemplate(template, 'replace')}
+                      className="min-h-[44px] rounded-lg bg-purple-600 hover:bg-purple-700 font-semibold text-sm text-white transition-colors"
+                    >
+                      Replace
+                    </button>
+                  </div>
+                </div>
               ))
             )}
           </div>
@@ -1339,22 +1499,22 @@ const WorkoutLogMobile = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
-                    {isBarbellExercise(editingSet.exercise.name) ? 'Plates / Side (kg)' : 'Weight (kg)'}
+                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2 block">
+                    {isBarbellExercise(editingSet.exercise.name) ? 'Total weight (kg)' : 'Weight (kg)'}
                   </label>
                   <NumberPicker
-                    value={editingSet.set.weight || 0}
+                    value={isBarbellExercise(editingSet.exercise.name) ? perSideToTotal(editingSet.set.weight, editingSet.exercise.name) : (editingSet.set.weight || 0)}
                     onChange={(value) => setEditingSet({
                       ...editingSet,
-                      set: { ...editingSet.set, weight: value }
+                      set: { ...editingSet.set, weight: isBarbellExercise(editingSet.exercise.name) ? totalToPerSide(value, editingSet.exercise.name) : value }
                     })}
                     min={0}
                     max={500}
                     step={2.5}
                   />
                   {isBarbellExercise(editingSet.exercise.name) && (
-                    <p className="text-xs text-blue-600 font-semibold text-center mt-2">
-                      = {getEffectiveWeight(editingSet.set.weight, editingSet.exercise.name)} kg total (bar + both sides)
+                    <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium text-center mt-2">
+                      {(parseFloat(editingSet.set.weight) || 0).toFixed(1)} kg/side + 20 kg bar
                     </p>
                   )}
                 </div>
@@ -1415,6 +1575,16 @@ const WorkoutLogMobile = () => {
 
       {/* Voice Log Button */}
       <VoiceLogButton onExerciseParsed={handleVoiceExercise} />
+
+      {showBackToTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Back to top"
+          className="fixed bottom-24 right-4 z-30 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lifted"
+        >
+          ↑
+        </button>
+      )}
     </div>
   );
 };

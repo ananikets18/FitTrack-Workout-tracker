@@ -28,7 +28,8 @@ const Button = ({
     secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 shadow-soft hover:-translate-y-1',
     danger: 'bg-gradient-danger text-white shadow-soft hover:shadow-lifted hover:-translate-y-1 active:shadow-soft',
     success: 'bg-gradient-success text-white shadow-soft hover:shadow-lifted hover:-translate-y-1 active:shadow-soft',
-    outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100 hover:-translate-y-1',
+    outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100 hover:-translate-y-1 dark:text-primary-300 dark:border-primary-400 dark:hover:bg-primary-900/30',
+    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 dark:text-gray-200 dark:hover:bg-gray-800 dark:active:bg-gray-700 shadow-none',
   };
 
   const sizes = {
@@ -40,7 +41,7 @@ const Button = ({
   return (
     <button
       type={type}
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`${baseStyles} ${variants[variant] || variants.primary} ${sizes[size]} ${className}`}
       disabled={disabled}
       onClick={handleClick}
       aria-label={ariaLabel}

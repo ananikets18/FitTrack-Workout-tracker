@@ -40,16 +40,32 @@ const Modal = ({
     };
   }, [isOpen]);
 
-  // Handle escape key
+  // Handle escape key + focus trap (Tab cycles within modal)
   useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
+    if (!isOpen) return;
+    const handleKey = (e) => {
+      if (e.key === 'Escape') {
         onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !modalRef.current) return;
+      const focusables = modalRef.current.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
   }, [isOpen, onClose]);
 
   const sizes = {
@@ -120,19 +136,4 @@ const Modal = ({
 
 export default Modal;
 
-// Add safe area CSS for iOS devices
-const style = document.createElement('style');
-style.textContent = `
-  .safe-bottom {
-    padding-bottom: max(0.75rem, env(safe-area-inset-bottom)) !important;
-  }
-  @media (min-width: 768px) {
-    .safe-bottom {
-      padding-bottom: 1rem !important;
-    }
-  }
-`;
-if (typeof document !== 'undefined') {
-  document.head.appendChild(style);
-}
 

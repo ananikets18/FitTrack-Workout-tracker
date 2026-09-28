@@ -77,8 +77,9 @@
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
   <script>
-    // Register service worker
-    if ('serviceWorker' in navigator) {
+    // Register service worker in production only — in dev it caches stale UI and hides HMR updates.
+    // DevTools > Application > Service Workers > Unregister once if you previously loaded dev with SW.
+    if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && !window.location.hostname.startsWith('127.')) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
           .then(registration => {

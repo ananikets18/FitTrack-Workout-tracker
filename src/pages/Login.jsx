@@ -114,28 +114,28 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900 px-4 transition-colors">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="relative">
-              <DumbbellIcon className="w-12 h-12 text-blue-600 " />
-              <SparklesIcon className="w-6 h-6 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
+              <DumbbellIcon className="w-12 h-12 text-primary-600 " aria-hidden="true" />
+              <SparklesIcon className="w-6 h-6 text-yellow-400 absolute -top-1 -right-1 animate-pulse" aria-hidden="true" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
             FitTrack
           </h1>
-          <p className="text-gray-600 ">
+          <p className="text-gray-600 dark:text-gray-400 ">
             Track your fitness journey with ease
           </p>
         </div>
 
         {/* Auth Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-6 md:p-8 transition-colors">
           <div className="mb-6">
-            <div className="flex space-x-2 bg-gray-100 rounded-lg p-1">
+            <div className="flex space-x-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
               {['sign_in', 'sign_up'].map((type) => (
                 <button
                   key={type}
@@ -143,9 +143,10 @@ const Login = () => {
                     setView(type);
                     setError('');
                   }}
-                  className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${view === type
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900 '
+                  aria-pressed={view === type}
+                  className={`flex-1 py-2 px-4 min-h-[44px] rounded-md font-medium transition-colors ${view === type
+                      ? 'bg-white dark:bg-gray-900 text-primary-600 dark:text-primary-300 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                     }`}
                 >
                   {type === 'sign_in' ? 'Sign In' : 'Sign Up'}
@@ -156,42 +157,57 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {view === 'sign_up' && (
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-                required
-                className="w-full px-4 py-2 border rounded-lg "
-              />
+              <div>
+                <label htmlFor="login-name" className="sr-only">Your name</label>
+                <input
+                  id="login-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                  autoComplete="name"
+                  required
+                  className="w-full px-4 py-2 min-h-[44px] border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white "
+                />
+              </div>
             )}
 
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              required
-              className="w-full px-4 py-2 border rounded-lg "
-            />
+            <div>
+              <label htmlFor="login-email" className="sr-only">Email address</label>
+              <input
+                id="login-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                autoComplete="email"
+                required
+                className="w-full px-4 py-2 min-h-[44px] border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white "
+              />
+            </div>
 
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              minLength={view === 'sign_up' ? 8 : undefined}
-              pattern={
-                view === 'sign_up'
-                  ? '(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*'
-                  : undefined
-              }
-              className="w-full px-4 py-2 border rounded-lg "
-            />
+            <div>
+              <label htmlFor="login-password" className="sr-only">Password</label>
+              <input
+                id="login-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete={view === 'sign_up' ? 'new-password' : 'current-password'}
+                required
+                minLength={view === 'sign_up' ? 8 : undefined}
+                pattern={
+                  view === 'sign_up'
+                    ? '(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*'
+                    : undefined
+                }
+                className="w-full px-4 py-2 min-h-[44px] border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white "
+              />
+            </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
+              <div role="alert" className="bg-danger-50 dark:bg-red-900/30 text-danger-600 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
@@ -199,7 +215,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg disabled:opacity-50"
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2.5 min-h-[48px] rounded-lg disabled:opacity-50 font-semibold transition-colors"
             >
               {loading ? 'Loading...' : view === 'sign_in' ? 'Sign In' : 'Sign Up'}
             </button>
@@ -209,7 +225,7 @@ const Login = () => {
                 type="button"
                 onClick={handlePasswordReset}
                 disabled={resetLoading}
-                className="w-full text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                className="w-full min-h-[44px] text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-300 disabled:opacity-50"
               >
                 {resetLoading ? 'Sending reset email...' : 'Forgot password?'}
               </button>

@@ -54,7 +54,7 @@ const NumberPicker = ({
   return (
     <div className={`flex flex-col ${className}`}>
       {label && (
-        <label className="text-xs md:text-sm font-semibold text-gray-700 mb-1.5">
+        <label className="text-[13px] md:text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
           {label}
         </label>
       )}
@@ -64,32 +64,36 @@ const NumberPicker = ({
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={handleDecrement}
-          className="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 bg-gray-200 hover:bg-gray-300 rounded-lg md:rounded-xl active:bg-gray-400 transition-colors flex-shrink-0"
+          aria-label={`Decrease ${label || 'value'}`}
+          className="flex items-center justify-center w-11 h-11 md:w-12 md:h-12 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-xl active:bg-gray-400 transition-colors flex-shrink-0"
           type="button"
         >
-          <Minus className="w-4 h-4 text-gray-700" />
+          <Minus className="w-4 h-4 text-gray-700 dark:text-gray-200" aria-hidden="true" />
         </motion.button>
 
         {/* Value Display */}
-        <div className="flex-1 flex items-center justify-center bg-gray-100 rounded-lg md:rounded-xl h-9 md:h-10 px-2 md:px-3 min-w-0">
+        <div className="flex-1 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl h-11 md:h-12 px-2 md:px-3 min-w-0 transition-colors">
           <input
             type="number"
             value={inputValue}
             onChange={handleInputChange}
-            className="w-full text-center text-lg md:text-xl font-bold text-gray-900 bg-transparent border-none focus:outline-none appearance-none"
+            aria-label={label || 'Value'}
+            inputMode="decimal"
+            className="w-full text-center text-lg md:text-xl font-bold text-gray-900 dark:text-white bg-transparent border-none focus:outline-none appearance-none min-h-[44px]"
             style={{ MozAppearance: 'textfield' }}
           />
-          {unit && <span className="ml-1 text-xs md:text-sm font-semibold text-gray-600 flex-shrink-0">{unit}</span>}
+          {unit && <span className="ml-1 text-[13px] md:text-sm font-semibold text-gray-600 dark:text-gray-400 flex-shrink-0">{unit}</span>}
         </div>
 
         {/* Increment Button */}
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={handleIncrement}
-          className="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 bg-primary-600 hover:bg-primary-700 rounded-lg md:rounded-xl active:bg-primary-800 transition-colors flex-shrink-0"
+          aria-label={`Increase ${label || 'value'}`}
+          className="flex items-center justify-center w-11 h-11 md:w-12 md:h-12 bg-primary-600 hover:bg-primary-700 rounded-xl active:bg-primary-800 transition-colors flex-shrink-0"
           type="button"
         >
-          <Plus className="w-4 h-4 text-white" />
+          <Plus className="w-4 h-4 text-white" aria-hidden="true" />
         </motion.button>
       </div>
 
@@ -101,7 +105,7 @@ const NumberPicker = ({
               key={inc}
               whileTap={{ scale: 0.95 }}
               onClick={() => handleQuickChange(inc)}
-              className="px-2 md:px-2.5 py-1 text-xs md:text-sm font-semibold bg-gray-200 hover:bg-gray-300 rounded-md active:bg-gray-400 transition-colors whitespace-nowrap"
+              className="px-2.5 py-1.5 min-h-[36px] text-[13px] md:text-sm font-semibold bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 rounded-lg active:bg-gray-400 transition-colors whitespace-nowrap"
               type="button"
             >
               {inc > 0 ? '+' : ''}{inc}{unit}

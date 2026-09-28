@@ -1,11 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Dumbbell, Home, History, BarChart3, Plus, LogOut, User, Moon, Sun, Wifi, WifiOff } from 'lucide-react';
+import { Dumbbell, LogOut, User, Moon, Sun, Wifi, WifiOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import useOnlineStatus from '../../hooks/useOnlineStatus';
 import { lightHaptic } from '../../utils/haptics';
 import toast from 'react-hot-toast';
-import MobileMenu from './MobileMenu';
+import { NAV_ITEMS, isNavActive } from '../../constants/navigation';
 
 
 const Header = () => {
@@ -15,16 +15,9 @@ const Header = () => {
   const { theme, toggleTheme } = useTheme();
   const isOnline = useOnlineStatus();
 
-  const navItems = [
-    { path: '/', label: 'Home', icon: Home },
-    { path: '/log', label: 'Log Workout', icon: Plus },
-    { path: '/history', label: 'History', icon: History },
-    { path: '/stats', label: 'Statistics', icon: BarChart3 },
-  ];
+  const navItems = NAV_ITEMS;
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const isActive = (path) => isNavActive(location.pathname, path);
 
   const handleLogout = async () => {
     try {
@@ -55,18 +48,19 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-2">
-            <nav className="flex space-x-1">
+            <nav className="flex space-x-1" aria-label="Primary">
               {/* eslint-disable-next-line no-unused-vars */}
               {navItems.map(({ path, label, icon: NavIcon }) => (
                 <Link
                   key={path}
                   to={path}
-                  className={`flex items-center space-x-2 px-5 py-3 rounded-2xl transition-all duration-200 ${isActive(path)
+                  aria-current={isActive(path) ? 'page' : undefined}
+                  className={`flex items-center space-x-2 px-5 py-3 rounded-2xl transition-all duration-200 min-h-[48px] ${isActive(path)
                     ? 'bg-primary-100 text-primary-700 font-semibold shadow-soft dark:bg-primary-900/50 dark:text-primary-300'
                     : 'text-gray-600 hover:bg-gray-100 hover:shadow-none dark:text-gray-300 dark:hover:bg-gray-800'
                     }`}
                 >
-                  <NavIcon className="w-5 h-5" />
+                  <NavIcon className="w-5 h-5" aria-hidden="true" />
                   <span>{label}</span>
                 </Link>
               ))}
@@ -124,81 +118,32 @@ const Header = () => {
           {/* Mobile: Actions (Right Side) */}
           <div className="flex md:hidden items-center space-x-1">
             <div
-              className={`p-2 rounded-xl text-xs flex items-center space-x-1 ${
+              className={`min-h-[44px] min-w-[44px] p-2 rounded-xl text-xs flex items-center justify-center space-x-1 ${
                 isOnline
                   ? 'text-emerald-600 dark:text-emerald-400'
                   : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
               }`}
               title={isOnline ? 'Online' : 'Offline'}
+              role="status"
             >
-              {isOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+              {isOnline ? <Wifi className="w-4 h-4" aria-hidden="true" /> : <WifiOff className="w-4 h-4" aria-hidden="true" />}
+              <span className="sr-only">{isOnline ? 'Online' : 'Offline'}</span>
             </div>
             <button
               onClick={toggleTheme}
-              className="p-3 rounded-2xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
+              className="min-h-[44px] min-w-[44px] p-3 rounded-2xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors flex items-center justify-center"
               aria-label="Toggle Theme"
             >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {theme === 'dark' ? <Sun className="w-5 h-5" aria-hidden="true" /> : <Moon className="w-5 h-5" aria-hidden="true" />}
             </button>
             <button
               onClick={handleLogout}
-              className="flex items-center justify-center p-3 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-all duration-150 active:scale-95"
+              className="flex items-center justify-center min-h-[44px] min-w-[44px] p-3 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-all duration-150 active:scale-95"
               aria-label="Logout"
               title="Logout"
             >
-              <LogOut className="w-5 h-5" strokeWidth={2} />
+              <LogOut className="w-5 h-5" strokeWidth={2} aria-hidden="true" />
             </button>
-          </div>
-
-          {/* Mobile Menu - Hidden, keeping for future use if needed */}
-          <div className="hidden">
-            <MobileMenu>
-              <div className="space-y-4">
-                {/* User Info */}
-                <div className="px-4 py-3 bg-gray-50 rounded-xl">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                      <User className="w-6 h-6 text-primary-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {user?.user_metadata?.name || 'User'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {user?.email}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Navigation */}
-                <div className="space-y-2">
-                  {/* eslint-disable-next-line no-unused-vars */}
-                  {navItems.map(({ path, label, icon: NavIcon }) => (
-                    <Link
-                      key={path}
-                      to={path}
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors text-lg ${isActive(path)
-                        ? 'bg-primary-50 text-primary-600 font-semibold'
-                        : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                    >
-                      <NavIcon className="w-6 h-6" />
-                      <span>{label}</span>
-                    </Link>
-                  ))}
-                </div>
-
-                {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors text-lg font-medium"
-                >
-                  <LogOut className="w-6 h-6" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            </MobileMenu>
           </div>
         </div>
       </div>

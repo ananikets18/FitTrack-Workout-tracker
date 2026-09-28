@@ -47,35 +47,45 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900 px-4 transition-colors">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Reset Password</h1>
-          <p className="text-gray-600">Choose a new password for your FitTrack account.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">Reset Password</h1>
+          <p className="text-gray-600 dark:text-gray-400">Choose a new password for your FitTrack account.</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lifted border border-gray-100 dark:border-gray-800 p-6 md:p-8 transition-colors">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="New password"
-              minLength={8}
-              className="w-full px-4 py-2 border rounded-lg"
-            />
+            <div>
+              <label htmlFor="reset-password" className="sr-only">New password</label>
+              <input
+                id="reset-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="New password"
+                autoComplete="new-password"
+                minLength={8}
+                className="w-full px-4 py-2 min-h-[44px] border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+              />
+            </div>
 
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
-              minLength={8}
-              className="w-full px-4 py-2 border rounded-lg"
-            />
+            <div>
+              <label htmlFor="reset-confirm" className="sr-only">Confirm new password</label>
+              <input
+                id="reset-confirm"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                autoComplete="new-password"
+                minLength={8}
+                className="w-full px-4 py-2 min-h-[44px] border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+              />
+            </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
+              <div role="alert" className="bg-danger-50 dark:bg-red-900/30 text-danger-600 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
@@ -83,7 +93,7 @@ const ResetPassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg disabled:opacity-50"
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white py-2.5 min-h-[48px] rounded-lg disabled:opacity-50 font-semibold transition-colors"
             >
               {loading ? 'Updating...' : 'Update Password'}
             </button>
