@@ -355,7 +355,7 @@ const BulkRestDayModal = ({
             >
               <CalendarDays className="w-5 h-5 mb-1 text-primary-500" />
               <span className="text-xs font-bold">Date Range</span>
-              <span className="text-[10px] text-gray-500">Deload / Vacation</span>
+              <span className="text-[13px] text-gray-500">Deload / Vacation</span>
             </button>
 
             <button
@@ -369,7 +369,7 @@ const BulkRestDayModal = ({
             >
               <Repeat className="w-5 h-5 mb-1 text-purple-500" />
               <span className="text-xs font-bold">Recurring</span>
-              <span className="text-[10px] text-gray-500">Weekly Schedule</span>
+              <span className="text-[13px] text-gray-500">Weekly Schedule</span>
             </button>
 
             <button
@@ -383,7 +383,7 @@ const BulkRestDayModal = ({
             >
               <Layers className="w-5 h-5 mb-1 text-emerald-500" />
               <span className="text-xs font-bold">Multi-Select</span>
-              <span className="text-[10px] text-gray-500">Pick on Calendar</span>
+              <span className="text-[13px] text-gray-500">Pick on Calendar</span>
             </button>
           </div>
         </div>
@@ -603,7 +603,7 @@ const BulkRestDayModal = ({
 
               {/* Mini Calendar Grid */}
               <div className="bg-white dark:bg-gray-900 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-7 gap-1 mb-1 text-center text-[10px] font-bold text-gray-400">
+                <div className="grid grid-cols-7 gap-1 mb-1 text-center text-[13px] font-bold text-gray-400">
                   {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
                     <div key={idx}>{day}</div>
                   ))}
@@ -683,7 +683,7 @@ const BulkRestDayModal = ({
               />
               <span>Skip dates with existing workouts</span>
               {workoutConflicts.length > 0 && (
-                <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                <span className="px-1.5 py-0.5 text-[13px] font-bold rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
                   {workoutConflicts.length}
                 </span>
               )}
@@ -698,7 +698,7 @@ const BulkRestDayModal = ({
               />
               <span>Skip dates already marked as rest day</span>
               {restDayConflicts.length > 0 && (
-                <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
+                <span className="px-1.5 py-0.5 text-[13px] font-bold rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
                   {restDayConflicts.length}
                 </span>
               )}

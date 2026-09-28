@@ -48,7 +48,7 @@ const SleepTracker = () => {
                 await addSleepLog(sleepData);
             }
             handleCloseModal();
-        } catch (_error) {
+        } catch {
             // Error handled in context
         }
     };

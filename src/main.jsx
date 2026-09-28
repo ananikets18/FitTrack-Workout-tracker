@@ -8,18 +8,18 @@ import performanceMonitor from './utils/performanceMonitor'
 performanceMonitor.init();
 
 // Global error handlers to prevent initialization errors from breaking the app
+// Note: Dexie/IndexedDB was removed — offline is localStorage + service-worker cache only.
+// Keep generic storage guards for SafeStorage fallback in lib/supabase.js.
 window.addEventListener('unhandledrejection', (event) => {
-  // Check if it's a non-critical error (like IndexedDB initialization)
   const errorMessage = event.reason?.message || event.reason?.toString() || '';
 
-  // Suppress IndexedDB and storage-related errors that don't affect functionality
+  // Suppress local-storage quota / unavailable errors that don't affect core render
   if (
-    errorMessage.includes('IDBDatabase') ||
-    errorMessage.includes('IndexedDB') ||
-    errorMessage.includes('payload') ||
-    errorMessage.includes('idbSuper')
+    errorMessage.includes('QuotaExceededError') ||
+    errorMessage.includes('localStorage') ||
+    errorMessage.includes('payload')
   ) {
-    console.warn('Non-critical storage initialization warning:', errorMessage);
+    console.warn('Non-critical storage warning:', errorMessage);
     event.preventDefault(); // Prevent the error from appearing in console
     return;
   }
@@ -32,11 +32,10 @@ window.addEventListener('unhandledrejection', (event) => {
 window.addEventListener('error', (event) => {
   const errorMessage = event.message || '';
 
-  // Suppress non-critical errors
+  // Suppress non-critical storage errors
   if (
-    errorMessage.includes('IDBDatabase') ||
-    errorMessage.includes('IndexedDB') ||
-    errorMessage.includes('idbSuper')
+    errorMessage.includes('QuotaExceededError') ||
+    errorMessage.includes('localStorage')
   ) {
     console.warn('Non-critical error suppressed:', errorMessage);
     event.preventDefault();

@@ -38,11 +38,16 @@ CREATE TABLE IF NOT EXISTS exercises (
 );
 
 -- Create sets table
+-- Note: duration/incline/speed added for cardio + treadmill support.
+-- Fresh installs get them here; existing DBs apply supabase/migrations in order (see supabase/README.md).
 CREATE TABLE IF NOT EXISTS sets (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   exercise_id UUID NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
   reps INTEGER NOT NULL,
   weight NUMERIC(10, 2),
+  duration INTEGER, -- minutes, cardio only (NULL for weights)
+  incline NUMERIC(4, 1), -- treadmill incline %
+  speed NUMERIC(4, 1), -- treadmill speed km/h
   completed BOOLEAN DEFAULT false,
   "order" INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -89,6 +94,7 @@ CREATE INDEX IF NOT EXISTS idx_rest_day_activities_workout_id ON rest_day_activi
 CREATE INDEX IF NOT EXISTS idx_templates_user_id ON templates(user_id);
 CREATE INDEX IF NOT EXISTS idx_water_intake_user_id ON water_intake(user_id);
 CREATE INDEX IF NOT EXISTS idx_water_intake_user_date ON water_intake(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_sets_duration ON sets(duration) WHERE duration IS NOT NULL;
 
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;

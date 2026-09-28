@@ -49,6 +49,12 @@ This guide will walk you through setting up Supabase for your FitTrack applicati
 4. Copy the entire SQL content and paste it into the Supabase SQL Editor
 5. Click "Run" (or press Ctrl+Enter)
 6. You should see "Success. No rows returned" - this means all tables were created!
+7. Then apply migrations **in order** (existing DBs only; fresh `schema.sql` already includes `sets.duration/incline/speed`):
+   - `supabase/migrations/add_duration_to_sets.sql`
+   - `supabase/migrations/add_treadmill_fields.sql`
+   - `supabase/migrations/20260113_add_water_intake.sql`
+   - `supabase/migrations/20260116_add_ai_data_inputs.sql` (sleep, nutrition, body_measurements, profile extensions)
+   - `supabase/migrations/20260120_fix_user_preferences.sql` (user_preferences + ai_coach_settings)
 
 ### What This Creates:
 

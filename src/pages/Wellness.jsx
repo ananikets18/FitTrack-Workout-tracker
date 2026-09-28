@@ -8,10 +8,10 @@ const Wellness = () => {
     const [activeTab, setActiveTab] = useState('calendar');
 
     const tabs = [
-        { id: 'calendar', label: 'Calendar', icon: CalendarIcon, color: 'blue' },
-        { id: 'sleep', label: 'Sleep', icon: Moon, color: 'indigo' },
-        { id: 'measurements', label: 'Body', icon: Scale, color: 'purple' },
-        { id: 'nutrition', label: 'Nutrition', icon: Apple, color: 'green' }
+        { id: 'calendar', label: 'Calendar', icon: CalendarIcon, activeClasses: 'border-primary-600 text-primary-600 dark:text-primary-300 dark:border-primary-400' },
+        { id: 'sleep', label: 'Sleep', icon: Moon, activeClasses: 'border-primary-600 text-primary-600 dark:text-primary-300 dark:border-primary-400' },
+        { id: 'measurements', label: 'Body', icon: Scale, activeClasses: 'border-primary-600 text-primary-600 dark:text-primary-300 dark:border-primary-400' },
+        { id: 'nutrition', label: 'Nutrition', icon: Apple, activeClasses: 'border-primary-600 text-primary-600 dark:text-primary-300 dark:border-primary-400' }
     ];
 
     return (
@@ -28,22 +28,24 @@ const Wellness = () => {
             </div>
 
             {/* Tabs */}
-            <div className="border-b border-gray-200 overflow-x-auto">
-                <div className="flex space-x-1 min-w-max">
+            <div className="border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
+                <div className="flex space-x-1 min-w-max" role="tablist" aria-label="Wellness sections">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
                         return (
                             <button
                                 key={tab.id}
+                                role="tab"
+                                aria-selected={isActive}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-4 md:px-6 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${isActive
-                                    ? `border-${tab.color}-600 text-${tab.color}-600`
-                                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                                className={`flex items-center gap-2 px-4 md:px-6 py-3 min-h-[48px] font-semibold border-b-2 transition-colors whitespace-nowrap ${isActive
+                                    ? tab.activeClasses
+                                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300 dark:text-gray-300 dark:hover:text-white'
                                     }`}
                             >
-                                <Icon className="w-5 h-5" />
-                                <span className="hidden sm:inline">{tab.label}</span>
+                                <Icon className="w-5 h-5" aria-hidden="true" />
+                                <span>{tab.label}</span>
                             </button>
                         );
                     })}

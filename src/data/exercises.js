@@ -515,6 +515,15 @@ const BARBELL_BENCH_PRESS_PATTERNS = [
   'wide-grip bench press',
 ];
 
+const BARBELL_DEADLIFT_PATTERNS = [
+  'deadlift',
+  'romanian deadlift',
+  'sumo deadlift',
+  'stiff-leg deadlift',
+  'stiff leg deadlift',
+  'trap bar deadlift',
+];
+
 /**
  * Returns true when the named exercise uses the 20 kg gym barbell,
  * meaning the user's weight input is plate-load only (not total weight).
@@ -522,6 +531,8 @@ const BARBELL_BENCH_PRESS_PATTERNS = [
  * Rules:
  *  - Barbell bench press family: name contains "bench press" but is NOT
  *    a dumbbell or machine variant.
+ *  - Deadlift family: all deadlift forms use the standard barbell
+ *    (matches header doc above; previously missing = doc/code drift).
  */
 export const isBarbellExercise = (exerciseName) => {
   if (!exerciseName) return false;
@@ -534,6 +545,10 @@ export const isBarbellExercise = (exerciseName) => {
     lower.startsWith('db ');
 
   if (!isExcludedVariant && BARBELL_BENCH_PRESS_PATTERNS.some(p => lower.includes(p))) {
+    return true;
+  }
+
+  if (!isExcludedVariant && BARBELL_DEADLIFT_PATTERNS.some(p => lower.includes(p))) {
     return true;
   }
 

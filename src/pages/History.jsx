@@ -127,24 +127,52 @@ const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
                 e.stopPropagation();
                 onEdit(workout);
               }}
-              className="action-button p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors active:scale-95"
+              aria-label={`Edit ${workout.name || 'workout'}`}
+              className="action-button p-2 min-h-[44px] min-w-[44px] flex items-center justify-center bg-primary-100 dark:bg-primary-900/30 hover:bg-primary-200 text-primary-600 dark:text-primary-300 rounded-lg transition-colors active:scale-95"
               title="Edit"
             >
-              <Edit className="w-4 h-4" />
+              <Edit className="w-4 h-4" aria-hidden="true" />
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(workout);
               }}
-              className="action-button p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors active:scale-95"
+              aria-label={`Delete ${workout.name || 'workout'}`}
+              className="action-button p-2 min-h-[44px] min-w-[44px] flex items-center justify-center bg-danger-50 dark:bg-red-900/30 hover:bg-danger-100 text-danger-600 dark:text-red-300 rounded-lg transition-colors active:scale-95"
               title="Delete"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </div>
       )}
+      {/* Desktop row actions — cards previously had no actions on md+ (detail modal only) */}
+      <div className="hidden md:flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+        {workout.type !== 'rest_day' && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(workout);
+            }}
+            className="action-button flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-[13px] font-semibold text-primary-600 dark:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors"
+          >
+            <Edit className="w-4 h-4" aria-hidden="true" />
+            Edit
+          </button>
+        )}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(workout);
+          }}
+          className="action-button flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-[13px] font-semibold text-danger-600 dark:text-red-300 hover:bg-danger-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+        >
+          <Trash2 className="w-4 h-4" aria-hidden="true" />
+          Delete
+        </button>
+        <span className="ml-auto text-[13px] text-gray-400">Click card for details</span>
+      </div>
     </Card>
   );
 };
@@ -544,10 +572,10 @@ const History = () => {
             {/* Import Button */}
             <label
               htmlFor="import-file"
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
+              className="flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
               title="Import workouts"
             >
-              <Upload className="w-4 h-4" />
+              <Upload className="w-4 h-4" aria-hidden="true" />
               <span className="hidden lg:inline">Import</span>
             </label>
             <input
@@ -564,28 +592,31 @@ const History = () => {
                 <button
                   onClick={() => handleExport('csv')}
                   disabled={isExporting || isImporting}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Export as CSV"
+                  className="flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Export as CSV"
                 >
-                  <FileSpreadsheet className="w-4 h-4" />
+                  <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden lg:inline">{isExporting ? 'Exporting...' : 'CSV'}</span>
                 </button>
                 <button
                   onClick={() => handleExport('excel')}
                   disabled={isExporting || isImporting}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Export as Excel"
+                  className="flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Export as Excel"
                 >
-                  <Sheet className="w-4 h-4" />
+                  <Sheet className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden lg:inline">{isExporting ? 'Exporting...' : 'Excel'}</span>
                 </button>
                 <button
                   onClick={() => handleExport('json')}
                   disabled={isExporting || isImporting}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Export as JSON"
+                  className="flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Export as JSON"
                 >
-                  <FileJson className="w-4 h-4" />
+                  <FileJson className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden lg:inline">{isExporting ? 'Exporting...' : 'JSON'}</span>
                 </button>
               </>
@@ -598,10 +629,11 @@ const History = () => {
           {/* Import Button */}
           <label
             htmlFor="import-file-mobile"
-            className="flex items-center justify-center px-2.5 py-2 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
+            className="flex items-center justify-center px-2.5 py-2 min-h-[44px] min-w-[44px] bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
             title="Import workouts"
+            aria-label="Import workouts"
           >
-            <Upload className="w-4 h-4" />
+            <Upload className="w-4 h-4" aria-hidden="true" />
           </label>
           <input
             id="import-file-mobile"
@@ -617,26 +649,29 @@ const History = () => {
               <button
                 onClick={() => handleExport('csv')}
                 disabled={isExporting || isImporting}
-                className="flex items-center justify-center px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Export as CSV"
+                className="flex items-center justify-center px-2.5 py-2 min-h-[44px] min-w-[44px] bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export as CSV"
               >
-                <FileSpreadsheet className="w-4 h-4" />
+                <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 onClick={() => handleExport('excel')}
                 disabled={isExporting || isImporting}
-                className="flex items-center justify-center px-2.5 py-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Export as Excel"
+                className="flex items-center justify-center px-2.5 py-2 min-h-[44px] min-w-[44px] bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export as Excel"
               >
-                <Sheet className="w-4 h-4" />
+                <Sheet className="w-4 h-4" aria-hidden="true" />
               </button>
               <button
                 onClick={() => handleExport('json')}
                 disabled={isExporting || isImporting}
-                className="flex items-center justify-center px-2.5 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Export as JSON"
+                className="flex items-center justify-center px-2.5 py-2 min-h-[44px] min-w-[44px] bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Export as JSON"
               >
-                <FileJson className="w-4 h-4" />
+                <FileJson className="w-4 h-4" aria-hidden="true" />
               </button>
             </>
           )}
@@ -649,13 +684,15 @@ const History = () => {
           <div className="flex flex-col md:flex-row gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" aria-hidden="true" />
+              <label htmlFor="history-search" className="sr-only">Search workouts or exercises</label>
               <input
+                id="history-search"
                 type="text"
                 placeholder="Search workouts or exercises..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+                className="w-full pl-10 pr-4 py-2 min-h-[44px] border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
               />
             </div>
 
@@ -1160,51 +1197,56 @@ const History = () => {
 
             {/* Period Selection */}
             <div className="space-y-3">
-              <label className="block text-sm font-semibold text-gray-900">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-white">
                 Export Period
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setExportPeriod('all')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'all'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  aria-pressed={exportPeriod === 'all'}
+                  className={`px-4 py-3 min-h-[48px] rounded-lg font-medium transition-all ${exportPeriod === 'all'
+                    ? 'bg-primary-600 text-white shadow-soft'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
                   All Workouts
                 </button>
                 <button
                   onClick={() => setExportPeriod('day')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'day'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  aria-pressed={exportPeriod === 'day'}
+                  className={`px-4 py-3 min-h-[48px] rounded-lg font-medium transition-all ${exportPeriod === 'day'
+                    ? 'bg-primary-600 text-white shadow-soft'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
                   Single Day
                 </button>
                 <button
                   onClick={() => setExportPeriod('week')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'week'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  aria-pressed={exportPeriod === 'week'}
+                  className={`px-4 py-3 min-h-[48px] rounded-lg font-medium transition-all ${exportPeriod === 'week'
+                    ? 'bg-primary-600 text-white shadow-soft'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
                   Week
                 </button>
                 <button
                   onClick={() => setExportPeriod('month')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all ${exportPeriod === 'month'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  aria-pressed={exportPeriod === 'month'}
+                  className={`px-4 py-3 min-h-[48px] rounded-lg font-medium transition-all ${exportPeriod === 'month'
+                    ? 'bg-primary-600 text-white shadow-soft'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
                   Month
                 </button>
                 <button
                   onClick={() => setExportPeriod('year')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all col-span-2 ${exportPeriod === 'year'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  aria-pressed={exportPeriod === 'year'}
+                  className={`px-4 py-3 min-h-[48px] rounded-lg font-medium transition-all col-span-2 ${exportPeriod === 'year'
+                    ? 'bg-primary-600 text-white shadow-soft'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                 >
                   Year

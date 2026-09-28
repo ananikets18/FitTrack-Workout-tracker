@@ -11,8 +11,12 @@ export const config = {
   },
   
   features: {
-    pwa: import.meta.env.VITE_ENABLE_PWA === 'true',
-    offline: import.meta.env.VITE_ENABLE_OFFLINE === 'true',
+    pwa: import.meta.env.VITE_ENABLE_PWA !== 'false',
+    // Canonical flag is VITE_ENABLE_OFFLINE_MODE (see .env.example).
+    // VITE_ENABLE_OFFLINE kept for backwards compatibility.
+    offline:
+      import.meta.env.VITE_ENABLE_OFFLINE_MODE === 'true' ||
+      import.meta.env.VITE_ENABLE_OFFLINE === 'true',
     analytics: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
   },
   

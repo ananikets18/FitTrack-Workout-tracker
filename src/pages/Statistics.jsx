@@ -1,6 +1,6 @@
 import { useWorkouts } from '../context/WorkoutContext';
 import { getCategoryForExercise } from '../data/exercises';
-import { useState } from 'react';
+import { useState, lazy, Suspense, useMemo } from 'react';
 import {
   calculateStreak,
   calculateTotalVolume,
@@ -14,10 +14,18 @@ import Card from '../components/common/Card';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
 import SkeletonCard from '../components/common/SkeletonCard';
 import ExerciseHistoryModal from '../components/common/ExerciseHistoryModal';
-import { TrainingIntelligenceChart, TreadmillProgressChart } from '../components/charts/WorkoutCharts';
-import HeatmapCalendar from '../components/charts/HeatmapCalendar';
-import PRTimeline from '../components/charts/PRTimeline';
-import InteractiveChart from '../components/charts/InteractiveChart';
+const TrainingIntelligenceChart = lazy(() =>
+  import('../components/charts/WorkoutCharts').then((m) => ({ default: m.TrainingIntelligenceChart }))
+);
+const TreadmillProgressChart = lazy(() =>
+  import('../components/charts/WorkoutCharts').then((m) => ({ default: m.TreadmillProgressChart }))
+);
+const HeatmapCalendar = lazy(() => import('../components/charts/HeatmapCalendar'));
+const PRTimeline = lazy(() => import('../components/charts/PRTimeline'));
+const InteractiveChart = lazy(() => import('../components/charts/InteractiveChart'));
+const ChartFallback = () => (
+  <div className="animate-pulse h-48 rounded-xl bg-gray-100 dark:bg-gray-800" aria-label="Loading chart" />
+);
 import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, ChevronDown, Calendar, Trophy, BarChart3 } from 'lucide-react';
  
 import { motion, AnimatePresence } from 'framer-motion';
@@ -33,43 +41,64 @@ const Statistics = () => {
   const [analyticsMetric, setAnalyticsMetric] = useState('volume');
   const [prMuscleFilter, setPrMuscleFilter] = useState('all');
 
-  // Filter out rest days for workout statistics
-  const regularWorkouts = workouts.filter(w => w.type !== 'rest_day');
+  // Filter out rest days for workout statistics (memoized: O(n) per workouts change only)
+  const regularWorkouts = useMemo(
+    () => workouts.filter((w) => w.type !== 'rest_day'),
+    [workouts]
+  );
 
   // Calculate statistics (only for regular workouts)
   const totalWorkouts = regularWorkouts.length;
-  const currentStreak = calculateStreak(workouts); // Includes rest days for streak
-  const personalRecords = getPersonalRecords(workouts);
+  const currentStreak = useMemo(() => calculateStreak(workouts), [workouts]); // Includes rest days for streak
+  const personalRecords = useMemo(() => getPersonalRecords(workouts), [workouts]);
 
-  const totalVolume = regularWorkouts.reduce((sum, workout) =>
-    sum + calculateTotalVolume(workout), 0
+  const totalVolume = useMemo(
+    () => regularWorkouts.reduce((sum, workout) => sum + calculateTotalVolume(workout), 0),
+    [regularWorkouts]
   );
 
   const totalVolumeInTons = kgToTons(totalVolume);
 
-  const totalSets = regularWorkouts.reduce((sum, workout) => {
-    return sum + (workout.exercises?.reduce((total, ex) => total + ex.sets.length, 0) || 0);
-  }, 0);
-
-  const totalReps = regularWorkouts.reduce((sum, workout) => {
-    return sum + calculateTotalReps(workout);
-  }, 0);
-
-  const averageWeight = regularWorkouts.length > 0
-    ? (regularWorkouts.reduce((sum, workout) => sum + parseFloat(calculateAverageWeight(workout)), 0) / regularWorkouts.length).toFixed(1)
-    : 0;
-
-  // Calculate total activity points (NEW - Activity Points System)
-  const totalActivity = regularWorkouts.reduce((sum, workout) =>
-    sum + calculateTotalActivity(workout), 0
+  const totalSets = useMemo(
+    () =>
+      regularWorkouts.reduce(
+        (sum, workout) =>
+          sum + (workout.exercises?.reduce((total, ex) => total + ex.sets.length, 0) || 0),
+        0
+      ),
+    [regularWorkouts]
   );
 
-  const exerciseFrequency = {};
-  regularWorkouts.forEach(workout => {
-    workout.exercises?.forEach(exercise => {
-      exerciseFrequency[exercise.name] = (exerciseFrequency[exercise.name] || 0) + 1;
+  const totalReps = useMemo(
+    () => regularWorkouts.reduce((sum, workout) => sum + calculateTotalReps(workout), 0),
+    [regularWorkouts]
+  );
+
+  const averageWeight =
+    regularWorkouts.length > 0
+      ? (
+          regularWorkouts.reduce(
+            (sum, workout) => sum + parseFloat(calculateAverageWeight(workout)),
+            0
+          ) / regularWorkouts.length
+        ).toFixed(1)
+      : 0;
+
+  // Calculate total activity points (NEW - Activity Points System)
+  const totalActivity = useMemo(
+    () => regularWorkouts.reduce((sum, workout) => sum + calculateTotalActivity(workout), 0),
+    [regularWorkouts]
+  );
+
+  const exerciseFrequency = useMemo(() => {
+    const freq = {};
+    regularWorkouts.forEach((workout) => {
+      workout.exercises?.forEach((exercise) => {
+        freq[exercise.name] = (freq[exercise.name] || 0) + 1;
+      });
     });
-  });
+    return freq;
+  }, [regularWorkouts]);
 
   const topExercises = Object.entries(exerciseFrequency)
     .sort((a, b) => b[1] - a[1])
@@ -183,7 +212,9 @@ const Statistics = () => {
           {/* Training Intelligence Dashboard - Unique insights */}
           <Card>
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Training Intelligence (Last 7 Days)</h2>
-            <TrainingIntelligenceChart workouts={workouts} />
+            <Suspense fallback={<ChartFallback />}>
+              <TrainingIntelligenceChart workouts={workouts} />
+            </Suspense>
           </Card>
 
           {/* NEW: Heatmap Calendar */}
@@ -232,7 +263,9 @@ const Statistics = () => {
                 >
                   <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
                     <div className="pt-6">
-                      <HeatmapCalendar workouts={workouts} />
+                      <Suspense fallback={<ChartFallback />}>
+                        <HeatmapCalendar workouts={workouts} />
+                      </Suspense>
                     </div>
                   </div>
                 </motion.div>
@@ -286,7 +319,9 @@ const Statistics = () => {
                 >
                   <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
                     <div className="pt-6">
-                      <PRTimeline workouts={workouts} />
+                      <Suspense fallback={<ChartFallback />}>
+                        <PRTimeline workouts={workouts} />
+                      </Suspense>
                     </div>
                   </div>
                 </motion.div>
@@ -359,15 +394,17 @@ const Statistics = () => {
                           </button>
                         ))}
                       </div>
-                      <InteractiveChart
-                        workouts={workouts}
-                        title={
-                          analyticsMetric === 'volume' ? 'Volume Progress'
-                            : analyticsMetric === 'activity' ? 'Activity Points Progress'
-                              : 'Workout Count'
-                        }
-                        metric={analyticsMetric}
-                      />
+                      <Suspense fallback={<ChartFallback />}>
+                        <InteractiveChart
+                          workouts={workouts}
+                          title={
+                            analyticsMetric === 'volume' ? 'Volume Progress'
+                              : analyticsMetric === 'activity' ? 'Activity Points Progress'
+                                : 'Workout Count'
+                          }
+                          metric={analyticsMetric}
+                        />
+                      </Suspense>
                     </div>
                   </div>
                 </motion.div>
@@ -426,7 +463,9 @@ const Statistics = () => {
                 >
                   <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
                     <div className="pt-6">
-                      <TreadmillProgressChart workouts={workouts} />
+                      <Suspense fallback={<ChartFallback />}>
+                        <TreadmillProgressChart workouts={workouts} />
+                      </Suspense>
                     </div>
                   </div>
                 </motion.div>

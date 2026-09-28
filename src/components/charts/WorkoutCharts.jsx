@@ -559,21 +559,21 @@ export const WeeklyMonthlyActivityChart = ({ workouts }) => {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-3 mt-4">
-        <div className="bg-blue-50 rounded-lg p-3 text-center">
-          <div className="text-xs text-blue-600 font-semibold mb-1">Weights</div>
-          <div className="text-lg font-bold text-blue-700">
+        <div className="bg-primary-100 dark:bg-primary-900/30 rounded-lg p-3 text-center">
+          <div className="text-[13px] text-primary-600 dark:text-primary-300 font-semibold mb-1">Weights</div>
+          <div className="text-lg font-bold text-primary-700 dark:text-primary-200">
             {Math.round(chartData.reduce((sum, d) => sum + d.Weights, 0)).toLocaleString()}
           </div>
         </div>
-        <div className="bg-cyan-50 rounded-lg p-3 text-center">
-          <div className="text-xs text-cyan-600 font-semibold mb-1">Cardio</div>
-          <div className="text-lg font-bold text-cyan-700">
+        <div className="bg-cyan-100 dark:bg-cyan-900/30 rounded-lg p-3 text-center">
+          <div className="text-[13px] text-cyan-700 dark:text-cyan-300 font-semibold mb-1">Cardio</div>
+          <div className="text-lg font-bold text-cyan-800 dark:text-cyan-200">
             {Math.round(chartData.reduce((sum, d) => sum + d.Cardio, 0)).toLocaleString()}
           </div>
         </div>
-        <div className="bg-green-50 rounded-lg p-3 text-center">
-          <div className="text-xs text-green-600 font-semibold mb-1">Bodyweight</div>
-          <div className="text-lg font-bold text-green-700">
+        <div className="bg-success-100 dark:bg-emerald-900/30 rounded-lg p-3 text-center">
+          <div className="text-[13px] text-success-600 dark:text-emerald-300 font-semibold mb-1">Bodyweight</div>
+          <div className="text-lg font-bold text-success-700 dark:text-emerald-200">
             {Math.round(chartData.reduce((sum, d) => sum + d.Bodyweight, 0)).toLocaleString()}
           </div>
         </div>
@@ -746,17 +746,17 @@ export const TreadmillProgressChart = ({ workouts }) => {
               </LineChart>
             </ResponsiveContainer>
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-blue-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-blue-600 font-semibold mb-1">Max Speed</div>
-                <div className="text-xl font-bold text-blue-700">{maxSpeed} km/h</div>
+              <div className="bg-primary-100 dark:bg-primary-900/30 rounded-lg p-3 text-center">
+                <div className="text-[13px] text-primary-600 dark:text-primary-300 font-semibold mb-1">Max Speed</div>
+                <div className="text-xl font-bold text-primary-700 dark:text-primary-200">{maxSpeed} km/h</div>
               </div>
-              <div className="bg-blue-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-blue-600 font-semibold mb-1">Avg Speed</div>
-                <div className="text-xl font-bold text-blue-700">{avgSpeed} km/h</div>
+              <div className="bg-primary-100 dark:bg-primary-900/30 rounded-lg p-3 text-center">
+                <div className="text-[13px] text-primary-600 dark:text-primary-300 font-semibold mb-1">Avg Speed</div>
+                <div className="text-xl font-bold text-primary-700 dark:text-primary-200">{avgSpeed} km/h</div>
               </div>
-              <div className="bg-blue-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-blue-600 font-semibold mb-1">Sessions</div>
-                <div className="text-xl font-bold text-blue-700">{treadmillWorkouts.length}</div>
+              <div className="bg-primary-100 dark:bg-primary-900/30 rounded-lg p-3 text-center">
+                <div className="text-[13px] text-primary-600 dark:text-primary-300 font-semibold mb-1">Sessions</div>
+                <div className="text-xl font-bold text-primary-700 dark:text-primary-200">{treadmillWorkouts.length}</div>
               </div>
             </div>
           </div>
@@ -796,17 +796,17 @@ export const TreadmillProgressChart = ({ workouts }) => {
               </LineChart>
             </ResponsiveContainer>
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-green-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-green-600 font-semibold mb-1">Max Incline</div>
-                <div className="text-xl font-bold text-green-700">{maxIncline}%</div>
+              <div className="bg-success-100 dark:bg-emerald-900/30 rounded-lg p-3 text-center">
+                <div className="text-[13px] text-success-600 dark:text-emerald-300 font-semibold mb-1">Max Incline</div>
+                <div className="text-xl font-bold text-success-700 dark:text-emerald-200">{maxIncline}%</div>
               </div>
-              <div className="bg-green-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-green-600 font-semibold mb-1">Avg Incline</div>
-                <div className="text-xl font-bold text-green-700">{avgIncline}%</div>
+              <div className="bg-success-100 dark:bg-emerald-900/30 rounded-lg p-3 text-center">
+                <div className="text-[13px] text-success-600 dark:text-emerald-300 font-semibold mb-1">Avg Incline</div>
+                <div className="text-xl font-bold text-success-700 dark:text-emerald-200">{avgIncline}%</div>
               </div>
-              <div className="bg-green-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-green-600 font-semibold mb-1">Climb Rate</div>
-                <div className="text-xl font-bold text-green-700">
+              <div className="bg-success-100 dark:bg-emerald-900/30 rounded-lg p-3 text-center">
+                <div className="text-[13px] text-success-600 dark:text-emerald-300 font-semibold mb-1">Climb Rate</div>
+                <div className="text-xl font-bold text-success-700 dark:text-emerald-200">
                   {((parseFloat(avgIncline) / 10) * 100).toFixed(0)}%
                 </div>
               </div>
@@ -830,17 +830,17 @@ export const TreadmillProgressChart = ({ workouts }) => {
               </BarChart>
             </ResponsiveContainer>
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-purple-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-purple-600 font-semibold mb-1">Total Distance</div>
-                <div className="text-xl font-bold text-purple-700">{totalDistance} km</div>
+              <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-3 text-center">
+                <div className="text-[13px] text-purple-600 dark:text-purple-300 font-semibold mb-1">Total Distance</div>
+                <div className="text-xl font-bold text-purple-700 dark:text-purple-200">{totalDistance} km</div>
               </div>
-              <div className="bg-purple-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-purple-600 font-semibold mb-1">Longest Run</div>
-                <div className="text-xl font-bold text-purple-700">{maxDistance.toFixed(2)} km</div>
+              <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-3 text-center">
+                <div className="text-[13px] text-purple-600 dark:text-purple-300 font-semibold mb-1">Longest Run</div>
+                <div className="text-xl font-bold text-purple-700 dark:text-purple-200">{maxDistance.toFixed(2)} km</div>
               </div>
-              <div className="bg-purple-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-purple-600 font-semibold mb-1">Avg/Session</div>
-                <div className="text-xl font-bold text-purple-700">
+              <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-3 text-center">
+                <div className="text-[13px] text-purple-600 dark:text-purple-300 font-semibold mb-1">Avg/Session</div>
+                <div className="text-xl font-bold text-purple-700 dark:text-purple-200">
                   {(totalDistance / treadmillWorkouts.length).toFixed(2)} km
                 </div>
               </div>

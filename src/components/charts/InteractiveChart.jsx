@@ -355,34 +355,34 @@ const InteractiveChart = ({ workouts, title = 'Workout Progress', metric = 'acti
 
             {/* Stats summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                    <div className="text-xs font-semibold text-blue-600 mb-1">Total</div>
-                    <div className="text-xl font-bold text-blue-900">
+                <div className="bg-primary-100 dark:bg-primary-900/30 rounded-lg p-3 border border-primary-200 dark:border-primary-800">
+                    <div className="text-xs font-semibold text-primary-600 dark:text-primary-300 mb-1">Total</div>
+                    <div className="text-xl font-bold text-primary-700 dark:text-primary-200">
                         {stats.total.toLocaleString()}
                     </div>
                 </div>
-                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                    <div className="text-xs font-semibold text-green-600 mb-1">Average</div>
-                    <div className="text-xl font-bold text-green-900">
+                <div className="bg-success-100 dark:bg-emerald-900/30 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
+                    <div className="text-xs font-semibold text-success-600 dark:text-emerald-300 mb-1">Average</div>
+                    <div className="text-xl font-bold text-success-700 dark:text-emerald-200">
                         {stats.average.toLocaleString()}
                     </div>
                 </div>
-                <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-                    <div className="text-xs font-semibold text-purple-600 mb-1">Peak</div>
-                    <div className="text-xl font-bold text-purple-900">
+                <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-3 border border-purple-200 dark:border-purple-800">
+                    <div className="text-xs font-semibold text-purple-600 dark:text-purple-300 mb-1">Peak</div>
+                    <div className="text-xl font-bold text-purple-900 dark:text-purple-200">
                         {stats.max.toLocaleString()}
                     </div>
                 </div>
-                <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
-                    <div className="text-xs font-semibold text-orange-600 mb-1">Lowest</div>
-                    <div className="text-xl font-bold text-orange-900">
+                <div className="bg-warning-100 dark:bg-amber-900/30 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
+                    <div className="text-xs font-semibold text-warning-600 dark:text-amber-300 mb-1">Lowest</div>
+                    <div className="text-xl font-bold text-warning-700 dark:text-amber-200">
                         {stats.min.toLocaleString()}
                     </div>
                 </div>
             </div>
 
             {/* Chart */}
-            <div className="bg-gray-50 rounded-xl p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 transition-colors">
                 <ResponsiveContainer width="100%" height={350}>
                     {renderChart()}
                 </ResponsiveContainer>
