@@ -84,6 +84,57 @@ CREATE TABLE IF NOT EXISTS water_intake (
   UNIQUE(user_id, date)
 );
 
+-- Wellness tables (also in supabase/migrations/20260116_add_ai_data_inputs.sql).
+-- Kept here so fresh installs that only run schema.sql still get sleep logging.
+CREATE TABLE IF NOT EXISTS sleep_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  hours_slept NUMERIC(3, 1) NOT NULL,
+  quality INTEGER NOT NULL CHECK (quality >= 1 AND quality <= 5),
+  sleep_start_time TIME,
+  sleep_end_time TIME,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, date)
+);
+
+CREATE TABLE IF NOT EXISTS nutrition_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  calories INTEGER,
+  protein NUMERIC(5, 1),
+  carbs NUMERIC(5, 1),
+  fats NUMERIC(5, 1),
+  meal_type TEXT,
+  meal_name TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS body_measurements (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  weight NUMERIC(5, 2),
+  body_fat_percentage NUMERIC(4, 2),
+  chest NUMERIC(5, 2),
+  waist NUMERIC(5, 2),
+  hips NUMERIC(5, 2),
+  left_arm NUMERIC(5, 2),
+  right_arm NUMERIC(5, 2),
+  left_thigh NUMERIC(5, 2),
+  right_thigh NUMERIC(5, 2),
+  progress_photo_url TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, date)
+);
+
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_workouts_user_id ON workouts(user_id);
 CREATE INDEX IF NOT EXISTS idx_workouts_date ON workouts(date);
@@ -95,6 +146,13 @@ CREATE INDEX IF NOT EXISTS idx_templates_user_id ON templates(user_id);
 CREATE INDEX IF NOT EXISTS idx_water_intake_user_id ON water_intake(user_id);
 CREATE INDEX IF NOT EXISTS idx_water_intake_user_date ON water_intake(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_sets_duration ON sets(duration) WHERE duration IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_sleep_logs_user_id ON sleep_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_sleep_logs_date ON sleep_logs(date);
+CREATE INDEX IF NOT EXISTS idx_sleep_logs_user_date ON sleep_logs(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_nutrition_logs_user_id ON nutrition_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_nutrition_logs_user_date ON nutrition_logs(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_body_measurements_user_id ON body_measurements(user_id);
+CREATE INDEX IF NOT EXISTS idx_body_measurements_user_date ON body_measurements(user_id, date);
 
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -104,6 +162,9 @@ ALTER TABLE sets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rest_day_activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE water_intake ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sleep_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE nutrition_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE body_measurements ENABLE ROW LEVEL SECURITY;
 
 -- Profiles RLS Policies
 CREATE POLICY "Users can view their own profile"
@@ -296,6 +357,57 @@ CREATE POLICY "Users can delete their own water intake"
   ON water_intake FOR DELETE
   USING (auth.uid() = user_id);
 
+-- Sleep Logs RLS Policies
+CREATE POLICY "Users can view their own sleep logs"
+  ON sleep_logs FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own sleep logs"
+  ON sleep_logs FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own sleep logs"
+  ON sleep_logs FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own sleep logs"
+  ON sleep_logs FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Nutrition Logs RLS Policies
+CREATE POLICY "Users can view their own nutrition logs"
+  ON nutrition_logs FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own nutrition logs"
+  ON nutrition_logs FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own nutrition logs"
+  ON nutrition_logs FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own nutrition logs"
+  ON nutrition_logs FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Body Measurements RLS Policies
+CREATE POLICY "Users can view their own body measurements"
+  ON body_measurements FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own body measurements"
+  ON body_measurements FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own body measurements"
+  ON body_measurements FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own body measurements"
+  ON body_measurements FOR DELETE
+  USING (auth.uid() = user_id);
+
 -- Create function to automatically create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -340,4 +452,16 @@ CREATE TRIGGER set_updated_at
 
 CREATE TRIGGER set_updated_at
   BEFORE UPDATE ON water_intake
+  FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER set_updated_at
+  BEFORE UPDATE ON sleep_logs
+  FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER set_updated_at
+  BEFORE UPDATE ON nutrition_logs
+  FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER set_updated_at
+  BEFORE UPDATE ON body_measurements
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();

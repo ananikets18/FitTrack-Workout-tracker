@@ -26,6 +26,7 @@ const Input = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        required={required}
         aria-invalid={error ? 'true' : 'false'}
         aria-describedby={error ? `${inputId}-error` : undefined}
         aria-required={required}
