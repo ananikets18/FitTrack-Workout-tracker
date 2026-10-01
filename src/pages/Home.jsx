@@ -115,6 +115,23 @@ const Home = () => {
         totalRestDays={totalRestDays}
       />
 
+      {!isLoading && thisWeekWorkouts >= 2 && (
+        <Link
+          to="/recap"
+          className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-lifted hover:opacity-95 transition-opacity"
+        >
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/70">Weekly Wrapped is ready</p>
+            <p className="font-bold truncate">
+              {thisWeekWorkouts} sessions down — see your recap
+            </p>
+          </div>
+          <span className="flex-shrink-0 bg-white text-gray-900 text-sm font-bold px-4 py-2 rounded-full">
+            Open
+          </span>
+        </Link>
+      )}
+
       {/* Bento grid: main + rail. Mobile order: hydration right after stats, then recent, then up-next. */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 items-start">
         {/* Hydration first on mobile (order-1), rail on desktop */}

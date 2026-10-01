@@ -18,6 +18,7 @@ const Home = lazy(() => import('./pages/Home'));
 const WorkoutLogMobile = lazy(() => import('./pages/WorkoutLogMobile'));
 const History = lazy(() => import('./pages/History'));
 const Statistics = lazy(() => import('./pages/Statistics'));
+const Recap = lazy(() => import('./pages/Recap'));
 const Wellness = lazy(() => import('./pages/Wellness'));
 const Login = lazy(() => import('./pages/Login'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
@@ -126,6 +127,14 @@ function App() {
                             element={
                               <Suspense fallback={<PageLoader />}>
                                 <Statistics />
+                              </Suspense>
+                            }
+                          />
+                          <Route
+                            path="recap"
+                            element={
+                              <Suspense fallback={<PageLoader />}>
+                                <Recap />
                               </Suspense>
                             }
                           />
