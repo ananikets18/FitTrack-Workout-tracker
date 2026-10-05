@@ -140,3 +140,6 @@ export const DEFAULT_SET = {
 // Users log only the PLATE LOAD they add on top; the app automatically
 // adds BARBELL_WEIGHT_KG to compute the true total lifted weight.
 export const BARBELL_WEIGHT_KG = 20;
+
+export { GYM_SESSION } from './session';
+

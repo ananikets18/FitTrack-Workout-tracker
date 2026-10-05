@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { WorkoutProvider } from './context/WorkoutContext';
+import { GymSessionProvider } from './context/GymSessionContext';
 import { TemplateProvider } from './context/TemplateContext';
 import { AuthProvider } from './context/AuthContext';
 import { PreferencesProvider } from './context/PreferencesContext';
@@ -41,7 +42,8 @@ function App() {
               <BodyMeasurementsProvider>
                 <TemplateProvider>
                   <WorkoutProvider>
-                    <Router>
+                    <GymSessionProvider>
+                      <Router>
                       <Toaster
                         position="top-center"
                         toastOptions={{
@@ -148,7 +150,8 @@ function App() {
                           />
                         </Route>
                       </Routes>
-                    </Router>
+                      </Router>
+                    </GymSessionProvider>
                   </WorkoutProvider>
                 </TemplateProvider>
               </BodyMeasurementsProvider>
