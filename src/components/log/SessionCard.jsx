@@ -1,13 +1,45 @@
 import { useState } from 'react';
-import { Calendar, Timer, StickyNote, Pencil } from 'lucide-react';
+import { Calendar, Timer, StickyNote, Pencil, CheckCircle2, Lock } from 'lucide-react';
 import Card from '../common/Card';
 import { getLocalDateInputValue } from '../../utils/date';
+import { useGymSession } from '../../hooks/useGymSession';
 
 const SessionCard = ({ name, onName, date, onDate, duration, onDuration, notes, onNotes, isEditMode }) => {
   const [open, setOpen] = useState(false);
+  const {
+    isActive,
+    isCompleted,
+    formattedStartTime,
+    formattedEndTime,
+    formattedElapsed,
+    sessionDurationMinutes,
+    elapsedSeconds,
+  } = useGymSession();
+
+  const isSessionAutoDuration = !isEditMode && (isActive || isCompleted);
+  const liveMinutes = Math.max(1, Math.round((elapsedSeconds || 0) / 60));
+  const displayedDuration = !isEditMode && isCompleted && sessionDurationMinutes
+    ? sessionDurationMinutes.toString()
+    : !isEditMode && isActive
+      ? liveMinutes.toString()
+      : duration;
+
   const chips = [
     { key: 'date', icon: Calendar, label: date || getLocalDateInputValue() },
-    ...(duration ? [{ key: 'dur', icon: Timer, label: `${duration}m` }] : []),
+    ...(displayedDuration
+      ? [
+          {
+            key: 'dur',
+            icon: isSessionAutoDuration ? CheckCircle2 : Timer,
+            label: isCompleted && !isEditMode
+              ? `${displayedDuration}m (${formattedStartTime}–${formattedEndTime})`
+              : isActive && !isEditMode
+                ? `${displayedDuration}m live (${formattedElapsed})`
+                : `${displayedDuration}m`,
+            highlight: isSessionAutoDuration,
+          },
+        ]
+      : []),
     ...(notes?.trim() ? [{ key: 'notes', icon: StickyNote, label: 'Notes' }] : []),
   ];
 
@@ -31,7 +63,14 @@ const SessionCard = ({ name, onName, date, onDate, duration, onDuration, notes, 
       />
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {chips.map((c) => (
-          <span key={c.key} className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-1 text-[13px] font-medium text-gray-600 dark:text-gray-300">
+          <span
+            key={c.key}
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-medium ${
+              c.highlight
+                ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 font-semibold border border-emerald-300/50 dark:border-emerald-700/50'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+            }`}
+          >
             <c.icon className="w-3.5 h-3.5" aria-hidden="true" />
             {c.label}
           </span>
@@ -59,16 +98,31 @@ const SessionCard = ({ name, onName, date, onDate, duration, onDuration, notes, 
             />
           </div>
           <div>
-            <label htmlFor="log-session-duration" className="text-[13px] font-semibold text-gray-600 dark:text-gray-300 mb-1 block">Duration (min)</label>
+            <label htmlFor="log-session-duration" className="text-[13px] font-semibold text-gray-600 dark:text-gray-300 mb-1 flex items-center justify-between">
+              <span>Duration (min)</span>
+              {isSessionAutoDuration && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                  <Lock className="w-3 h-3" />
+                  Auto-tracked
+                </span>
+              )}
+            </label>
             <input
               id="log-session-duration"
               type="number"
-              value={duration}
-              onChange={(e) => onDuration(e.target.value)}
-              placeholder="60"
+              value={displayedDuration}
+              onChange={(e) => {
+                if (!isSessionAutoDuration) onDuration(e.target.value);
+              }}
+              readOnly={isSessionAutoDuration}
+              placeholder="105"
               min="0"
               inputMode="numeric"
-              className="w-full px-3 py-2.5 min-h-[48px] border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full px-3 py-2.5 min-h-[48px] border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                isSessionAutoDuration
+                  ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/60 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-200 font-bold cursor-not-allowed'
+                  : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-white'
+              }`}
             />
           </div>
           <div className="sm:col-span-1">

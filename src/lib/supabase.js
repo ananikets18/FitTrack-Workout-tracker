@@ -601,6 +601,138 @@ export const db = {
     }
     return data || [];
   },
+
+  // Gym Sessions (1h 45m Gym Timer & Post-Gym Gameplan)
+  _gymSessionsAvailable: null,
+
+  async checkGymSessionsAvailable(userId) {
+    if (this._gymSessionsAvailable !== null) {
+      return this._gymSessionsAvailable;
+    }
+    try {
+      const { error } = await supabase
+        .from('gym_sessions')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+
+      const isMissing =
+        error &&
+        (error.code === 'PGRST205' ||
+          error.code === 'PGRST301' ||
+          error.code === '42P01' ||
+          error.message?.includes('does not exist') ||
+          error.message?.includes('schema cache'));
+
+      this._gymSessionsAvailable = !isMissing;
+      return this._gymSessionsAvailable;
+    } catch {
+      this._gymSessionsAvailable = false;
+      return false;
+    }
+  },
+
+  async getActiveOrTodayGymSession(userId, date) {
+    const isAvailable = await this.checkGymSessionsAvailable(userId);
+    if (!isAvailable) return null;
+
+    const { data, error } = await supabase
+      .from('gym_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .or(`status.eq.active,date.eq.${date}`)
+      .order('start_time', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === 'PGRST205' || error.code === 'PGRST301' || error.code === '42P01') {
+        this._gymSessionsAvailable = false;
+      }
+      return null;
+    }
+    return data || null;
+  },
+
+  async createGymSession(userId, sessionPayload) {
+    const isAvailable = await this.checkGymSessionsAvailable(userId);
+    if (!isAvailable) return null;
+
+    const { data, error } = await supabase
+      .from('gym_sessions')
+      .insert({
+        user_id: userId,
+        date: sessionPayload.date,
+        start_time: sessionPayload.startTime,
+        end_time: sessionPayload.endTime || null,
+        target_minutes: sessionPayload.targetMinutes || 105,
+        duration_minutes: sessionPayload.sessionDurationMinutes ?? null,
+        extensions_used: sessionPayload.extensionsUsed || 0,
+        status: sessionPayload.status || 'active',
+        workout_logged: !!sessionPayload.workoutLogged,
+        checked_tips: Array.isArray(sessionPayload.checkedTips) ? sessionPayload.checkedTips : [],
+      })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST205' || error.code === 'PGRST301' || error.code === '42P01') {
+        this._gymSessionsAvailable = false;
+      }
+      return null;
+    }
+    return data;
+  },
+
+  async updateGymSession(sessionId, userId, updates) {
+    if (!sessionId) return null;
+    const isAvailable = await this.checkGymSessionsAvailable(userId);
+    if (!isAvailable) return null;
+
+    const payload = {
+      updated_at: new Date().toISOString(),
+    };
+    if (updates.endTime !== undefined) payload.end_time = updates.endTime;
+    if (updates.targetMinutes !== undefined) payload.target_minutes = updates.targetMinutes;
+    if (updates.sessionDurationMinutes !== undefined) payload.duration_minutes = updates.sessionDurationMinutes;
+    if (updates.extensionsUsed !== undefined) payload.extensions_used = updates.extensionsUsed;
+    if (updates.status !== undefined) payload.status = updates.status;
+    if (updates.workoutLogged !== undefined) payload.workout_logged = updates.workoutLogged;
+    if (updates.checkedTips !== undefined) payload.checked_tips = updates.checkedTips;
+
+    const { data, error } = await supabase
+      .from('gym_sessions')
+      .update(payload)
+      .eq('id', sessionId)
+      .eq('user_id', userId)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === 'PGRST205' || error.code === 'PGRST301' || error.code === '42P01') {
+        this._gymSessionsAvailable = false;
+      }
+      return null;
+    }
+    return data;
+  },
+
+  async getGymSessionHistory(userId, limit = 30) {
+    const isAvailable = await this.checkGymSessionsAvailable(userId);
+    if (!isAvailable) return [];
+
+    const { data, error } = await supabase
+      .from('gym_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('start_time', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      return [];
+    }
+    return data || [];
+  },
 };
 
 // Helper to transform Supabase data to app format

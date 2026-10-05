@@ -1,6 +1,9 @@
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import BottomNav from './BottomNav';
+import GymCheckinModal from '../session/GymCheckinModal';
+import FloatingSessionPill from '../session/FloatingSessionPill';
+import SessionCompleteModal from '../session/SessionCompleteModal';
 
 const Layout = () => {
   return (
@@ -12,9 +15,14 @@ const Layout = () => {
       <Header />
 
       {/* Edge-to-edge on mobile, contained on desktop */}
-      <main id="main-content" tabIndex={-1} className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pt-4 md:pt-5 pb-20 md:pb-8">
+      <main id="main-content" tabIndex={-1} className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pt-4 md:pt-5 pb-32 md:pb-24">
         <Outlet />
       </main>
+
+      {/* Gym Session Timer Components */}
+      <GymCheckinModal />
+      <FloatingSessionPill />
+      <SessionCompleteModal />
 
       <BottomNav />
     </div>
@@ -22,4 +30,5 @@ const Layout = () => {
 };
 
 export default Layout;
+
 

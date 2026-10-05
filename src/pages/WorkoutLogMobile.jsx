@@ -14,6 +14,8 @@ import VoiceLogButton from '../components/common/VoiceLogButton';
 import SessionCard from '../components/log/SessionCard';
 import TemplateGallery from '../components/log/TemplateGallery';
 import ExerciseCard from '../components/log/ExerciseCard';
+import GymSessionLogBanner from '../components/session/GymSessionLogBanner';
+import { useGymSession, formatClockTime } from '../hooks/useGymSession';
 import { formatParsedSummary } from '../utils/voiceParser';
 import { ArrowLeft, Plus, Trash2, Check, Save, Search, Edit, AlertTriangle, Calendar, BookmarkPlus, FileText, ChevronRight, Sliders, Timer } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -39,10 +41,21 @@ const WorkoutLogMobile = () => {
   const navigate = useNavigate();
   const { addWorkout, updateWorkout, currentWorkout, clearCurrentWorkout, workouts } = useWorkouts();
   const { templates, saveTemplate } = useTemplates();
+  const {
+    isActive: isGymSessionActive,
+    isCompleted: isGymSessionCompleted,
+    sessionDurationMinutes,
+    formattedStartTime,
+    formattedEndTime,
+    manualOverride: isManualOverride,
+    endSession: endGymSession,
+    markSessionWorkoutLogged,
+  } = useGymSession();
 
   // Check if we're editing an existing workout
   const isEditMode = !!currentWorkout;
   const editingWorkoutId = currentWorkout?.id;
+  const isLoggingUnlocked = isEditMode || isGymSessionCompleted || isManualOverride;
   const lastWorkout = (workouts || []).find((w) => w.type !== 'rest_day');
   const recentNames = [...new Set((workouts || []).flatMap((w) => (w.exercises || []).map((e) => e.name)).filter(Boolean))];
 
@@ -64,6 +77,13 @@ const WorkoutLogMobile = () => {
   const [collapsedIds, setCollapsedIds] = useState(() => new Set());
   const [showBackToTop, setShowBackToTop] = useState(false);
   const initialSnapshotRef = useRef(null);
+
+  // Auto-populate duration when gym session completes
+  useEffect(() => {
+    if (!isEditMode && isGymSessionCompleted && sessionDurationMinutes) {
+      setDuration(sessionDurationMinutes.toString());
+    }
+  }, [isEditMode, isGymSessionCompleted, sessionDurationMinutes]);
 
   useEffect(() => {
     const onScroll = () => setShowBackToTop(window.scrollY > 600);
@@ -523,16 +543,36 @@ const WorkoutLogMobile = () => {
       return;
     }
 
+    // If a gym session is still actively running when saving, auto-complete it now to stamp endTime
+    let completedNow = null;
+    if (!isEditMode && isGymSessionActive) {
+      completedNow = endGymSession();
+    }
+
     // Convert selected date to ISO string at current time
     const selectedDate = new Date(workoutDate);
     selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
+
+    const autoDuration = !isEditMode
+      ? completedNow?.sessionDurationMinutes ?? sessionDurationMinutes ?? (parseInt(duration) || 0)
+      : parseInt(duration) || 0;
+
+    let finalNotes = notes.trim();
+    if (!isEditMode && (isGymSessionCompleted || completedNow)) {
+      const startLabel = completedNow ? formatClockTime(completedNow.startTime) : formattedStartTime;
+      const endLabel = completedNow ? formatClockTime(completedNow.endTime) : formattedEndTime;
+      const sessionStamp = `[Gym Time: ${startLabel} – ${endLabel} (${autoDuration}m)]`;
+      if (!finalNotes.includes('[Gym Time:')) {
+        finalNotes = finalNotes ? `${sessionStamp} ${finalNotes}` : sessionStamp;
+      }
+    }
 
     const workoutData = {
       name: workoutName.trim(),
       date: selectedDate.toISOString(),
       exercises,
-      duration: parseInt(duration) || 0,
-      notes: notes.trim(),
+      duration: autoDuration,
+      notes: finalNotes,
     };
 
     setIsSaving(true);
@@ -544,6 +584,7 @@ const WorkoutLogMobile = () => {
       } else {
         // Add new workout
         await addWorkout(workoutData);
+        markSessionWorkoutLogged();
       }
 
       initialSnapshotRef.current = snapshotOf(workoutName, workoutDate, exercises, duration, notes);
@@ -893,130 +934,140 @@ const WorkoutLogMobile = () => {
         </div>
       )}
 
-      {/* Workout Details */}
-      {/* Session — name first, details collapsed */}
-      <SessionCard
-        name={workoutName}
-        onName={setWorkoutName}
-        date={workoutDate}
-        onDate={setWorkoutDate}
-        duration={duration}
-        onDuration={setDuration}
-        notes={notes}
-        onNotes={setNotes}
-        isEditMode={isEditMode}
-      />
+      {/* Gym Session Status & Gate Banner */}
+      <GymSessionLogBanner isEditMode={isEditMode} />
 
-      {/* Exercises first — the gym loop stays above the fold */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Exercises</h2>
-          <div className="flex items-center space-x-2">
-            {/* Batch Edit Button - Show when exercises exist */}
-            {exercises.length > 0 && (
+      {/* Workout Details & Exercises (Gated until gym session completes or manual override is enabled) */}
+      <div
+        aria-disabled={!isLoggingUnlocked}
+        className={`space-y-4 transition-opacity duration-200 ${
+          !isLoggingUnlocked ? 'opacity-45 pointer-events-none select-none' : ''
+        }`}
+      >
+        {/* Session — name first, details collapsed */}
+        <SessionCard
+          name={workoutName}
+          onName={setWorkoutName}
+          date={workoutDate}
+          onDate={setWorkoutDate}
+          duration={duration}
+          onDuration={setDuration}
+          notes={notes}
+          onNotes={setNotes}
+          isEditMode={isEditMode}
+        />
+
+        {/* Exercises first — the gym loop stays above the fold */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Exercises</h2>
+            <div className="flex items-center space-x-2">
+              {/* Batch Edit Button - Show when exercises exist */}
+              {exercises.length > 0 && (
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsBatchEditModalOpen(true)}
+                  aria-label="Batch edit all sets"
+                  className="flex items-center space-x-2 px-3 py-3 min-h-[48px] bg-gray-600 text-white font-semibold rounded-xl shadow-lg"
+                  title="Batch Edit All"
+                >
+                  <Sliders className="w-5 h-5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Batch</span>
+                </motion.button>
+              )}
+              {/* Template Button — single entry (header duplicate removed) */}
+              {!isEditMode && (
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsTemplateModalOpen(true)}
+                  aria-label="Open templates"
+                  className="flex items-center space-x-2 px-4 py-3 min-h-[48px] bg-purple-600 text-white font-semibold rounded-xl shadow-lg"
+                >
+                  <FileText className="w-5 h-5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Templates</span>
+                </motion.button>
+              )}
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsBatchEditModalOpen(true)}
-                aria-label="Batch edit all sets"
-                className="flex items-center space-x-2 px-3 py-3 min-h-[48px] bg-gray-600 text-white font-semibold rounded-xl shadow-lg"
-                title="Batch Edit All"
+                onClick={() => setIsExerciseModalOpen(true)}
+                className="flex items-center space-x-2 px-4 py-3 min-h-[48px] bg-primary-600 text-white font-semibold rounded-xl shadow-lg"
               >
-                <Sliders className="w-5 h-5" aria-hidden="true" />
-                <span className="hidden sm:inline">Batch</span>
+                <Plus className="w-5 h-5" aria-hidden="true" />
+                <span>Add</span>
               </motion.button>
-            )}
-            {/* Template Button — single entry (header duplicate removed) */}
-            {!isEditMode && (
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsTemplateModalOpen(true)}
-                aria-label="Open templates"
-                className="flex items-center space-x-2 px-4 py-3 min-h-[48px] bg-purple-600 text-white font-semibold rounded-xl shadow-lg"
-              >
-                <FileText className="w-5 h-5" aria-hidden="true" />
-                <span className="hidden sm:inline">Templates</span>
-              </motion.button>
-            )}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsExerciseModalOpen(true)}
-              className="flex items-center space-x-2 px-4 py-3 min-h-[48px] bg-primary-600 text-white font-semibold rounded-xl shadow-lg"
-            >
-              <Plus className="w-5 h-5" aria-hidden="true" />
-              <span>Add</span>
-            </motion.button>
+            </div>
           </div>
-        </div>
 
-        {exercises.length === 0 ? (
-          <TemplateGallery
-            templates={templates}
-            lastWorkout={lastWorkout}
-            recentNames={recentNames}
-            onUseTemplate={(t) => handleLoadTemplate(t, 'replace')}
-            onAppendTemplate={(t) => handleLoadTemplate(t, 'append')}
-            onBlank={() => setIsExerciseModalOpen(true)}
-            onQuickAdd={handleQuickAddExercise}
-          />
-        ) : (
-          <>
-            {/* Jump nav — no more scrolling blind through 6 exercises to find legs */}
-            <div className="sticky top-16 z-20 -mx-1 px-1 py-1.5 bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur">
-              <div className="flex items-center gap-1.5 overflow-x-auto">
-                {exercises.map((ex, i) => {
-                  const done = ex.sets.filter((s) => s.completed).length;
-                  const allDone = done === ex.sets.length && ex.sets.length > 0;
-                  return (
-                    <button
-                      key={ex.id}
-                      onClick={() => jumpToExercise(ex.id)}
-                      aria-label={`Jump to ${ex.name}, ${done} of ${ex.sets.length} sets done`}
-                      className={`flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-bold transition-colors ${
-                        allDone
-                          ? 'bg-success-100 dark:bg-emerald-900/40 text-success-700 dark:text-emerald-300'
-                          : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200'
-                      }`}
-                    >
-                      {i + 1} • {ex.name.length > 12 ? `${ex.name.slice(0, 12)}…` : ex.name} {done}/{ex.sets.length}
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setCollapsedIds(new Set(exercises.map((e) => e.id)))}
-                  className="flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-semibold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800"
-                >
-                  Collapse all
-                </button>
-                <button
-                  onClick={() => setCollapsedIds(new Set())}
-                  className="flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-semibold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800"
-                >
-                  Expand all
-                </button>
+          {exercises.length === 0 ? (
+            <TemplateGallery
+              templates={templates}
+              lastWorkout={lastWorkout}
+              recentNames={recentNames}
+              onUseTemplate={(t) => handleLoadTemplate(t, 'replace')}
+              onAppendTemplate={(t) => handleLoadTemplate(t, 'append')}
+              onBlank={() => setIsExerciseModalOpen(true)}
+              onQuickAdd={handleQuickAddExercise}
+            />
+          ) : (
+            <>
+              {/* Jump nav — no more scrolling blind through 6 exercises to find legs */}
+              <div className="sticky top-16 z-20 -mx-1 px-1 py-1.5 bg-gray-50/95 dark:bg-gray-950/95 backdrop-blur">
+                <div className="flex items-center gap-1.5 overflow-x-auto">
+                  {exercises.map((ex, i) => {
+                    const done = ex.sets.filter((s) => s.completed).length;
+                    const allDone = done === ex.sets.length && ex.sets.length > 0;
+                    return (
+                      <button
+                        key={ex.id}
+                        onClick={() => jumpToExercise(ex.id)}
+                        aria-label={`Jump to ${ex.name}, ${done} of ${ex.sets.length} sets done`}
+                        className={`flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-bold transition-colors ${
+                          allDone
+                            ? 'bg-success-100 dark:bg-emerald-900/40 text-success-700 dark:text-emerald-300'
+                            : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200'
+                        }`}
+                      >
+                        {i + 1} • {ex.name.length > 12 ? `${ex.name.slice(0, 12)}…` : ex.name} {done}/{ex.sets.length}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => setCollapsedIds(new Set(exercises.map((e) => e.id)))}
+                    className="flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-semibold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800"
+                  >
+                    Collapse all
+                  </button>
+                  <button
+                    onClick={() => setCollapsedIds(new Set())}
+                    className="flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-semibold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800"
+                  >
+                    Expand all
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="space-y-3 mt-2">
-              {exercises.map((exercise) => (
-                <ExerciseCard
-                  key={exercise.id}
-                  exercise={exercise}
-                  collapsed={collapsedIds.has(exercise.id)}
-                  onToggleCollapse={() => toggleCollapse(exercise.id)}
-                  onUpdateSet={handleUpdateSetInline}
-                  onToggleSet={handleToggleSet}
-                  onEditSet={(exerciseId, setIndex) => {
-                    const ex = exercises.find((e) => e.id === exerciseId);
-                    setEditingSet({ exerciseId, setIndex, set: ex.sets[setIndex], exercise: ex });
-                  }}
-                  onDeleteSet={handleDeleteSet}
-                  onAddSet={handleAddSetToExercise}
-                  onCopySet={handleCopyExercise}
-                  onRemove={handleRemoveExercise}
-                />
-              ))}
-            </div>
-          </>
-        )}
+              <div className="space-y-3 mt-2">
+                {exercises.map((exercise) => (
+                  <ExerciseCard
+                    key={exercise.id}
+                    exercise={exercise}
+                    collapsed={collapsedIds.has(exercise.id)}
+                    onToggleCollapse={() => toggleCollapse(exercise.id)}
+                    onUpdateSet={handleUpdateSetInline}
+                    onToggleSet={handleToggleSet}
+                    onEditSet={(exerciseId, setIndex) => {
+                      const ex = exercises.find((e) => e.id === exerciseId);
+                      setEditingSet({ exerciseId, setIndex, set: ex.sets[setIndex], exercise: ex });
+                    }}
+                    onDeleteSet={handleDeleteSet}
+                    onAddSet={handleAddSetToExercise}
+                    onCopySet={handleCopyExercise}
+                    onRemove={handleRemoveExercise}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Add Exercise Modal */}
