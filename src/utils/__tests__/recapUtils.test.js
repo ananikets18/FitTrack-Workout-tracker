@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  isSundayDate,
   getWeekRange,
   getMonthRange,
   shiftAnchor,
@@ -25,6 +26,16 @@ const strengthEx = (name, weight, reps = 8, category = 'chest') => ({
 });
 
 describe('recapUtils', () => {
+  it('identifies Sunday in local time and returns false for Monday through Saturday', () => {
+    expect(isSundayDate(new Date(2026, 9, 5, 10, 0, 0))).toBe(false);  // Monday
+    expect(isSundayDate(new Date(2026, 9, 6, 10, 0, 0))).toBe(false);  // Tuesday
+    expect(isSundayDate(new Date(2026, 9, 7, 10, 0, 0))).toBe(false);  // Wednesday
+    expect(isSundayDate(new Date(2026, 9, 8, 10, 0, 0))).toBe(false);  // Thursday
+    expect(isSundayDate(new Date(2026, 9, 9, 10, 0, 0))).toBe(false);  // Friday
+    expect(isSundayDate(new Date(2026, 9, 10, 10, 0, 0))).toBe(false); // Saturday
+    expect(isSundayDate(new Date(2026, 9, 11, 10, 0, 0))).toBe(true);  // Sunday
+  });
+
   it('builds a Monday-start week range of 7 days', () => {
     const { start, end } = getWeekRange(new Date('2026-09-30T12:00:00')); // Wednesday
     expect(start.getDay()).toBe(1); // Monday
@@ -98,3 +109,4 @@ describe('recapUtils', () => {
     expect(text).toContain('FitTrack');
   });
 });
+

@@ -17,7 +17,13 @@ import {
 } from './calculations';
 import { getEffectiveWeight } from '../data/exercises';
 
-// Monday-start weeks keep the Recap consistent (Home uses Sunday-start; Recap standardises on ISO Mon).
+// Monday-start weeks keep the Recap consistent (Home uses Monday-start to match Recap's ISO Mon–Sun week).
+export const isSundayDate = (date = new Date()) => {
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return false;
+  return d.getDay() === 0;
+};
+
 export const getWeekRange = (anchor = new Date()) => {
   const start = startOfWeek(anchor, { weekStartsOn: 1 });
   start.setHours(0, 0, 0, 0);

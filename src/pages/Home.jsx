@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkouts } from '../context/WorkoutContext';
 import { usePreferences } from '../context/PreferencesContext';
 import { useAuth } from '../context/AuthContext';
 import { calculateStreak } from '../utils/calculations';
 import { getSmartRecommendation } from '../utils/smartRecommendations';
+import { isSundayDate } from '../utils/recapUtils';
 import { WATER_INTAKE, TOAST_DURATION } from '../constants';
 
 import Card from '../components/common/Card';
@@ -38,6 +39,26 @@ const Home = () => {
   const navigate = useNavigate();
   const [isRestDayModalOpen, setIsRestDayModalOpen] = useState(false);
   const [showMoreActivity, setShowMoreActivity] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const syncNow = () => setNow(new Date());
+    const nextMidnight = new Date();
+    nextMidnight.setHours(24, 0, 0, 50);
+    const timeoutId = setTimeout(syncNow, Math.max(1000, nextMidnight.getTime() - Date.now()));
+    const intervalId = setInterval(syncNow, 60_000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') syncNow();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [now]);
+
+  const isSunday = useMemo(() => isSundayDate(now), [now]);
 
   const showSetupWizard = useMemo(() => {
     return !isLoading && !preferencesLoading && workouts.length >= 2 && !preferences.hasCompletedSetup;
@@ -49,11 +70,13 @@ const Home = () => {
   const currentStreak = useMemo(() => calculateStreak(workouts), [workouts]);
 
   const thisWeekStart = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - d.getDay());
+    const d = new Date(now);
+    const day = d.getDay();
+    const diffToMonday = day === 0 ? 6 : day - 1;
+    d.setDate(d.getDate() - diffToMonday);
     d.setHours(0, 0, 0, 0);
     return d;
-  }, []);
+  }, [now]);
   const thisWeekWorkouts = useMemo(
     () => regularWorkouts.filter((w) => new Date(w.date) >= thisWeekStart).length,
     [regularWorkouts, thisWeekStart]
@@ -115,7 +138,7 @@ const Home = () => {
         totalRestDays={totalRestDays}
       />
 
-      {!isLoading && thisWeekWorkouts >= 2 && (
+      {!isLoading && isSunday && thisWeekWorkouts >= 2 && (
         <Link
           to="/recap"
           className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-lifted hover:opacity-95 transition-opacity"
