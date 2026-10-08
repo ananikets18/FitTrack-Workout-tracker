@@ -25,6 +25,8 @@ const HomeHero = ({
     isActive,
     isCompleted,
     workoutLogged,
+    hasWorkoutToday,
+    hasRestDayToday,
     formattedRemaining,
     formattedElapsed,
     formattedStartTime,
@@ -34,6 +36,8 @@ const HomeHero = ({
     startSession,
     endSession,
   } = useGymSession();
+
+  const showStartTimerButton = status === 'idle' && !workoutLogged;
 
   const today = new Date().toLocaleDateString(undefined, {
     weekday: 'long',
@@ -68,7 +72,15 @@ const HomeHero = ({
   return (
     <section aria-labelledby="home-hero-title" className="overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-soft">
       <div className="p-5 md:p-7">
-        <p className="text-[13px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{today}</p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{today}</p>
+          {workoutLogged && !isActive && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+              {hasRestDayToday && !hasWorkoutToday ? 'Rest day logged today' : 'Workout logged today'}
+            </span>
+          )}
+        </div>
         <h1 id="home-hero-title" className="mt-1 text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
           {greetingFor()}{userName ? `, ${userName}` : ''}
         </h1>
@@ -134,7 +146,7 @@ const HomeHero = ({
         )}
 
         <div className="mt-4 flex flex-col sm:flex-row gap-2.5">
-          {status === 'idle' && (
+          {showStartTimerButton && (
             <motion.button
               whileTap={{ scale: 0.98 }}
               type="button"
@@ -148,14 +160,14 @@ const HomeHero = ({
 
           {primary.to ? (
             <Link to={primary.to} className="flex-1">
-              <Button variant={status === 'idle' ? 'secondary' : 'primary'} size="lg" className="w-full">
+              <Button variant={showStartTimerButton ? 'secondary' : 'primary'} size="lg" className="w-full">
                 <PrimaryIcon className="w-5 h-5 mr-2" aria-hidden="true" />
                 {primary.label}
               </Button>
             </Link>
           ) : (
             <motion.div whileTap={{ scale: 0.98 }} className="flex-1">
-              <Button variant={status === 'idle' ? 'secondary' : 'primary'} size="lg" onClick={primary.onClick} className="w-full">
+              <Button variant={showStartTimerButton ? 'secondary' : 'primary'} size="lg" onClick={primary.onClick} className="w-full">
                 <PrimaryIcon className="w-5 h-5 mr-2" aria-hidden="true" />
                 {primary.label}
               </Button>

@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { GYM_SESSION } from '../constants/session';
-import { getLocalDateInputValue } from '../utils/date';
+import { getLocalDateInputValue, isSameLocalDay } from '../utils/date';
 import { successHaptic, warningHaptic, errorHaptic, mediumHaptic } from '../utils/haptics';
 import { useAuth } from './AuthContext';
+import { useWorkouts } from './WorkoutContext';
 import { db } from '../lib/supabase';
 
 const GymSessionContext = createContext(null);
@@ -128,12 +129,58 @@ export const GymSessionProvider = ({ children }) => {
   const [isCheckinModalOpen, setIsCheckinModalOpen] = useState(false);
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
   const { user } = useAuth();
+  const { workouts = [], isLoading: isWorkoutsLoading = false } = useWorkouts();
   const userId = user?.id;
+
+  const todayYmd = getLocalDateInputValue();
+  const { hasWorkoutToday, hasRestDayToday, hasLoggedToday, todayWorkoutsCount } = useMemo(() => {
+    const safeList = Array.isArray(workouts) ? workouts : [];
+    const todayEntries = safeList.filter((w) => isSameLocalDay(w?.date, todayYmd));
+    const workoutToday = todayEntries.some((w) => w.type !== 'rest_day');
+    const restDayToday = todayEntries.some((w) => w.type === 'rest_day');
+    return {
+      hasWorkoutToday: workoutToday,
+      hasRestDayToday: restDayToday,
+      hasLoggedToday: workoutToday || restDayToday,
+      todayWorkoutsCount: todayEntries.filter((w) => w.type !== 'rest_day').length,
+    };
+  }, [workouts, todayYmd]);
 
   const sessionRef = useRef(session);
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  // Sync session.workoutLogged with today's workouts/rest days in WorkoutContext
+  useEffect(() => {
+    if (hasLoggedToday) {
+      setIsCheckinModalOpen(false);
+      setSession((prev) => {
+        const shouldResetActiveOnRestDay = hasRestDayToday && !hasWorkoutToday && prev.status === 'active';
+        if (prev.workoutLogged && !shouldResetActiveOnRestDay) return prev;
+        return {
+          ...prev,
+          status: shouldResetActiveOnRestDay ? 'idle' : prev.status,
+          workoutLogged: true,
+        };
+      });
+      const current = sessionRef.current;
+      if (userId && current.dbSessionId && !current.workoutLogged) {
+        db.updateGymSession(current.dbSessionId, userId, {
+          workoutLogged: true,
+        }).catch(() => {});
+      }
+    } else if (userId && !isWorkoutsLoading && session.workoutLogged) {
+      // If all of today's workouts/rest days were deleted in History, reset workoutLogged
+      setSession((prev) => (prev.workoutLogged ? { ...prev, workoutLogged: false } : prev));
+      const current = sessionRef.current;
+      if (current.dbSessionId) {
+        db.updateGymSession(current.dbSessionId, userId, {
+          workoutLogged: false,
+        }).catch(() => {});
+      }
+    }
+  }, [hasLoggedToday, hasRestDayToday, hasWorkoutToday, isWorkoutsLoading, session.workoutLogged, userId]);
 
   // Persist session state to localStorage
   useEffect(() => {
@@ -173,7 +220,7 @@ export const GymSessionProvider = ({ children }) => {
               ? Math.max(0, Math.floor((Date.now() - startMs) / 1000))
               : Math.max(0, Math.floor((endMs - startMs) / 1000));
 
-            setSession({
+            setSession((prev) => ({
               dbSessionId: remote.id,
               status: remote.status,
               date: remote.date,
@@ -184,10 +231,10 @@ export const GymSessionProvider = ({ children }) => {
               elapsedSeconds: elapsed,
               alertsFired: [],
               sessionDurationMinutes: remote.duration_minutes ?? null,
-              workoutLogged: !!remote.workout_logged,
+              workoutLogged: Boolean(remote.workout_logged || prev.workoutLogged),
               manualOverride: false,
               checkedTips: Array.isArray(remote.checked_tips) ? remote.checked_tips : [],
-            });
+            }));
             setIsCheckinModalOpen(false);
           }
         }
@@ -204,6 +251,8 @@ export const GymSessionProvider = ({ children }) => {
 
   // Decide whether to show the "Are you at the gym?" modal on app open
   useEffect(() => {
+    if (userId && isWorkoutsLoading) return undefined;
+
     const today = getLocalDateInputValue();
     let dismissedDate = null;
     try {
@@ -215,16 +264,17 @@ export const GymSessionProvider = ({ children }) => {
     if (
       session.status === 'idle' &&
       dismissedDate !== today &&
-      !session.workoutLogged
+      !session.workoutLogged &&
+      !hasLoggedToday
     ) {
       const timer = setTimeout(() => {
-        if (sessionRef.current.status === 'idle') {
+        if (sessionRef.current.status === 'idle' && !sessionRef.current.workoutLogged) {
           setIsCheckinModalOpen(true);
         }
       }, 450);
       return () => clearTimeout(timer);
     }
-  }, [session.status, session.workoutLogged]);
+  }, [session.status, session.workoutLogged, hasLoggedToday, isWorkoutsLoading, userId]);
 
   // Save a completed session to history in localStorage
   const archiveSessionToHistory = useCallback((completedSession) => {
@@ -666,6 +716,8 @@ export const GymSessionProvider = ({ children }) => {
     return 'normal'; // > 30 mins: emerald green
   }, [session.status, remainingSeconds]);
 
+  const effectiveWorkoutLogged = Boolean(session.workoutLogged || hasLoggedToday);
+
   const value = useMemo(
     () => ({
       // State
@@ -686,7 +738,11 @@ export const GymSessionProvider = ({ children }) => {
       progressPercent,
       urgencyLevel,
       sessionDurationMinutes: session.sessionDurationMinutes,
-      workoutLogged: session.workoutLogged,
+      workoutLogged: effectiveWorkoutLogged,
+      hasWorkoutToday,
+      hasRestDayToday,
+      hasLoggedToday: effectiveWorkoutLogged,
+      todayWorkoutsCount,
       manualOverride: session.manualOverride,
       checkedTips: session.checkedTips || [],
       isCheckinModalOpen,
@@ -720,6 +776,10 @@ export const GymSessionProvider = ({ children }) => {
       remainingMinutes,
       progressPercent,
       urgencyLevel,
+      effectiveWorkoutLogged,
+      hasWorkoutToday,
+      hasRestDayToday,
+      todayWorkoutsCount,
       isCheckinModalOpen,
       isCompleteModalOpen,
       startSession,

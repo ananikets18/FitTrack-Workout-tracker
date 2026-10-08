@@ -22,7 +22,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { searchExercises, getExercisesByCategory, getCategoryForExercise, isBarbellExercise, getEffectiveWeight, isIsometricExercise } from '../data/exercises';
 import { totalToPerSide, perSideToTotal } from '../utils/weightUtils';
 import { newId } from '../utils/ids';
-import { getLocalDateInputValue } from '../utils/date';
+import { getLocalDateInputValue, isSameLocalDay } from '../utils/date';
 
 const HYPEREXTENSION_BODYWEIGHT_KG = 83;
 
@@ -44,6 +44,7 @@ const WorkoutLogMobile = () => {
   const {
     isActive: isGymSessionActive,
     isCompleted: isGymSessionCompleted,
+    workoutLogged,
     sessionDurationMinutes,
     formattedStartTime,
     formattedEndTime,
@@ -55,7 +56,7 @@ const WorkoutLogMobile = () => {
   // Check if we're editing an existing workout
   const isEditMode = !!currentWorkout;
   const editingWorkoutId = currentWorkout?.id;
-  const isLoggingUnlocked = isEditMode || isGymSessionCompleted || isManualOverride;
+  const isLoggingUnlocked = isEditMode || isGymSessionCompleted || isManualOverride || workoutLogged;
   const lastWorkout = (workouts || []).find((w) => w.type !== 'rest_day');
   const recentNames = [...new Set((workouts || []).flatMap((w) => (w.exercises || []).map((e) => e.name)).filter(Boolean))];
 
@@ -584,7 +585,9 @@ const WorkoutLogMobile = () => {
       } else {
         // Add new workout
         await addWorkout(workoutData);
-        markSessionWorkoutLogged();
+        if (isSameLocalDay(workoutDate) || isGymSessionCompleted || completedNow) {
+          markSessionWorkoutLogged();
+        }
       }
 
       initialSnapshotRef.current = snapshotOf(workoutName, workoutDate, exercises, duration, notes);

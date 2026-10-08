@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import GymSessionContext from '../context/GymSessionContext';
+import { getLocalDateInputValue, isSameLocalDay } from '../utils/date';
 
 export const formatHMS = (totalSeconds) => {
   const safeSecs = Math.max(0, Math.floor(totalSeconds || 0));
@@ -20,6 +21,19 @@ export const formatClockTime = (isoString) => {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+export const getTodayLogStatus = (workouts = [], todayYmd = getLocalDateInputValue()) => {
+  const safeList = Array.isArray(workouts) ? workouts : [];
+  const todayEntries = safeList.filter((w) => isSameLocalDay(w?.date, todayYmd));
+  const hasWorkoutToday = todayEntries.some((w) => w.type !== 'rest_day');
+  const hasRestDayToday = todayEntries.some((w) => w.type === 'rest_day');
+  return {
+    hasWorkoutToday,
+    hasRestDayToday,
+    hasLoggedToday: hasWorkoutToday || hasRestDayToday,
+    todayWorkoutsCount: todayEntries.filter((w) => w.type !== 'rest_day').length,
+  };
+};
+
 export const useGymSession = () => {
   const context = useContext(GymSessionContext);
   if (!context) {
@@ -29,3 +43,4 @@ export const useGymSession = () => {
 };
 
 export default useGymSession;
+
