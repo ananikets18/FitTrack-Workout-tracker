@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatHMS, formatClockTime } from '../useGymSession';
+import { formatHMS, formatClockTime, getTodayLogStatus } from '../useGymSession';
 import { GYM_SESSION } from '../../constants/session';
 import { getSmartPostGymGameplan } from '../../data/postGymTips';
 
@@ -43,4 +43,45 @@ describe('GymSession constants and time formatting', () => {
     expect(plan1).toHaveLength(4);
     expect(plan1[0].id).not.toBe(plan0[0].id);
   });
+
+  it('detects when a regular workout or rest day is logged for today', () => {
+    const todayYmd = '2026-10-08';
+    const localIsoToday = new Date(2026, 9, 8, 10, 30, 0).toISOString();
+    const localIsoYesterday = new Date(2026, 9, 7, 18, 0, 0).toISOString();
+
+    expect(getTodayLogStatus([], todayYmd)).toEqual({
+      hasWorkoutToday: false,
+      hasRestDayToday: false,
+      hasLoggedToday: false,
+      todayWorkoutsCount: 0,
+    });
+
+    expect(
+      getTodayLogStatus([{ id: '1', type: 'workout', date: localIsoYesterday }], todayYmd)
+    ).toEqual({
+      hasWorkoutToday: false,
+      hasRestDayToday: false,
+      hasLoggedToday: false,
+      todayWorkoutsCount: 0,
+    });
+
+    expect(
+      getTodayLogStatus([{ id: '2', type: 'workout', date: localIsoToday }], todayYmd)
+    ).toEqual({
+      hasWorkoutToday: true,
+      hasRestDayToday: false,
+      hasLoggedToday: true,
+      todayWorkoutsCount: 1,
+    });
+
+    expect(
+      getTodayLogStatus([{ id: '3', type: 'rest_day', date: localIsoToday }], todayYmd)
+    ).toEqual({
+      hasWorkoutToday: false,
+      hasRestDayToday: true,
+      hasLoggedToday: true,
+      todayWorkoutsCount: 0,
+    });
+  });
 });
+

@@ -16,6 +16,7 @@ const GymSessionLogBanner = ({ isEditMode }) => {
     status,
     isActive,
     isCompleted,
+    workoutLogged,
     manualOverride,
     formattedStartTime,
     formattedEndTime,
@@ -33,8 +34,8 @@ const GymSessionLogBanner = ({ isEditMode }) => {
 
   if (isEditMode) return null;
 
-  // 1. IDLE & NOT OVERRIDDEN: Prompt to start gym timer first
-  if (status === 'idle' && !manualOverride) {
+  // 1. IDLE & NOT OVERRIDDEN & NOT ALREADY LOGGED TODAY: Prompt to start gym timer first
+  if (status === 'idle' && !manualOverride && !workoutLogged) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -191,7 +192,7 @@ const GymSessionLogBanner = ({ isEditMode }) => {
           </div>
           <div>
             <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-200">
-              Gym Time Auto-Captured • Ready to Log Workouts
+              {workoutLogged ? 'Gym Time Auto-Captured • Workout Logged' : 'Gym Time Auto-Captured • Ready to Log Workouts'}
             </p>
             <p className="text-sm sm:text-base font-bold">
               {formattedStartTime} – {formattedEndTime} •{' '}
