@@ -59,9 +59,9 @@ describe('validation.js utility engine', () => {
     });
 
     it('accepts valid exercise names', () => {
-      const res = validateExerciseName('Barbell Bench Press');
+      const res = validateExerciseName('Flat Bench Press');
       expect(res.isValid).toBe(true);
-      expect(res.value).toBe('Barbell Bench Press');
+      expect(res.value).toBe('Flat Bench Press');
     });
   });
 

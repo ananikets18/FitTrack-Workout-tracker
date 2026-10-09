@@ -14,12 +14,17 @@ export const EXERCISE_MUSCLE_MAP = {
     // CHEST EXERCISES
     // ============================================
     "Bench Press": { chest: 0.65, shoulders: 0.20, triceps: 0.15 },
+    "Flat Bench Press": { chest: 0.65, shoulders: 0.20, triceps: 0.15 },
     "Incline Bench Press": { chest: 0.60, shoulders: 0.25, triceps: 0.15 },
     "Decline Bench Press": { chest: 0.70, shoulders: 0.15, triceps: 0.15 },
+    "Decline Barbell Press": { chest: 0.70, shoulders: 0.15, triceps: 0.15 },
     "Dumbbell Press": { chest: 0.65, shoulders: 0.20, triceps: 0.15 },
     "Incline Dumbbell Press": { chest: 0.60, shoulders: 0.25, triceps: 0.15 },
+    "Decline Dumbbell Press": { chest: 0.65, shoulders: 0.20, triceps: 0.15 },
     "Chest Fly": { chest: 0.85, shoulders: 0.15 },
     "Cable Fly": { chest: 0.85, shoulders: 0.15 },
+    "Low Cable Fly": { chest: 0.85, shoulders: 0.15 },
+    "High Cable Fly": { chest: 0.85, shoulders: 0.15 },
     "Pec Deck": { chest: 0.90, shoulders: 0.10 },
     "Push Up": { chest: 0.60, shoulders: 0.20, triceps: 0.15, core: 0.05 },
     "Dips": { chest: 0.50, triceps: 0.40, shoulders: 0.10 },

@@ -136,7 +136,7 @@ export const DEFAULT_SET = {
 
 // Barbell Equipment Weight
 // The standard barbell/rod used at the gym weighs 20 kg.
-// This applies to Barbell Bench Press and all Deadlift variations.
+// This applies to Flat Bench Press (barbell) and all Deadlift variations.
 // Users log only the PLATE LOAD they add on top; the app automatically
 // adds BARBELL_WEIGHT_KG to compute the true total lifted weight.
 export const BARBELL_WEIGHT_KG = 20;

@@ -1,20 +1,18 @@
 export const exerciseLibrary = {
   chest: [
-    // Barbell Press Variations — kept: regularly tracked (see audit 2026-10-09, 129 chest logs)
-    'Barbell Bench Press',
+    // Flat + Incline Barbell — Flat Bench Press is barbell 20kg bar (renamed from Barbell Bench Press)
+    'Flat Bench Press',
     'Incline Bench Press',
-    'Incline Barbell Press',
-    // Dumbbell Press Variations — kept
+    // Dumbbell Press Variations
     'Incline Dumbbell Press',
-    // Fly / Crossover Variations — kept
-    'Cable Fly',
-    'Cable Crossover',
-    'Low Cable Crossover',
-    'High Cable Crossover',
+    'Decline Dumbbell Press',
+    'Decline Bench Press',
+    // Fly Variations
+    'Low Cable Fly',
+    'High Cable Fly',
     'Pec Deck Fly',
-    // Machine & Bodyweight — kept
+    // Machine & Bodyweight
     'Machine Chest Press',
-    'Incline Machine Press',
     'Push-ups'
   ],
   back: [
@@ -474,8 +472,8 @@ export const getCategoryForExercise = (exerciseName) => {
 // These exercises are performed with that barbell — users log only the
 // extra PLATE LOAD they added on top of the bar.
 //
-// Bench Press variants: any "bench press" that is barbell-based
-// (flat, incline, decline, close-grip, wide-grip — but NOT dumbbell or machine)
+// Bench Press variants: any "bench press" / "barbell press" that is barbell-based
+// (flat bench press, incline, decline barbell — but NOT dumbbell or machine)
 //
 // Deadlift variants: all deadlift forms (conventional, Romanian, sumo,
 // stiff-leg, trap bar) — they all use the same standard barbell.
@@ -483,8 +481,11 @@ export const getCategoryForExercise = (exerciseName) => {
 const BARBELL_BENCH_PRESS_PATTERNS = [
   'bench press',
   'barbell bench press',
+  'flat bench press',
+  'flat barbell press',
   'incline bench press',
   'incline barbell press',
+  'decline bench press',
   'decline barbell press',
   'close-grip bench press',
   'wide-grip bench press',
