@@ -1,46 +1,21 @@
 export const exerciseLibrary = {
   chest: [
-    // Barbell Bench Press Variations
-    'Bench Press',
+    // Barbell Press Variations — kept: regularly tracked (see audit 2026-10-09, 129 chest logs)
     'Barbell Bench Press',
     'Incline Bench Press',
     'Incline Barbell Press',
-    'Decline Bench Press',
-    'Decline Barbell Press',
-    'Close-Grip Bench Press',
-    'Close-Grip Barbell Bench Press',
-    'Wide-Grip Bench Press',
-    'Wide-Grip Barbell Bench Press',
-    // Dumbbell Press Variations
-    'Dumbbell Press',
-    'Dumbbell Bench Press',
+    // Dumbbell Press Variations — kept
     'Incline Dumbbell Press',
-    'Decline Dumbbell Press',
-    'Flat Dumbbell Press',
-    // Fly Variations
-    'Chest Fly',
-    'Incline Fly',
-    'Incline Dumbbell Fly',
-    'Decline Fly',
-    'Decline Dumbbell Fly',
+    // Fly / Crossover Variations — kept
     'Cable Fly',
     'Cable Crossover',
     'Low Cable Crossover',
     'High Cable Crossover',
-    'Pec Deck',
     'Pec Deck Fly',
-    // Machine & Bodyweight
+    // Machine & Bodyweight — kept
     'Machine Chest Press',
     'Incline Machine Press',
-    'Decline Machine Press',
-    'Push-ups',
-    'Push-up',
-    'Incline Push-ups',
-    'Decline Push-ups',
-    'Diamond Push-ups',
-    'Wide Push-ups',
-    'Dips',
-    'Chest Dips'
+    'Push-ups'
   ],
   back: [
     // Deadlift Variations
