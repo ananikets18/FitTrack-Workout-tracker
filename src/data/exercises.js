@@ -16,69 +16,27 @@ export const exerciseLibrary = {
     'Push-ups'
   ],
   back: [
-    // Deadlift Variations
+    // Deadlift Variations — kept (Deadlift 11x; other variants 0 logs removed)
     'Deadlift',
-    'Romanian Deadlift',
-    'Sumo Deadlift',
-    'Trap Bar Deadlift',
-    'Stiff-Leg Deadlift',
-    // Pull-up Variations
-    'Pull-up',
-    'Pull-ups',
-    'Wide-Grip Pull-up',
-    'Wide-Grip Pull-ups',
-    'Close-Grip Pull-up',
-    'Close-Grip Pull-ups',
-    'Neutral-Grip Pull-up',
-    'Neutral-Grip Pull-ups',
-    'Chin-up',
-    'Chin-ups',
-    'Weighted Pull-up',
-    'Weighted Pull-ups',
-    // Lat Pulldown Variations
-    'Lat Pulldown',
+    // Lat Pulldown Variations — Wide = ex-Lat generic (15x), Medium = ex-Wide (14x)
     'Wide-Grip Lat Pulldown',
+    'Medium-Grip Lat Pulldown',
     'Close-Grip Lat Pulldown',
-    'Narrow-Grip Lat Pulldown',
-    'Reverse-Grip Lat Pulldown',
-    'Cable Pulldown',
+    'Neutral-Grip Lat Pulldown',
     'Straight-Arm Pulldown',
     'Single-Arm Lat Pulldown',
-    // Row Variations
-    'Barbell Row',
+    // Row Variations — kept (Barbell Row 1x removed, customs merged)
     'Bent-Over Barbell Row',
-    'Bent-Over Row',
-    'Underhand Barbell Row',
-    'Pendlay Row',
-    'Dumbbell Row',
-    'Single-Arm Dumbbell Row',
     'T-Bar Row',
-    'Cable Row',
     'Seated Cable Row',
-    'Seated Row',
-    'Wide-Grip Cable Row',
-    'Close-Grip Cable Row',
-    'V-Bar Cable Row',
     'Plate-Loaded Low Row',
-    'Plate-Loaded Low Row (Hammer-style)',
     'Chest-Supported Row',
-    'Inverted Row',
-    // Other Back Exercises
-    'Face Pull',
-    'Face Pulls',
-    'Rope Face Pull',
+    // Pull-up Variations — kept (Pull-ups 8x; other variants 0 logs removed)
+    'Pull-ups',
+    // Other Back Exercises — Face Pull(s) live in shoulders as 'Face Pulls' (single canonical)
     'Rope Face Pulls',
-    'Shrug',
-    'Shrugs',
-    'Barbell Shrug',
-    'Barbell Shrugs',
-    'Dumbbell Shrug',
     'Dumbbell Shrugs',
-    'Hyperextension',
-    'Hyperextensions',
-    'Back Extension',
-    'Back Extensions',
-    'Reverse Fly'
+    'Hyperextension'
   ],
   shoulders: [
     // Overhead Press Variations — kept (audit: regularly tracked + template)
