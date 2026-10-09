@@ -126,6 +126,41 @@ export const EXERCISE_MUSCLE_MAP = {
     "Ab Wheel": { core: 0.80, shoulders: 0.20 },
     "Cable Crunch": { core: 1.0 },
     "Oblique Crunch": { core: 1.0 },
+
+    // ============================================
+    // FOREARM EXERCISES
+    // ============================================
+    // Note: "Hammer Curl" intentionally NOT duplicated here — arms map
+    // entry (arms: 1.0) wins for the shared name + partial matches.
+    "Wrist Curl": { forearms: 1.0 },
+    "Barbell Wrist Curl": { forearms: 1.0 },
+    "Dumbbell Wrist Curl": { forearms: 1.0 },
+    "Cable Wrist Curl": { forearms: 1.0 },
+    "Behind-the-Back Wrist Curl": { forearms: 1.0 },
+    "Seated Wrist Curl": { forearms: 1.0 },
+    "Reverse Curl": { forearms: 1.0 },
+    "Barbell Reverse Curl": { forearms: 1.0 },
+    "Dumbbell Reverse Curl": { forearms: 1.0 },
+    "Cable Reverse Curl": { forearms: 1.0 },
+    "EZ-Bar Reverse Curl": { forearms: 1.0 },
+    "Reverse Wrist Curl": { forearms: 1.0 },
+    "Reverse Wrist Curls": { forearms: 1.0 },
+    "Cable Hammer Curl": { forearms: 1.0 },
+    "Rope Hammer Curl": { forearms: 1.0 },
+    "Cross-Body Hammer Curl": { forearms: 1.0 },
+    "Farmer's Walk": { forearms: 1.0 },
+    "Single-Arm Farmer's Walk": { forearms: 1.0 },
+    "Plate Pinch": { forearms: 1.0 },
+    "Dead Hang": { forearms: 1.0 },
+    "Weighted Dead Hang": { forearms: 1.0 },
+    "Hand Gripper": { forearms: 1.0 },
+    "Towel Pull-up": { forearms: 1.0 },
+    "Fat-Bar Curl": { forearms: 1.0 },
+    "Wrist Roller": { forearms: 1.0 },
+    "Forearm Pronation": { forearms: 1.0 },
+    "Forearm Supination": { forearms: 1.0 },
+    "Wrist Rotation": { forearms: 1.0 },
+    "Zottman Curl": { forearms: 1.0 },
 };
 
 /**
@@ -137,6 +172,7 @@ const MUSCLE_KEYWORDS = {
     back: ['pull', 'row', 'lat', 'deadlift', 'shrug'],
     shoulders: ['shoulder', 'press', 'raise', 'delt'],
     legs: ['squat', 'leg', 'lunge', 'calf'],
+    forearms: ['wrist', 'forearm', 'grip', 'pinch', 'hang', 'roller', 'pronation', 'supination'],
     arms: ['curl', 'tricep', 'bicep'],
     core: ['plank', 'crunch', 'ab', 'core'],
     cardio: ['run', 'walk', 'bike', 'swim', 'treadmill', 'elliptical']

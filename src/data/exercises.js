@@ -188,81 +188,45 @@ export const exerciseLibrary = {
     'Battle Ropes'
   ],
   forearms: [
-    // Wrist Curl Variations (Flexors)
+    // Wrist Flexion — singular canonical (plurals + Barbell variants merged)
     'Wrist Curl',
-    'Wrist Curls',
     'Barbell Wrist Curl',
-    'Barbell Wrist Curls',
     'Dumbbell Wrist Curl',
-    'Dumbbell Wrist Curls',
     'Cable Wrist Curl',
-    'Cable Wrist Curls',
     'Behind-the-Back Wrist Curl',
-    'Behind-the-Back Barbell Wrist Curl',
     'Seated Wrist Curl',
-    'Seated Barbell Wrist Curl',
-    // Reverse Curl Variations (Extensors)
+    // Reverse Curls & Wrist Extension — singular canonical (Reverse Wrist Curls 2x template -> singular)
     'Reverse Curl',
-    'Reverse Curls',
     'Barbell Reverse Curl',
-    'Barbell Reverse Curls',
     'Dumbbell Reverse Curl',
-    'Dumbbell Reverse Curls',
     'Cable Reverse Curl',
-    'Cable Reverse Curls',
     'EZ-Bar Reverse Curl',
-    'EZ-Bar Reverse Curls',
     'Reverse Wrist Curl',
-    'Reverse Wrist Curls',
-    // Hammer Curl Variations (Brachioradialis)
+    // Hammer Curls — kept 4 (Hammer Curl shared with arms, resolved via arms map)
     'Hammer Curl',
-    'Hammer Curls',
-    'Dumbbell Hammer Curl',
-    'Dumbbell Hammer Curls',
     'Cable Hammer Curl',
-    'Cable Hammer Curls',
     'Rope Hammer Curl',
-    'Rope Hammer Curls',
     'Cross-Body Hammer Curl',
-    'Cross-Body Hammer Curls',
-    // Grip & Pinch Training
+    // Grip & Pinch — singular canonical (Farmers Walk w/o apostrophe merged)
     'Farmer\'s Walk',
-    'Farmers Walk',
     'Single-Arm Farmer\'s Walk',
     'Plate Pinch',
-    'Plate Pinches',
-    'Towel Pull-up',
-    'Towel Pull-ups',
-    'Fat Bar Curl',
-    'Fat Bar Curls',
-    'Thick Bar Curl',
-    'Thick Bar Curls',
     'Dead Hang',
-    'Dead Hangs',
     'Weighted Dead Hang',
-    'Grip Trainer',
     'Hand Gripper',
-    // Rolling & Rotation
+    'Towel Pull-up',
+    'Fat-Bar Curl',
+    // Rotation & Other — Pronation/Supination renamed to Forearm- prefix (avoids curl-keyword trap)
     'Wrist Roller',
-    'Forearm Roller',
-    'Pronation Curl',
-    'Supination Curl',
+    'Forearm Pronation',
+    'Forearm Supination',
     'Wrist Rotation',
-    'Forearm Rotation',
-    // Other Forearm Exercises
-    'Zottman Curl',
-    'Zottman Curls',
-    'Forearm Curl',
-    'Forearm Curls',
-    'Forearm Extension',
-    'Forearm Extensions',
+    'Zottman Curl'
   ],
   other: [
     'Farmers Walk',
     'Single-Arm Farmers Walk',
-    'Battle Ropes',
     'Alternating Battle Ropes',
-    'Box Jumps',
     'Kettlebell Swings',
     'Single-Arm Kettlebell Swing',
     'Sled Push',
@@ -272,7 +236,8 @@ export const exerciseLibrary = {
     'Wall Balls',
     'Tire Flips',
     'Prowler Push',
-    'Sandbag Carries'
+    'Sandbag Carries',
+    'Band Pull-Apart'
   ]
 };
 
