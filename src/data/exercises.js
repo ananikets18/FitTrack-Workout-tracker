@@ -81,44 +81,19 @@ export const exerciseLibrary = {
     'Reverse Fly'
   ],
   shoulders: [
-    // Overhead Press Variations
-    'Overhead Press',
-    'Military Press',
-    'Shoulder Press',
-    'Barbell Overhead Press',
-    'Barbell Shoulder Press',
-    'Seated Overhead Press',
-    'Standing Overhead Press',
+    // Overhead Press Variations — kept (audit: regularly tracked + template)
     'Dumbbell Shoulder Press',
-    'Seated Dumbbell Press',
-    'Standing Dumbbell Press',
-    'Arnold Press',
     'Machine Shoulder Press',
-    // Lateral Raise Variations
-    'Lateral Raise',
-    'Side Raise',
-    'Dumbbell Lateral Raise',
+    'Military Press',
+    // Lateral Raise Variations — kept (incl. Machine Lateral Raise custom 2x)
     'Cable Lateral Raise',
+    'Dumbbell Lateral Raise',
+    'Machine Lateral Raise',
     'Leaning Lateral Raise',
-    'Seated Lateral Raise',
-    // Front Raise Variations
-    'Front Raise',
-    'Dumbbell Front Raise',
-    'Barbell Front Raise',
-    'Cable Front Raise',
-    'Plate Front Raise',
-    // Rear Delt Variations
+    // Rear Delt Variations — kept
     'Rear Delt Fly',
-    'Rear Delt Raise',
-    'Reverse Fly',
     'Reverse Pec Deck',
-    'Bent-Over Rear Delt Fly',
-    'Cable Rear Delt Fly',
-    // Other Shoulder Exercises
-    'Upright Row',
-    'Barbell Upright Row',
-    'Dumbbell Upright Row',
-    'Cable Upright Row',
+    // Other — kept
     'Face Pulls'
   ],
   legs: [

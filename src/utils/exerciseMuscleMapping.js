@@ -54,10 +54,18 @@ export const EXERCISE_MUSCLE_MAP = {
     "Overhead Press": { shoulders: 0.70, triceps: 0.20, core: 0.10 },
     "Military Press": { shoulders: 0.70, triceps: 0.20, core: 0.10 },
     "Shoulder Press": { shoulders: 0.70, triceps: 0.20, core: 0.10 },
+    "Dumbbell Shoulder Press": { shoulders: 0.70, triceps: 0.20, core: 0.10 },
+    "Machine Shoulder Press": { shoulders: 0.70, triceps: 0.20, core: 0.10 },
     "Arnold Press": { shoulders: 0.75, triceps: 0.15, core: 0.10 },
     "Lateral Raise": { shoulders: 0.95, back: 0.05 },
+    "Cable Lateral Raise": { shoulders: 0.95, back: 0.05 },
+    "Dumbbell Lateral Raise": { shoulders: 0.95, back: 0.05 },
+    "Machine Lateral Raise": { shoulders: 0.95, back: 0.05 },
+    "Leaning Lateral Raise": { shoulders: 0.95, back: 0.05 },
     "Front Raise": { shoulders: 0.90, chest: 0.10 },
     "Rear Delt Fly": { shoulders: 0.80, back: 0.20 },
+    "Reverse Pec Deck": { shoulders: 0.80, back: 0.20 },
+    "Face Pulls": { back: 0.50, shoulders: 0.50 },
     "Upright Row": { shoulders: 0.70, back: 0.20, arms: 0.10 },
 
     // ============================================
