@@ -120,6 +120,8 @@ export const EXERCISE_MUSCLE_MAP = {
     "Russian Twist": { core: 1.0 },
     "Leg Raise": { core: 0.90, legs: 0.10 },
     "Hanging Leg Raise": { core: 0.85, arms: 0.15 },
+    "Hanging Knee Raise": { core: 0.90, legs: 0.10 },
+    "Pallof Press": { core: 1.0 },
     "Mountain Climber": { core: 0.70, shoulders: 0.15, legs: 0.15 },
     "Ab Wheel": { core: 0.80, shoulders: 0.20 },
     "Cable Crunch": { core: 1.0 },
