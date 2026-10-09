@@ -55,66 +55,42 @@ export const exerciseLibrary = {
     'Face Pulls'
   ],
   legs: [
-    // Squat Variations
+    // Squat Variations — kept 6 (Sumo/Pause/Box/Overhead archived, 0 logs)
     'Squat',
     'Back Squat',
     'Front Squat',
     'Goblet Squat',
     'Hack Squat',
     'Bulgarian Split Squat',
-    'Sumo Squat',
-    'Pause Squat',
-    'Box Squat',
-    'Overhead Squat',
-    // Leg Press Variations
+    // Leg Press Variations — kept 2 (Wide/Narrow merged into variation metadata)
     'Leg Press',
     'Single-Leg Press',
-    'Wide-Stance Leg Press',
-    'Narrow-Stance Leg Press',
-    // Lunge Variations
+    // Lunge Variations — singular canonical (plurals merged; Dumbbell/Barbell removed, 0 logs)
     'Lunge',
-    'Lunges',
     'Walking Lunge',
-    'Walking Lunges',
     'Reverse Lunge',
-    'Reverse Lunges',
     'Forward Lunge',
-    'Forward Lunges',
     'Lateral Lunge',
-    'Lateral Lunges',
-    'Dumbbell Lunge',
-    'Dumbbell Lunges',
-    'Barbell Lunge',
-    'Barbell Lunges',
-    // Hamstring Exercises
+    // Hamstring Exercises — RDL/Hamstring Curls/Nordic Curls merged into singular canonical
     'Romanian Deadlift',
-    'RDL',
     'Leg Curl',
     'Lying Leg Curl',
     'Seated Leg Curl',
-    'Standing Leg Curl',
     'Hamstring Curl',
-    'Hamstring Curls',
     'Nordic Curl',
-    'Nordic Curls',
     // Quad Exercises
     'Leg Extension',
     'Single-Leg Extension',
-    // Calf Exercises
+    // Calf Exercises — Calf Raises merged into Calf Raise; Single-Leg/Donkey archived
     'Calf Raise',
-    'Calf Raises',
     'Standing Calf Raise',
     'Seated Calf Raise',
     'Leg Press Calf Raise',
-    'Single-Leg Calf Raise',
-    'Donkey Calf Raise',
-    // Other Leg Exercises
-    'Step-up',
-    'Step-ups',
+    // Other Leg Exercises — plurals merged; Good Morning kept
+    'Step-Up',
     'Glute Bridge',
     'Hip Thrust',
-    'Good Morning',
-    'Good Mornings'
+    'Good Morning'
   ],
   arms: [
     // Bicep Curl Variations
