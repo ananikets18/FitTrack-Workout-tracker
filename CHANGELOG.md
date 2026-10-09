@@ -2,6 +2,17 @@
 
 All notable changes and enhancements to the FitTrack Workout Tracker.
 
+## [1.2.0] - 2026-10-09
+
+### Changed
+- **Exercise Library Audit**: Pruned the full library from 386 to 187 entries across all 9 muscle groups, removing zero-log variants and merging singular/plural + casing duplicates
+  - Chest 37 → 10, Back 58 → 16, Shoulders 34 → 10, Legs 53 → 29, Arms 50 → 25, Core 52 → 29, Forearms 62 → 29, Cardio 25 (kept), Other 15 → 14
+  - Renames (code + Supabase migrations, history preserved): `Barbell Bench Press` → `Flat Bench Press` (keeps 20 kg barbell math), `Low/High Cable Crossover` → `Low/High Cable Fly`, `Lat Pulldown` → `Wide-Grip Lat Pulldown`, `Wide-Grip Lat Pulldown` → `Medium-Grip Lat Pulldown`, `RDL` → `Romanian Deadlift`, `Seated Row` → `Seated Cable Row`, `Pronation/Supination Curl` → `Forearm Pronation/Supination`, `Fat Bar Curl` → `Fat-Bar Curl`, `Step-up` → `Step-Up`
+  - Deduplicated across categories: `Face Pulls` canonical in shoulders, `Box Jumps`/`Battle Ropes` canonical in cardio, `Hammer Curl` resolved via arms map
+  - Templates updated: `Chest & Tricep`, `Back & Biceps`, `Shoulders & Forearms`, `Legs & Abs`
+- **Muscle Mapping**: Added explicit distributions for `Flat Bench Press`, `Low/High Cable Fly`, `Decline Dumbbell Press`, `Seated Cable Row`, `Hanging Knee Raise`, `Pallof Press`, `Nordic/Lying/Seated Leg Curl`, and full forearms section; fixed `Hanging Knee Raise` (was shoulders) and `Pallof Press` (was chest) misattribution
+- **Version Alignment**: `package.json` bumped 1.0.0 → 1.2.0 to match released changelog lineage
+
 ## [1.1.0] - 2026-02-13
 
 ### Added
