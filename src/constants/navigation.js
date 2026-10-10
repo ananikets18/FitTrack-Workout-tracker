@@ -13,10 +13,11 @@ export const NAV_ITEMS = [
 
 // Bottom nav shows max 5 slots (4 tabs + More sheet) to avoid crowding on 360px.
 // Desktop header renders full NAV_ITEMS (compact pills).
+// Order follows BOTTOM_NAV_PATHS so the primary Log action sits dead-center.
 export const BOTTOM_NAV_PATHS = ['/', '/history', '/log', '/stats'];
 export const MORE_SHEET_PATHS = ['/recap', '/wellness'];
 
-export const BOTTOM_NAV_ITEMS = NAV_ITEMS.filter((i) => BOTTOM_NAV_PATHS.includes(i.path));
+export const BOTTOM_NAV_ITEMS = BOTTOM_NAV_PATHS.map((p) => NAV_ITEMS.find((i) => i.path === p));
 // Preserve NAV_ITEMS order for the sheet.
 export const MORE_SHEET_ITEMS = NAV_ITEMS.filter((i) => MORE_SHEET_PATHS.includes(i.path));
 
