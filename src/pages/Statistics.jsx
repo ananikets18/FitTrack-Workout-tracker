@@ -2,13 +2,9 @@ import { useWorkouts } from '../context/WorkoutContext';
 import { getCategoryForExercise } from '../data/exercises';
 import { useState, lazy, Suspense, useMemo } from 'react';
 import {
-  calculateStreak,
   calculateTotalVolume,
   kgToTons,
-  calculateTotalReps,
-  calculateAverageWeight,
   getPersonalRecords,
-  calculateTotalActivity,
 } from '../utils/calculations';
 import Card from '../components/common/Card';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
@@ -26,20 +22,90 @@ const InteractiveChart = lazy(() => import('../components/charts/InteractiveChar
 const ChartFallback = () => (
   <div className="animate-pulse h-48 rounded-xl bg-gray-100 dark:bg-gray-800" aria-label="Loading chart" />
 );
-import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Activity, ChevronDown, Calendar, Trophy, BarChart3 } from 'lucide-react';
- 
+import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Calendar, ChevronDown } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
+
+const TABS = [
+  { value: 'overview', label: 'Overview' },
+  { value: 'progress', label: 'Progress' },
+  { value: 'records', label: 'Records' },
+];
+
+// Shared collapsible section — replaces 4 copies of accordion boilerplate
+const StatsAccordion = ({ iconBg, icon, title, subtitle, isOpen, onToggle, children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
+  >
+    <button
+      onClick={onToggle}
+      className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+    >
+      <div className="flex items-center gap-3">
+        <div className={`p-2.5 bg-gradient-to-br ${iconBg} rounded-xl shadow-sm`}>
+          {icon}
+        </div>
+        <div className="text-left">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900">{title}</h2>
+          <p className="text-xs md:text-sm text-gray-600">{subtitle}</p>
+          {!isOpen && (
+            <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
+          )}
+        </div>
+      </div>
+
+      <motion.div
+        animate={{ rotate: isOpen ? 180 : 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <ChevronDown className="w-5 h-5 text-gray-600" />
+      </motion.div>
+    </button>
+
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden"
+        >
+          <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
+            <div className="pt-6">
+              {children}
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </motion.div>
+);
+
+const NotEnoughDataHint = () => (
+  <Card className="text-center py-8">
+    <p className="text-gray-600">Log at least 3 workouts to unlock charts</p>
+  </Card>
+);
 
 const Statistics = () => {
   const { workouts, isLoading } = useWorkouts();
+  const [activeTab, setActiveTab] = useState('overview');
   const [isExerciseHistoryOpen, setIsExerciseHistoryOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [isTreadmillOpen, setIsTreadmillOpen] = useState(false);
   const [isHeatmapOpen, setIsHeatmapOpen] = useState(false);
-  const [isPRTimelineOpen, setIsPRTimelineOpen] = useState(false);
-  const [isInteractiveChartOpen, setIsInteractiveChartOpen] = useState(false);
   const [analyticsMetric, setAnalyticsMetric] = useState('volume');
   const [prMuscleFilter, setPrMuscleFilter] = useState('all');
+
+  const hasEnoughData = workouts.length >= 3;
+  const hasTreadmillData =
+    !isLoading &&
+    workouts.some(w =>
+      w.exercises?.some(ex => ex.name.toLowerCase().includes('treadmill'))
+    );
 
   // Filter out rest days for workout statistics (memoized: O(n) per workouts change only)
   const regularWorkouts = useMemo(
@@ -69,27 +135,6 @@ const Statistics = () => {
     [regularWorkouts]
   );
 
-  const totalReps = useMemo(
-    () => regularWorkouts.reduce((sum, workout) => sum + calculateTotalReps(workout), 0),
-    [regularWorkouts]
-  );
-
-  const averageWeight =
-    regularWorkouts.length > 0
-      ? (
-          regularWorkouts.reduce(
-            (sum, workout) => sum + parseFloat(calculateAverageWeight(workout)),
-            0
-          ) / regularWorkouts.length
-        ).toFixed(1)
-      : 0;
-
-  // Calculate total activity points (NEW - Activity Points System)
-  const totalActivity = useMemo(
-    () => regularWorkouts.reduce((sum, workout) => sum + calculateTotalActivity(workout), 0),
-    [regularWorkouts]
-  );
-
   const exerciseFrequency = useMemo(() => {
     const freq = {};
     regularWorkouts.forEach((workout) => {
@@ -102,7 +147,7 @@ const Statistics = () => {
 
   const topExercises = Object.entries(exerciseFrequency)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 20);
+    .slice(0, 8);
 
   const handleExerciseClick = (exerciseName) => {
     setSelectedExercise(exerciseName);
@@ -125,14 +170,6 @@ const Statistics = () => {
       bgColor: 'bg-orange-50',
     },
     {
-      label: 'Activity Score',
-      value: Math.round(totalActivity).toLocaleString(),
-      subtitle: 'All workouts combined',
-      icon: Activity,
-      color: 'text-cyan-600',
-      bgColor: 'bg-cyan-50',
-    },
-    {
       label: 'Weight Moved',
       value: `${totalVolumeInTons}T`,
       subtitle: `${Math.round(totalVolume).toLocaleString()} kg total`,
@@ -147,20 +184,6 @@ const Statistics = () => {
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
     },
-    {
-      label: 'Total Reps',
-      value: totalReps.toLocaleString(),
-      icon: Activity,
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-50',
-    },
-    {
-      label: 'Avg Weight/Set',
-      value: `${averageWeight} kg`,
-      icon: TrendingUp,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-    },
   ];
 
   return (
@@ -171,19 +194,32 @@ const Statistics = () => {
         <p className="text-gray-600 mt-2">Track your progress and achievements</p>
       </div>
 
+      {/* Tab switcher */}
+      <div className="flex gap-2">
+        {TABS.map(tab => (
+          <button
+            key={tab.value}
+            onClick={() => setActiveTab(tab.value)}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === tab.value
+                ? 'bg-primary-600 text-white shadow-sm'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {/* Stats Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          <SkeletonStatCard />
-          <SkeletonStatCard />
-          <SkeletonStatCard />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <SkeletonStatCard />
           <SkeletonStatCard />
           <SkeletonStatCard />
           <SkeletonStatCard />
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {stats.map((stat, index) => (
             <Card key={index} elevated className="text-center">
               <div className={`inline-flex items-center justify-center w-11 h-11 md:w-14 md:h-14 rounded-2xl ${stat.bgColor} mb-2 md:mb-3 shadow-soft`}>
@@ -199,420 +235,257 @@ const Statistics = () => {
         </div>
       )}
 
+      {/* Overview tab */}
+      {activeTab === 'overview' && (
+        isLoading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : !hasEnoughData ? (
+          <NotEnoughDataHint />
+        ) : (
+          <>
+            {/* Training Intelligence Dashboard - Unique insights */}
+            <Card>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Training Intelligence (Last 7 Days)</h2>
+              <Suspense fallback={<ChartFallback />}>
+                <TrainingIntelligenceChart workouts={workouts} />
+              </Suspense>
+            </Card>
 
-
-      {/* Progress Charts */}
-      {isLoading ? (
-        <>
-          <SkeletonCard />
-          <SkeletonCard />
-        </>
-      ) : workouts.length >= 3 && (
-        <>
-          {/* Training Intelligence Dashboard - Unique insights */}
-          <Card>
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Training Intelligence (Last 7 Days)</h2>
-            <Suspense fallback={<ChartFallback />}>
-              <TrainingIntelligenceChart workouts={workouts} />
-            </Suspense>
-          </Card>
-
-          {/* NEW: Heatmap Calendar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
-          >
-            {/* Accordion Header */}
-            <button
-              onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
-              className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            <StatsAccordion
+              iconBg="from-primary-500 to-primary-600"
+              icon={<Calendar className="w-5 h-5 md:w-6 md:h-6 text-white" />}
+              title="Activity Heatmap"
+              subtitle="GitHub-style calendar view of your workout consistency"
+              isOpen={isHeatmapOpen}
+              onToggle={() => setIsHeatmapOpen(!isHeatmapOpen)}
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-sm">
-                  <Calendar className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                </div>
-                <div className="text-left">
-                  <h2 className="text-lg md:text-xl font-bold text-gray-900">Activity Heatmap</h2>
-                  <p className="text-xs md:text-sm text-gray-600">
-                    GitHub-style calendar view of your workout consistency
-                  </p>
-                  {!isHeatmapOpen && (
-                    <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
-                  )}
-                </div>
-              </div>
-
-              <motion.div
-                animate={{ rotate: isHeatmapOpen ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              </motion.div>
-            </button>
-
-            {/* Accordion Content */}
-            <AnimatePresence>
-              {isHeatmapOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
-                    <div className="pt-6">
-                      <Suspense fallback={<ChartFallback />}>
-                        <HeatmapCalendar workouts={workouts} />
-                      </Suspense>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* NEW: PR Timeline */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
-          >
-            {/* Accordion Header */}
-            <button
-              onClick={() => setIsPRTimelineOpen(!isPRTimelineOpen)}
-              className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl shadow-sm">
-                  <Trophy className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                </div>
-                <div className="text-left">
-                  <h2 className="text-lg md:text-xl font-bold text-gray-900">PR Timeline</h2>
-                  <p className="text-xs md:text-sm text-gray-600">
-                    Visual history of all your personal records
-                  </p>
-                  {!isPRTimelineOpen && (
-                    <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
-                  )}
-                </div>
-              </div>
-
-              <motion.div
-                animate={{ rotate: isPRTimelineOpen ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              </motion.div>
-            </button>
-
-            {/* Accordion Content */}
-            <AnimatePresence>
-              {isPRTimelineOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
-                    <div className="pt-6">
-                      <Suspense fallback={<ChartFallback />}>
-                        <PRTimeline workouts={workouts} />
-                      </Suspense>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* NEW: Interactive Chart */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
-          >
-            {/* Accordion Header */}
-            <button
-              onClick={() => setIsInteractiveChartOpen(!isInteractiveChartOpen)}
-              className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-sm">
-                  <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                </div>
-                <div className="text-left">
-                  <h2 className="text-lg md:text-xl font-bold text-gray-900">Advanced Analytics</h2>
-                  <p className="text-xs md:text-sm text-gray-600">
-                    Interactive charts with zoom, filter, and export
-                  </p>
-                  {!isInteractiveChartOpen && (
-                    <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
-                  )}
-                </div>
-              </div>
-
-              <motion.div
-                animate={{ rotate: isInteractiveChartOpen ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              </motion.div>
-            </button>
-
-            {/* Accordion Content */}
-            <AnimatePresence>
-              {isInteractiveChartOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
-                    <div className="pt-4">
-                      {/* Metric tab switcher */}
-                      <div className="flex flex-wrap gap-2 mb-5">
-                        {[
-                          { value: 'volume', label: '📦 Volume' },
-                          { value: 'activity', label: '⚡ Activity Points' },
-                          { value: 'workouts', label: '🏋️ Workouts' },
-                        ].map(tab => (
-                          <button
-                            key={tab.value}
-                            onClick={() => setAnalyticsMetric(tab.value)}
-                            className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${analyticsMetric === tab.value
-                                ? 'bg-indigo-600 text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                          >
-                            {tab.label}
-                          </button>
-                        ))}
-                      </div>
-                      <Suspense fallback={<ChartFallback />}>
-                        <InteractiveChart
-                          workouts={workouts}
-                          title={
-                            analyticsMetric === 'volume' ? 'Volume Progress'
-                              : analyticsMetric === 'activity' ? 'Activity Points Progress'
-                                : 'Workout Count'
-                          }
-                          metric={analyticsMetric}
-                        />
-                      </Suspense>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </>
+              <Suspense fallback={<ChartFallback />}>
+                <HeatmapCalendar workouts={workouts} />
+              </Suspense>
+            </StatsAccordion>
+          </>
+        )
       )}
 
-      {/* Treadmill Progress (Conditional) */}
-      {!isLoading && workouts.some(w =>
-        w.exercises?.some(ex => ex.name.toLowerCase().includes('treadmill'))
-      ) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
-          >
-            {/* Accordion Header */}
-            <button
-              onClick={() => setIsTreadmillOpen(!isTreadmillOpen)}
-              className="w-full p-4 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-sm">
-                  <span className="text-xl">🏃‍♂️</span>
-                </div>
-                <div className="text-left">
-                  <h2 className="text-lg md:text-xl font-bold text-gray-900">Treadmill Progress</h2>
-                  <p className="text-xs md:text-sm text-gray-600">
-                    Track your cardio performance
-                  </p>
-                  {!isTreadmillOpen && (
-                    <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
-                  )}
-                </div>
-              </div>
-
-              <motion.div
-                animate={{ rotate: isTreadmillOpen ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChevronDown className="w-5 h-5 text-gray-600" />
-              </motion.div>
-            </button>
-
-            {/* Accordion Content */}
-            <AnimatePresence>
-              {isTreadmillOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
-                    <div className="pt-6">
-                      <Suspense fallback={<ChartFallback />}>
-                        <TreadmillProgressChart workouts={workouts} />
-                      </Suspense>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        )}
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Progress tab */}
+      {activeTab === 'progress' && (
+        isLoading ? (
           <SkeletonCard />
-          <SkeletonCard />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Personal Records */}
-          <Card>
-            <div className="flex items-center space-x-2 mb-4">
-              <Award className="w-6 h-6 text-yellow-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Personal Records</h2>
-            </div>
-            {Object.keys(personalRecords).length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No personal records yet</p>
-                <p className="text-sm mt-1">Complete workouts to track your PRs</p>
-              </div>
-            ) : (() => {
-              // Build a map of exercise → muscle group using the exercise library
-              const prEntries = Object.entries(personalRecords);
-              const prWithCategory = prEntries.map(([exercise, weight]) => ({
-                exercise,
-                weight,
-                category: getCategoryForExercise(exercise) || 'other',
-              }));
-
-              // Derive which muscle groups actually exist among the PRs
-              const muscleGroupOrder = ['chest', 'back', 'shoulders', 'legs', 'arms', 'core', 'forearms', 'cardio', 'other'];
-              const muscleGroupLabels = {
-                chest: '🫁 Chest',
-                back: '🔙 Back',
-                shoulders: '🏔️ Shoulders',
-                legs: '🦵 Legs',
-                arms: '💪 Arms',
-                core: '⚡ Core',
-                forearms: '🤜 Forearms',
-                cardio: '🏃 Cardio',
-                other: '🏋️ Other',
-              };
-              const presentGroups = muscleGroupOrder.filter(g =>
-                prWithCategory.some(p => p.category === g)
-              );
-
-              // Filter & sort entries
-              const filtered = prWithCategory
-                .filter(p => prMuscleFilter === 'all' || p.category === prMuscleFilter)
-                .sort((a, b) => b.weight - a.weight)
-                .slice(0, prMuscleFilter === 'all' ? 8 : 12);
-
-              return (
-                <>
-                  {/* Muscle group filter pills */}
-                  {presentGroups.length > 1 && (
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      <button
-                        onClick={() => setPrMuscleFilter('all')}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                          prMuscleFilter === 'all'
-                            ? 'bg-yellow-500 text-white shadow-sm'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        All
-                      </button>
-                      {presentGroups.map(g => (
-                        <button
-                          key={g}
-                          onClick={() => setPrMuscleFilter(prev => prev === g ? 'all' : g)}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                            prMuscleFilter === g
-                              ? 'bg-yellow-500 text-white shadow-sm'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                        >
-                          {muscleGroupLabels[g]}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* PR list */}
-                  <div className="space-y-3">
-                    {filtered.length === 0 ? (
-                      <div className="text-center py-6 text-gray-500 text-sm">
-                        No PRs found for this muscle group
-                      </div>
-                    ) : (
-                      filtered.map(({ exercise, weight }) => (
-                        <button
-                          key={exercise}
-                          onClick={() => handleExerciseClick(exercise)}
-                          className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
-                        >
-                          <span className="font-medium text-gray-900 truncate mr-3" title={exercise}>{exercise}</span>
-                          <span className="text-lg font-bold text-primary-600 flex-shrink-0">{weight} kg</span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-
-                  {prMuscleFilter === 'all' && prEntries.length > 8 && (
-                    <p className="text-xs text-gray-400 text-center mt-3">
-                      {prEntries.length - 8} more — filter by muscle group to explore
-                    </p>
-                  )}
-                </>
-              );
-            })()}
-          </Card>
-
-          {/* Most Frequent Exercises */}
-          <Card>
-            <div className="flex items-center space-x-2 mb-6">
-              <TrendingUp className="w-6 h-6 text-green-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Top Exercises</h2>
-            </div>
-            {topExercises.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No exercises logged yet</p>
-                <p className="text-sm mt-1">Start tracking to see your favorites</p>
-              </div>
-            ) : (
-              <div className={`space-y-3 ${topExercises.length > 10 ? 'max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400' : ''}`}>
-                {topExercises.map(([exercise, count], index) => (
-                  <div key={exercise} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => handleExerciseClick(exercise)}>
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                        #{index + 1}
-                      </div>
-                      <span className="font-medium text-gray-900 truncate" title={exercise}>{exercise}</span>
-                    </div>
-                    <span className="text-sm text-gray-600 flex-shrink-0 ml-3">{count} times</span>
-                  </div>
+        ) : !hasEnoughData ? (
+          <NotEnoughDataHint />
+        ) : (
+          <>
+            <Card>
+              <h2 className="text-xl font-semibold text-gray-900 mb-5">Advanced Analytics</h2>
+              {/* Metric tab switcher */}
+              <div className="flex flex-wrap gap-2 mb-5">
+                {[
+                  { value: 'volume', label: '📦 Volume' },
+                  { value: 'activity', label: '⚡ Activity Points' },
+                  { value: 'workouts', label: '🏋️ Workouts' },
+                ].map(tab => (
+                  <button
+                    key={tab.value}
+                    onClick={() => setAnalyticsMetric(tab.value)}
+                    className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${analyticsMetric === tab.value
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                  >
+                    {tab.label}
+                  </button>
                 ))}
               </div>
+              <Suspense fallback={<ChartFallback />}>
+                <InteractiveChart
+                  workouts={workouts}
+                  title={
+                    analyticsMetric === 'volume' ? 'Volume Progress'
+                      : analyticsMetric === 'activity' ? 'Activity Points Progress'
+                        : 'Workout Count'
+                  }
+                  metric={analyticsMetric}
+                />
+              </Suspense>
+            </Card>
+
+            {/* Treadmill Progress (Conditional) */}
+            {hasTreadmillData && (
+              <StatsAccordion
+                iconBg="from-blue-500 to-cyan-500"
+                icon={<span className="text-xl">🏃‍♂️</span>}
+                title="Treadmill Progress"
+                subtitle="Track your cardio performance"
+                isOpen={isTreadmillOpen}
+                onToggle={() => setIsTreadmillOpen(!isTreadmillOpen)}
+              >
+                <Suspense fallback={<ChartFallback />}>
+                  <TreadmillProgressChart workouts={workouts} />
+                </Suspense>
+              </StatsAccordion>
             )}
-          </Card>
-        </div>
+          </>
+        )
+      )}
+
+      {/* Records tab */}
+      {activeTab === 'records' && (
+        isLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : (
+          <>
+            <Card>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">PR Timeline</h2>
+              {hasEnoughData ? (
+                <Suspense fallback={<ChartFallback />}>
+                  <PRTimeline workouts={workouts} />
+                </Suspense>
+              ) : (
+                <p className="text-gray-600 text-center py-4">Log at least 3 workouts to unlock charts</p>
+              )}
+            </Card>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Personal Records */}
+              <Card>
+                <div className="flex items-center space-x-2 mb-4">
+                  <Award className="w-6 h-6 text-yellow-600" />
+                  <h2 className="text-xl font-semibold text-gray-900">Personal Records</h2>
+                </div>
+                {Object.keys(personalRecords).length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No personal records yet</p>
+                    <p className="text-sm mt-1">Complete workouts to track your PRs</p>
+                  </div>
+                ) : (() => {
+                  // Build a map of exercise → muscle group using the exercise library
+                  const prEntries = Object.entries(personalRecords);
+                  const prWithCategory = prEntries.map(([exercise, weight]) => ({
+                    exercise,
+                    weight,
+                    category: getCategoryForExercise(exercise) || 'other',
+                  }));
+
+                  // Derive which muscle groups actually exist among the PRs
+                  const muscleGroupOrder = ['chest', 'back', 'shoulders', 'legs', 'arms', 'core', 'forearms', 'cardio', 'other'];
+                  const muscleGroupLabels = {
+                    chest: '🫁 Chest',
+                    back: '🔙 Back',
+                    shoulders: '🏔️ Shoulders',
+                    legs: '🦵 Legs',
+                    arms: '💪 Arms',
+                    core: '⚡ Core',
+                    forearms: '🤜 Forearms',
+                    cardio: '🏃 Cardio',
+                    other: '🏋️ Other',
+                  };
+                  const presentGroups = muscleGroupOrder.filter(g =>
+                    prWithCategory.some(p => p.category === g)
+                  );
+
+                  // Filter & sort entries
+                  const filtered = prWithCategory
+                    .filter(p => prMuscleFilter === 'all' || p.category === prMuscleFilter)
+                    .sort((a, b) => b.weight - a.weight)
+                    .slice(0, prMuscleFilter === 'all' ? 8 : 12);
+
+                  return (
+                    <>
+                      {/* Muscle group filter pills */}
+                      {presentGroups.length > 1 && (
+                        <div className="flex flex-wrap gap-1.5 mb-4">
+                          <button
+                            onClick={() => setPrMuscleFilter('all')}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                              prMuscleFilter === 'all'
+                                ? 'bg-yellow-500 text-white shadow-sm'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            All
+                          </button>
+                          {presentGroups.map(g => (
+                            <button
+                              key={g}
+                              onClick={() => setPrMuscleFilter(prev => prev === g ? 'all' : g)}
+                              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                                prMuscleFilter === g
+                                  ? 'bg-yellow-500 text-white shadow-sm'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              }`}
+                            >
+                              {muscleGroupLabels[g]}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* PR list */}
+                      <div className="space-y-3">
+                        {filtered.length === 0 ? (
+                          <div className="text-center py-6 text-gray-500 text-sm">
+                            No PRs found for this muscle group
+                          </div>
+                        ) : (
+                          filtered.map(({ exercise, weight }) => (
+                            <button
+                              key={exercise}
+                              onClick={() => handleExerciseClick(exercise)}
+                              className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
+                            >
+                              <span className="font-medium text-gray-900 truncate mr-3" title={exercise}>{exercise}</span>
+                              <span className="text-lg font-bold text-primary-600 flex-shrink-0">{weight} kg</span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+
+                      {prMuscleFilter === 'all' && prEntries.length > 8 && (
+                        <p className="text-xs text-gray-400 text-center mt-3">
+                          {prEntries.length - 8} more — filter by muscle group to explore
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
+              </Card>
+
+              {/* Most Frequent Exercises */}
+              <Card>
+                <div className="flex items-center space-x-2 mb-6">
+                  <TrendingUp className="w-6 h-6 text-green-600" />
+                  <h2 className="text-xl font-semibold text-gray-900">Top Exercises</h2>
+                </div>
+                {topExercises.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No exercises logged yet</p>
+                    <p className="text-sm mt-1">Start tracking to see your favorites</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {topExercises.map(([exercise, count], index) => (
+                      <div key={exercise} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => handleExerciseClick(exercise)}>
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                            #{index + 1}
+                          </div>
+                          <span className="font-medium text-gray-900 truncate" title={exercise}>{exercise}</span>
+                        </div>
+                        <span className="text-sm text-gray-600 flex-shrink-0 ml-3">{count} times</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </div>
+          </>
+        )
       )}
 
       {/* Empty State */}
@@ -636,4 +509,3 @@ const Statistics = () => {
 };
 
 export default Statistics;
-
