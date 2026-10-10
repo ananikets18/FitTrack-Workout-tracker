@@ -10,9 +10,6 @@ import Card from '../components/common/Card';
 import SkeletonStatCard from '../components/common/SkeletonStatCard';
 import SkeletonCard from '../components/common/SkeletonCard';
 import ExerciseHistoryModal from '../components/common/ExerciseHistoryModal';
-const TrainingIntelligenceChart = lazy(() =>
-  import('../components/charts/WorkoutCharts').then((m) => ({ default: m.TrainingIntelligenceChart }))
-);
 const TreadmillProgressChart = lazy(() =>
   import('../components/charts/WorkoutCharts').then((m) => ({ default: m.TreadmillProgressChart }))
 );
@@ -22,7 +19,7 @@ const InteractiveChart = lazy(() => import('../components/charts/InteractiveChar
 const ChartFallback = () => (
   <div className="animate-pulse h-48 rounded-xl bg-gray-100 dark:bg-gray-800" aria-label="Loading chart" />
 );
-import { TrendingUp, Award, Flame, Dumbbell, Target, Weight, Calendar, ChevronDown } from 'lucide-react';
+import { TrendingUp, Award, Target, Weight, Calendar, ChevronDown, Trophy } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -90,6 +87,113 @@ const NotEnoughDataHint = () => (
   </Card>
 );
 
+// Full-width Personal Records card (muscle filter pills + ranked rows).
+// Rendered on Overview; reused in Records alongside Top Exercises.
+const PersonalRecordsCard = ({ personalRecords, prMuscleFilter, setPrMuscleFilter, onExerciseClick }) => {
+  // Build a map of exercise → muscle group using the exercise library
+  const prEntries = Object.entries(personalRecords);
+  const prWithCategory = prEntries.map(([exercise, weight]) => ({
+    exercise,
+    weight,
+    category: getCategoryForExercise(exercise) || 'other',
+  }));
+
+  // Derive which muscle groups actually exist among the PRs
+  const muscleGroupOrder = ['chest', 'back', 'shoulders', 'legs', 'arms', 'core', 'forearms', 'cardio', 'other'];
+  const muscleGroupLabels = {
+    chest: '🫁 Chest',
+    back: '🔙 Back',
+    shoulders: '🏔️ Shoulders',
+    legs: '🦵 Legs',
+    arms: '💪 Arms',
+    core: '⚡ Core',
+    forearms: '🤜 Forearms',
+    cardio: '🏃 Cardio',
+    other: '🏋️ Other',
+  };
+  const presentGroups = muscleGroupOrder.filter(g =>
+    prWithCategory.some(p => p.category === g)
+  );
+
+  // Filter & sort entries
+  const filtered = prWithCategory
+    .filter(p => prMuscleFilter === 'all' || p.category === prMuscleFilter)
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, prMuscleFilter === 'all' ? 8 : 12);
+
+  return (
+    <Card>
+      <div className="flex items-center space-x-2 mb-4">
+        <Award className="w-6 h-6 text-yellow-600" />
+        <h2 className="text-xl font-semibold text-gray-900">Personal Records</h2>
+      </div>
+      {prEntries.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <p>No personal records yet</p>
+          <p className="text-sm mt-1">Complete workouts to track your PRs</p>
+        </div>
+      ) : (
+        <>
+          {/* Muscle group filter pills */}
+          {presentGroups.length > 1 && (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              <button
+                onClick={() => setPrMuscleFilter('all')}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                  prMuscleFilter === 'all'
+                    ? 'bg-yellow-500 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                All
+              </button>
+              {presentGroups.map(g => (
+                <button
+                  key={g}
+                  onClick={() => setPrMuscleFilter(prev => prev === g ? 'all' : g)}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    prMuscleFilter === g
+                      ? 'bg-yellow-500 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {muscleGroupLabels[g]}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* PR list */}
+          <div className="space-y-3">
+            {filtered.length === 0 ? (
+              <div className="text-center py-6 text-gray-500 text-sm">
+                No PRs found for this muscle group
+              </div>
+            ) : (
+              filtered.map(({ exercise, weight }) => (
+                <button
+                  key={exercise}
+                  onClick={() => onExerciseClick(exercise)}
+                  className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
+                >
+                  <span className="font-medium text-gray-900 truncate mr-3" title={exercise}>{exercise}</span>
+                  <span className="text-lg font-bold text-primary-600 flex-shrink-0">{weight} kg</span>
+                </button>
+              ))
+            )}
+          </div>
+
+          {prMuscleFilter === 'all' && prEntries.length > 8 && (
+            <p className="text-xs text-gray-400 text-center mt-3">
+              {prEntries.length - 8} more — filter by muscle group to explore
+            </p>
+          )}
+        </>
+      )}
+    </Card>
+  );
+};
+
 const Statistics = () => {
   const { workouts, isLoading } = useWorkouts();
   const [activeTab, setActiveTab] = useState('overview');
@@ -97,6 +201,7 @@ const Statistics = () => {
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [isTreadmillOpen, setIsTreadmillOpen] = useState(false);
   const [isHeatmapOpen, setIsHeatmapOpen] = useState(false);
+  const [isPRTimelineOpen, setIsPRTimelineOpen] = useState(false);
   const [analyticsMetric, setAnalyticsMetric] = useState('volume');
   const [prMuscleFilter, setPrMuscleFilter] = useState('all');
 
@@ -116,6 +221,10 @@ const Statistics = () => {
   // Calculate statistics (only for regular workouts)
   const personalRecords = useMemo(() => getPersonalRecords(workouts), [workouts]);
   const totalPRs = Object.keys(personalRecords).length;
+  const topPR = useMemo(() => {
+    const entries = Object.entries(personalRecords).sort((a, b) => b[1] - a[1]);
+    return entries.length > 0 ? entries[0] : null;
+  }, [personalRecords]);
 
   // This month: workout count + volume (resets monthly, always actionable)
   const { thisMonthWorkouts, thisMonthVolume } = useMemo(() => {
@@ -135,7 +244,8 @@ const Statistics = () => {
     [regularWorkouts]
   );
 
-  const totalVolumeInTons = kgToTons(totalVolume);
+  // Display-layer tons: drop trailing ".0" (util kept as-is for achievements/recap/tests)
+  const totalVolumeInTons = parseFloat(kgToTons(totalVolume)).toString();
 
   const totalSets = useMemo(
     () =>
@@ -171,22 +281,22 @@ const Statistics = () => {
       label: 'This Month',
       value: thisMonthWorkouts.length,
       subtitle: `${Math.round(thisMonthVolume).toLocaleString()} kg moved`,
-      icon: Flame,
+      icon: Calendar,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
     },
     {
       label: 'Personal Records',
       value: totalPRs,
-      subtitle: 'across all exercises',
-      icon: Dumbbell,
+      subtitle: topPR ? `top: ${topPR[0]} ${topPR[1]} kg` : 'no PRs yet',
+      icon: Trophy,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
       label: 'Weight Moved',
       value: `${totalVolumeInTons}T`,
-      subtitle: `${Math.round(totalVolume).toLocaleString()} kg total`,
+      subtitle: 'lifetime',
       icon: Weight,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
@@ -194,6 +304,7 @@ const Statistics = () => {
     {
       label: 'Total Sets',
       value: totalSets,
+      subtitle: `across ${regularWorkouts.length} workouts`,
       icon: Target,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
@@ -239,7 +350,7 @@ const Statistics = () => {
               <div className={`inline-flex items-center justify-center w-11 h-11 md:w-14 md:h-14 rounded-2xl ${stat.bgColor} mb-2 md:mb-3 shadow-soft`}>
                 <stat.icon className={`w-5 h-5 md:w-7 md:h-7 ${stat.color}`} />
               </div>
-              <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+              <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 tabular-nums">{stat.value}</div>
               <div className="text-gray-600 text-xs md:text-sm font-medium">{stat.label}</div>
               {stat.subtitle && (
                 <div className="text-xs text-gray-500 mt-1 hidden md:block">{stat.subtitle}</div>
@@ -260,14 +371,6 @@ const Statistics = () => {
           <NotEnoughDataHint />
         ) : (
           <>
-            {/* Training Intelligence Dashboard - Unique insights */}
-            <Card>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Training Intelligence (Last 7 Days)</h2>
-              <Suspense fallback={<ChartFallback />}>
-                <TrainingIntelligenceChart workouts={workouts} />
-              </Suspense>
-            </Card>
-
             <StatsAccordion
               iconBg="from-primary-500 to-primary-600"
               icon={<Calendar className="w-5 h-5 md:w-6 md:h-6 text-white" />}
@@ -280,6 +383,14 @@ const Statistics = () => {
                 <HeatmapCalendar workouts={workouts} />
               </Suspense>
             </StatsAccordion>
+
+            {/* Personal Records — full width */}
+            <PersonalRecordsCard
+              personalRecords={personalRecords}
+              prMuscleFilter={prMuscleFilter}
+              setPrMuscleFilter={setPrMuscleFilter}
+              onExerciseClick={handleExerciseClick}
+            />
           </>
         )
       )}
@@ -354,8 +465,14 @@ const Statistics = () => {
           </div>
         ) : (
           <>
-            <Card>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">PR Timeline</h2>
+            <StatsAccordion
+              iconBg="from-yellow-500 to-orange-500"
+              icon={<Trophy className="w-5 h-5 md:w-6 md:h-6 text-white" />}
+              title="PR Timeline"
+              subtitle="Visual history of all your personal records"
+              isOpen={isPRTimelineOpen}
+              onToggle={() => setIsPRTimelineOpen(!isPRTimelineOpen)}
+            >
               {hasEnoughData ? (
                 <Suspense fallback={<ChartFallback />}>
                   <PRTimeline workouts={workouts} />
@@ -363,115 +480,10 @@ const Statistics = () => {
               ) : (
                 <p className="text-gray-600 text-center py-4">Log at least 3 workouts to unlock charts</p>
               )}
-            </Card>
+            </StatsAccordion>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Personal Records */}
-              <Card>
-                <div className="flex items-center space-x-2 mb-4">
-                  <Award className="w-6 h-6 text-yellow-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">Personal Records</h2>
-                </div>
-                {Object.keys(personalRecords).length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No personal records yet</p>
-                    <p className="text-sm mt-1">Complete workouts to track your PRs</p>
-                  </div>
-                ) : (() => {
-                  // Build a map of exercise → muscle group using the exercise library
-                  const prEntries = Object.entries(personalRecords);
-                  const prWithCategory = prEntries.map(([exercise, weight]) => ({
-                    exercise,
-                    weight,
-                    category: getCategoryForExercise(exercise) || 'other',
-                  }));
-
-                  // Derive which muscle groups actually exist among the PRs
-                  const muscleGroupOrder = ['chest', 'back', 'shoulders', 'legs', 'arms', 'core', 'forearms', 'cardio', 'other'];
-                  const muscleGroupLabels = {
-                    chest: '🫁 Chest',
-                    back: '🔙 Back',
-                    shoulders: '🏔️ Shoulders',
-                    legs: '🦵 Legs',
-                    arms: '💪 Arms',
-                    core: '⚡ Core',
-                    forearms: '🤜 Forearms',
-                    cardio: '🏃 Cardio',
-                    other: '🏋️ Other',
-                  };
-                  const presentGroups = muscleGroupOrder.filter(g =>
-                    prWithCategory.some(p => p.category === g)
-                  );
-
-                  // Filter & sort entries
-                  const filtered = prWithCategory
-                    .filter(p => prMuscleFilter === 'all' || p.category === prMuscleFilter)
-                    .sort((a, b) => b.weight - a.weight)
-                    .slice(0, prMuscleFilter === 'all' ? 8 : 12);
-
-                  return (
-                    <>
-                      {/* Muscle group filter pills */}
-                      {presentGroups.length > 1 && (
-                        <div className="flex flex-wrap gap-1.5 mb-4">
-                          <button
-                            onClick={() => setPrMuscleFilter('all')}
-                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                              prMuscleFilter === 'all'
-                                ? 'bg-yellow-500 text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                          >
-                            All
-                          </button>
-                          {presentGroups.map(g => (
-                            <button
-                              key={g}
-                              onClick={() => setPrMuscleFilter(prev => prev === g ? 'all' : g)}
-                              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                                prMuscleFilter === g
-                                  ? 'bg-yellow-500 text-white shadow-sm'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              }`}
-                            >
-                              {muscleGroupLabels[g]}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* PR list */}
-                      <div className="space-y-3">
-                        {filtered.length === 0 ? (
-                          <div className="text-center py-6 text-gray-500 text-sm">
-                            No PRs found for this muscle group
-                          </div>
-                        ) : (
-                          filtered.map(({ exercise, weight }) => (
-                            <button
-                              key={exercise}
-                              onClick={() => handleExerciseClick(exercise)}
-                              className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
-                            >
-                              <span className="font-medium text-gray-900 truncate mr-3" title={exercise}>{exercise}</span>
-                              <span className="text-lg font-bold text-primary-600 flex-shrink-0">{weight} kg</span>
-                            </button>
-                          ))
-                        )}
-                      </div>
-
-                      {prMuscleFilter === 'all' && prEntries.length > 8 && (
-                        <p className="text-xs text-gray-400 text-center mt-3">
-                          {prEntries.length - 8} more — filter by muscle group to explore
-                        </p>
-                      )}
-                    </>
-                  );
-                })()}
-              </Card>
-
-              {/* Most Frequent Exercises */}
-              <Card>
+            {/* Most Frequent Exercises */}
+            <Card>
                 <div className="flex items-center space-x-2 mb-6">
                   <TrendingUp className="w-6 h-6 text-green-600" />
                   <h2 className="text-xl font-semibold text-gray-900">Top Exercises</h2>
@@ -497,7 +509,6 @@ const Statistics = () => {
                   </div>
                 )}
               </Card>
-            </div>
           </>
         )
       )}
