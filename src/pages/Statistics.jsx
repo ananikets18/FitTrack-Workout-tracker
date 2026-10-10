@@ -114,9 +114,21 @@ const Statistics = () => {
   );
 
   // Calculate statistics (only for regular workouts)
-  const totalWorkouts = regularWorkouts.length;
-  const currentStreak = useMemo(() => calculateStreak(workouts), [workouts]); // Includes rest days for streak
   const personalRecords = useMemo(() => getPersonalRecords(workouts), [workouts]);
+  const totalPRs = Object.keys(personalRecords).length;
+
+  // This month: workout count + volume (resets monthly, always actionable)
+  const { thisMonthWorkouts, thisMonthVolume } = useMemo(() => {
+    const now = new Date();
+    const inMonth = regularWorkouts.filter((w) => {
+      const d = new Date(w.date);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    });
+    return {
+      thisMonthWorkouts: inMonth,
+      thisMonthVolume: inMonth.reduce((sum, workout) => sum + calculateTotalVolume(workout), 0),
+    };
+  }, [regularWorkouts]);
 
   const totalVolume = useMemo(
     () => regularWorkouts.reduce((sum, workout) => sum + calculateTotalVolume(workout), 0),
@@ -156,18 +168,20 @@ const Statistics = () => {
 
   const stats = [
     {
-      label: 'Total Workouts',
-      value: totalWorkouts,
-      icon: Dumbbell,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      label: 'Current Streak',
-      value: `${currentStreak} days`,
+      label: 'This Month',
+      value: thisMonthWorkouts.length,
+      subtitle: `${Math.round(thisMonthVolume).toLocaleString()} kg moved`,
       icon: Flame,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
+    },
+    {
+      label: 'Personal Records',
+      value: totalPRs,
+      subtitle: 'across all exercises',
+      icon: Dumbbell,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
     },
     {
       label: 'Weight Moved',
