@@ -85,9 +85,9 @@ const BottomNav = () => {
                   <motion.div
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.05 }}
-                    className="flex flex-col items-center justify-center -mt-6"
+                    className="flex flex-col items-center justify-center min-h-[48px]"
                   >
-                    <div className="bg-gradient-primary rounded-full p-4 shadow-2xl ring-4 ring-white dark:ring-gray-900">
+                    <div className="bg-gradient-primary rounded-full p-3 shadow-soft">
                       <NavIcon className="w-6 h-6 text-white" strokeWidth={2.5} aria-hidden="true" />
                     </div>
                     <span className="sr-only">{label}</span>
