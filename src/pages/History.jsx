@@ -7,8 +7,8 @@ import Modal from '../components/common/Modal';
 import SkeletonCard from '../components/common/SkeletonCard';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import { formatDate, calculateTotalSets, calculateExerciseVolume, kgToTons, getProgressiveOverload } from '../utils/calculations';
-import { exportToExcel, exportToJSON, exportToCSV, importFromJSON, importFromExcel } from '../utils/exportUtils';
-import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, Sheet, FileJson, Upload, FileSpreadsheet, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown, X } from 'lucide-react';
+import { exportToJSON, importFromJSON } from '../utils/exportUtils';
+import { Trash2, Search, Calendar, Edit, TrendingUp, TrendingDown, Minus, FileJson, Upload, Hotel, Star, Filter, ArrowUpDown, Layers, ChevronDown, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { calculateWeightedMuscleSets } from '../utils/exerciseMuscleMapping';
 import { getEffectiveWeight, isBarbellExercise } from '../data/exercises';
@@ -425,7 +425,7 @@ const History = () => {
     }
   };
 
-  const handleExport = async (format) => {
+  const handleExport = async () => {
     if (workouts.length === 0) {
       toast.error('No workouts to export');
       return;
@@ -436,38 +436,8 @@ const History = () => {
       return;
     }
 
-    // For JSON, open the date range modal
-    if (format === 'json') {
-      setIsExportModalOpen(true);
-      return;
-    }
-
-    // For CSV and Excel, export directly
-    setIsExporting(true);
-    try {
-      let success = false;
-      switch (format) {
-        case 'csv':
-          success = exportToCSV(workouts);
-          break;
-        case 'excel':
-          success = exportToExcel(workouts);
-          break;
-        default:
-          throw new Error(`Unsupported export format: ${format}`);
-      }
-
-      if (success) {
-        toast.success(`Exported successfully as ${format.toUpperCase()}!`);
-      } else {
-        toast.error('Export failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.error(error.message || 'Export failed. Please try again.');
-    } finally {
-      setIsExporting(false);
-    }
+    // JSON is the only export format — open the date range modal
+    setIsExportModalOpen(true);
   };
 
   const handleConfirmExport = async () => {
@@ -526,10 +496,8 @@ const History = () => {
 
       if (fileExtension === 'json') {
         importedWorkouts = await importFromJSON(file);
-      } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
-        importedWorkouts = await importFromExcel(file);
       } else {
-        throw new Error('Unsupported file format. Use JSON or Excel files.');
+        throw new Error('Unsupported file format. Use JSON files.');
       }
 
       // Validate imported data
@@ -581,7 +549,7 @@ const History = () => {
             <input
               id="import-file"
               type="file"
-              accept=".json,.xlsx,.xls"
+              accept=".json"
               onChange={handleImport}
               className="hidden"
             />
@@ -590,27 +558,7 @@ const History = () => {
             {workouts.length > 0 && (
               <>
                 <button
-                  onClick={() => handleExport('csv')}
-                  disabled={isExporting || isImporting}
-                  aria-label="Export as CSV"
-                  className="flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Export as CSV"
-                >
-                  <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
-                  <span className="hidden lg:inline">{isExporting ? 'Exporting...' : 'CSV'}</span>
-                </button>
-                <button
-                  onClick={() => handleExport('excel')}
-                  disabled={isExporting || isImporting}
-                  aria-label="Export as Excel"
-                  className="flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Export as Excel"
-                >
-                  <Sheet className="w-4 h-4" aria-hidden="true" />
-                  <span className="hidden lg:inline">{isExporting ? 'Exporting...' : 'Excel'}</span>
-                </button>
-                <button
-                  onClick={() => handleExport('json')}
+                  onClick={() => handleExport()}
                   disabled={isExporting || isImporting}
                   aria-label="Export as JSON"
                   className="flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -638,7 +586,7 @@ const History = () => {
           <input
             id="import-file-mobile"
             type="file"
-            accept=".json,.xlsx,.xls"
+            accept=".json"
             onChange={handleImport}
             className="hidden"
           />
@@ -647,25 +595,7 @@ const History = () => {
           {workouts.length > 0 && (
             <>
               <button
-                onClick={() => handleExport('csv')}
-                disabled={isExporting || isImporting}
-                aria-label="Export as CSV"
-                className="flex items-center justify-center px-2.5 py-2 min-h-[44px] min-w-[44px] bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Export as CSV"
-              >
-                <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
-              </button>
-              <button
-                onClick={() => handleExport('excel')}
-                disabled={isExporting || isImporting}
-                aria-label="Export as Excel"
-                className="flex items-center justify-center px-2.5 py-2 min-h-[44px] min-w-[44px] bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Export as Excel"
-              >
-                <Sheet className="w-4 h-4" aria-hidden="true" />
-              </button>
-              <button
-                onClick={() => handleExport('json')}
+                onClick={() => handleExport()}
                 disabled={isExporting || isImporting}
                 aria-label="Export as JSON"
                 className="flex items-center justify-center px-2.5 py-2 min-h-[44px] min-w-[44px] bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-lg shadow-soft transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
