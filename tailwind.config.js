@@ -22,6 +22,7 @@ export default {
           700: '#04507f',
           800: '#073b63',
           900: '#052a45',
+          950: '#031a2b',
         },
         // Semantic tokens for clean minimal light system.
         // Use these instead of ad-hoc emerald/amber/blue classes.

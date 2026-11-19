@@ -35,9 +35,13 @@ dist-ssr
 *.sw?
 
 # Custom additions
-docs/
+docs/*
+!docs/WORKOUT_PLANNER.md
 file.txt
-supabase/
+supabase/*
+!supabase/migrations/
+supabase/migrations/*
+!supabase/migrations/20261119_add_workout_planner.sql
 supababse/
 
 # Python & ML Environments

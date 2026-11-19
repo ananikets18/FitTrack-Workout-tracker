@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkouts } from '../context/WorkoutContext';
+import { useWorkoutPlanner } from '../context/WorkoutPlannerContext';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import BottomSheet from '../components/common/BottomSheet';
@@ -23,6 +24,7 @@ import RestDayModal from '../components/common/RestDayModal';
 
 const Calendar = () => {
   const { workouts, addRestDay, addBulkRestDays } = useWorkouts();
+  const { plans } = useWorkoutPlanner();
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -51,7 +53,8 @@ const Calendar = () => {
       hasRestDay: restDays.length > 0,
       workouts: dayWorkouts,
       regularWorkouts,
-      restDays
+      restDays,
+      plans: plans.filter((plan) => plan.date === dateKey)
     };
   };
 
@@ -364,6 +367,7 @@ const Calendar = () => {
                 className={getDayClassName(day)}
               >
                 <span className="mb-1">{format(day, 'd')}</span>
+                {density.plans.length > 0 && <span title={`${density.plans.length} planned workout(s)`} aria-label={`${density.plans.length} planned workouts`} className="h-1.5 w-3 rounded-full bg-primary-500" />}
                 {density.count > 0 && (
                   <div className="flex items-center space-x-0.5">
                     <div className="w-1 h-1 rounded-full bg-current"></div>
@@ -441,6 +445,9 @@ const Calendar = () => {
       >
         {selectedDate && (
           <div className="space-y-4">
+            <button onClick={() => { setIsSheetOpen(false); navigate(`/planner?date=${format(selectedDate.date, 'yyyy-MM-dd')}`); }} className="w-full rounded-xl border border-primary-200 bg-primary-50 p-3 text-left text-sm font-semibold text-primary-700 dark:border-primary-800 dark:bg-primary-950 dark:text-primary-300">
+              {selectedDate.plans.length ? `${selectedDate.plans.map((plan) => plan.title).join(', ')} · Open planner →` : 'Plan a workout for this date →'}
+            </button>
             {selectedDate.workouts.length === 0 ? (
               <div className="py-6 text-center space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto text-gray-400">

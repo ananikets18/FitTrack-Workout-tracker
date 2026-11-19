@@ -5,6 +5,7 @@ import { perSideToTotal, totalToPerSide } from '../../utils/weightUtils';
 
 const SetRow = ({ exerciseName, category, set, index, onChange, onToggle, onEdit, onDelete }) => {
   const isCardio = category === 'cardio';
+  const isTimed = category === 'mobility';
   const isTreadmill = isCardio && exerciseName.toLowerCase().includes('treadmill');
   const isBarbell = isBarbellExercise(exerciseName);
   const total = isBarbell ? perSideToTotal(set.weight, exerciseName) : (set.weight || 0);
@@ -16,12 +17,12 @@ const SetRow = ({ exerciseName, category, set, index, onChange, onToggle, onEdit
           {index + 1}
         </span>
         <div className="flex-1 grid grid-cols-2 gap-2 min-w-0">
-          {isCardio ? (
-            <NumberPicker label={isTreadmill ? 'Min' : 'Duration'} value={set.duration || 0} onChange={(v) => onChange({ duration: v })} min={0} max={999} />
+          {isCardio || isTimed ? (
+            <NumberPicker label={isTimed ? 'Seconds' : isTreadmill ? 'Min' : 'Duration'} value={set.duration || 0} onChange={(v) => onChange({ duration: v })} min={0} max={isTimed ? 59940 : 999} />
           ) : (
             <NumberPicker label="Reps" value={set.reps || 0} onChange={(v) => onChange({ reps: v })} min={0} max={999} />
           )}
-          {!isCardio || isTreadmill ? (
+          {(!isCardio && !isTimed) || isTreadmill ? (
             <NumberPicker
               label={isBarbell ? 'Total kg' : isTreadmill ? 'Speed' : 'Weight'}
               value={isBarbell ? total : (isTreadmill ? set.speed || 0 : set.weight || 0)}

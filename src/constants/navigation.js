@@ -1,9 +1,10 @@
-import { Home, Plus, History, BarChart3, Activity, Sparkles } from 'lucide-react';
+import { Home, Plus, History, BarChart3, Activity, Sparkles, ClipboardList } from 'lucide-react';
 
 // Single source of truth for app IA — keep Header + BottomNav in sync.
 // label = full name (desktop + a11y), shortLabel = compact mobile tab label.
 export const NAV_ITEMS = [
   { path: '/', label: 'Home', shortLabel: 'Home', icon: Home },
+  { path: '/planner', label: 'Daily Planner', shortLabel: 'Planner', icon: ClipboardList },
   { path: '/log', label: 'Log Workout', shortLabel: 'Log', icon: Plus, primary: true },
   { path: '/history', label: 'History', shortLabel: 'History', icon: History },
   { path: '/stats', label: 'Statistics', shortLabel: 'Stats', icon: BarChart3 },
@@ -15,7 +16,7 @@ export const NAV_ITEMS = [
 // Desktop header renders full NAV_ITEMS (compact pills).
 // Order follows BOTTOM_NAV_PATHS so the primary Log action sits dead-center.
 export const BOTTOM_NAV_PATHS = ['/', '/history', '/log', '/stats'];
-export const MORE_SHEET_PATHS = ['/recap', '/wellness'];
+export const MORE_SHEET_PATHS = ['/planner', '/recap', '/wellness'];
 
 export const BOTTOM_NAV_ITEMS = BOTTOM_NAV_PATHS.map((p) => NAV_ITEMS.find((i) => i.path === p));
 // Preserve NAV_ITEMS order for the sheet.

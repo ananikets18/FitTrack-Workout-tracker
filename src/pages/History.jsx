@@ -1039,7 +1039,7 @@ const History = () => {
                                   >
                                     <div className="font-medium">{index + 1}</div>
                                     <div className="font-semibold truncate">
-                                      {exercise.category === 'cardio' ? `${set.duration || 0}m` : `${set.reps || 0} reps`}
+                                      {exercise.category === 'cardio' ? `${set.duration || 0}m` : exercise.category === 'mobility' ? `${set.duration || 0}s` : `${set.reps || 0} reps`}
                                     </div>
                                     <div className="text-right text-xs">
                                       {set.completed ? '✓' : '-'}

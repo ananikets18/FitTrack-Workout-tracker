@@ -138,6 +138,11 @@ const Home = () => {
         totalRestDays={totalRestDays}
       />
 
+      <Link to="/planner" className="flex items-center justify-between gap-3 rounded-2xl border border-primary-200 bg-primary-50 p-4 text-primary-800 transition-colors hover:bg-primary-100 dark:border-primary-900 dark:bg-primary-950/40 dark:text-primary-200">
+        <div><p className="font-bold">Your daily workout checklist</p><p className="mt-1 text-sm opacity-80">Plan your exercises, log sets, and check them off as you go.</p></div>
+        <span className="flex-shrink-0 text-sm font-semibold">Open planner →</span>
+      </Link>
+
       {!isLoading && isSunday && thisWeekWorkouts >= 2 && (
         <Link
           to="/recap"

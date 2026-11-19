@@ -91,7 +91,7 @@ export const analyzeExerciseProgression = (exerciseName, workouts) => {
 
     regularWorkouts.forEach(workout => {
         const exercise = workout.exercises?.find(ex => ex.name === exerciseName);
-        if (exercise) {
+        if (exercise?.sets?.length) {
             const maxWeight = Math.max(...exercise.sets.map(s => s.weight || 0));
             const totalReps = exercise.sets.reduce((sum, s) => sum + (s.reps || 0), 0);
             const avgReps = totalReps / exercise.sets.length;

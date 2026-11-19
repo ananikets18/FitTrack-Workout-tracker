@@ -6,6 +6,7 @@ import useOnlineStatus from '../../hooks/useOnlineStatus';
 import { lightHaptic } from '../../utils/haptics';
 import toast from 'react-hot-toast';
 import { NAV_ITEMS, isNavActive } from '../../constants/navigation';
+import { clearAppStorage } from '../../utils/workoutPlanner';
 
 
 const Header = () => {
@@ -23,11 +24,11 @@ const Header = () => {
     try {
       lightHaptic();
       await signOut();
-      localStorage.clear();
+      clearAppStorage();
       toast.success('Logged out successfully');
       navigate('/login', { replace: true });
     } catch (error) {
-      localStorage.clear();
+      clearAppStorage();
       navigate('/login', { replace: true });
 
       if (import.meta.env.MODE !== 'production') {

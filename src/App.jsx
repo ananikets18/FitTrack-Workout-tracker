@@ -13,9 +13,11 @@ import { ThemeProvider } from './context/ThemeContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import { WorkoutPlannerProvider } from './context/WorkoutPlannerContext';
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
+const Planner = lazy(() => import('./pages/Planner'));
 const WorkoutLogMobile = lazy(() => import('./pages/WorkoutLogMobile'));
 const History = lazy(() => import('./pages/History'));
 const Statistics = lazy(() => import('./pages/Statistics'));
@@ -96,7 +98,9 @@ function App() {
                           path="/"
                           element={
                             <ProtectedRoute>
-                              <Layout />
+                              <WorkoutPlannerProvider>
+                                <Layout />
+                              </WorkoutPlannerProvider>
                             </ProtectedRoute>
                           }
                         >
@@ -116,6 +120,7 @@ function App() {
                               </Suspense>
                             }
                           />
+                          <Route path="planner" element={<Suspense fallback={<PageLoader />}><Planner /></Suspense>} />
                           <Route
                             path="history"
                             element={

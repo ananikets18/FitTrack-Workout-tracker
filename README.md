@@ -22,6 +22,7 @@ It is intentionally lightweight and self-contained.
 ## ✨ Features
 
 * Workout logging with exercise autocomplete (150+ exercises)
+* Daily workout planner with exercise checklists, inline set logging, pasted routines, and cloud sync ([setup guide](docs/WORKOUT_PLANNER.md))
 * Progressive overload tracking per exercise
 * Offline-first PWA (fully usable without internet)
 * Local data storage with import/export (JSON, Excel)

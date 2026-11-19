@@ -53,7 +53,7 @@ export const validateSet = (set, exerciseCategory = null, exerciseName = '') => 
   const reps = sanitizeNumber(set.reps, 0, 999);
   const weight = sanitizeNumber(set.weight, 0, 9999);
   const duration = set.duration !== undefined && set.duration !== null && set.duration !== ''
-    ? sanitizeNumber(set.duration, 0, 999)
+    ? sanitizeNumber(set.duration, 0, exerciseCategory === 'mobility' ? 59940 : 999)
     : null;
 
   // Validate treadmill-specific fields
@@ -124,8 +124,9 @@ export const validateWorkout = (workout) => {
       errors.push(`Exercise ${index + 1}: Name is required`);
     }
 
-    if (!Array.isArray(exercise.sets) || exercise.sets.length === 0) {
-      errors.push(`Exercise ${index + 1}: At least one set is required`);
+    // Checklist-only completions have no recorded sets and must survive export/import.
+    if (!Array.isArray(exercise.sets)) {
+      errors.push(`Exercise ${index + 1}: Sets must be an array`);
     }
   });
 

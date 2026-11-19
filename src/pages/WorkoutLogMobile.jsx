@@ -410,14 +410,15 @@ const WorkoutLogMobile = () => {
   const handleAddSetToExercise = (exerciseId) => {
     setExercises(exercises.map(ex => {
       if (ex.id === exerciseId) {
-        const lastSet = ex.sets[ex.sets.length - 1];
+        const lastSet = ex.sets[ex.sets.length - 1] || {};
         const isCardio = ex.category === 'cardio';
+        const isTimed = ex.category === 'mobility';
         const isTreadmill = isCardio && ex.name.toLowerCase().includes('treadmill');
 
         const newSet = {
-          reps: isCardio ? 0 : (lastSet.reps || 10),
+          reps: isCardio || isTimed ? 0 : (lastSet.reps || 10),
           weight: getHyperextensionDefaultWeight(ex.name, lastSet.weight),
-          duration: isCardio ? (lastSet.duration || 30) : undefined,
+          duration: isCardio || isTimed ? (lastSet.duration || 30) : undefined,
           incline: isTreadmill ? (lastSet.incline || 0) : undefined,
           speed: isTreadmill ? (lastSet.speed || 0) : undefined,
           completed: false
@@ -816,7 +817,7 @@ const WorkoutLogMobile = () => {
                         </>
                       )}
                     </>
-                  ) : isIsometricExercise(exercise.name) ? (
+                  ) : exercise.category === 'mobility' || isIsometricExercise(exercise.name) ? (
                     <>
                       <span className="font-bold text-gray-900">{set.duration || set.reps || 0}</span>
                       <span className="text-gray-500">secs</span>
@@ -1498,7 +1499,7 @@ const WorkoutLogMobile = () => {
                   </>
                 )}
               </>
-            ) : isIsometricExercise(editingSet.exercise.name) ? (
+            ) : editingSet.exercise.category === 'mobility' || isIsometricExercise(editingSet.exercise.name) ? (
               <>
                 {/* Isometric Exercise */}
                 <div>
