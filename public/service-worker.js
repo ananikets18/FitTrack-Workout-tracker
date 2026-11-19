@@ -1,4 +1,4 @@
-const CACHE_VERSION = '1.1.0';
+const CACHE_VERSION = '1.3.0';
 const CACHE_NAME = `fittrack-v${CACHE_VERSION}`;
 const RUNTIME_CACHE = `fittrack-runtime-v${CACHE_VERSION}`;
 const IMAGE_CACHE = `fittrack-images-v${CACHE_VERSION}`;

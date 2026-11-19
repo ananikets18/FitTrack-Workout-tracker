@@ -2,6 +2,33 @@
 
 All notable changes and enhancements to the FitTrack Workout Tracker.
 
+## [1.3.0] - 2026-11-19
+
+### Added
+- **Daily Workout Planner**: Create, edit, and delete dated workouts with manually checked exercise lists and daily progress.
+- **Exercise Logging**: Expand checklist items to record sets, reps, weight, duration, and optional notes. Cardio supports minutes and treadmill speed/incline; stretches and holds use seconds.
+- **Routine Building**: Search the exercise library, add custom exercises, paste a routine, or start from templates and previous workouts. Optional sections include warm-up, strength, supersets, cardio, and cool-down. Repeated exercises remain independent.
+- **Reusable Plans**: Reorder exercises, copy workouts to another date with fresh checkboxes, and save routines as templates.
+- **Saved Progress**: Per-account device storage preserves drafts across navigation, reloads, and logout, with Supabase sync and reconnect retries after database setup.
+- **History Integration**: Finish & save records completed exercises. Later saves update the same workout atomically, preventing duplicate history entries and preserving unchecked items in the plan.
+- **App Integration**: Planner links on Home, in navigation, and in the Wellness calendar, plus previous-performance hints and the existing rest and gym session timers.
+
+### Changed
+- Updated the application version and service worker cache to 1.3.0.
+- Includes Statistics layout, floating action control, and JSON import/export improvements made since v1.2.0.
+
+### Fixed
+- Preserved checklist-only completions through JSON import/export and excluded exercises without recorded sets from strength progression analysis.
+- Added timed mobility display/editing in History and the workout logger, including safe set creation for exercises without existing sets.
+
+### Upgrade
+- Apply `supabase/migrations/20261119_add_workout_planner.sql` in the Supabase SQL Editor to enable planner cloud sync and saving to History. Checklist editing works on the current device before migration.
+- See [Daily Workout Planner setup](docs/WORKOUT_PLANNER.md) for usage and database instructions. No additional environment variables are required; update an explicitly configured `VITE_APP_VERSION` to `1.3.0`.
+
+### Validation
+- 62 automated tests passed; production build passed.
+- Locally checked migration repeatability, transaction rollback, idempotent History saves, and per-user database access.
+
 ## [1.2.0] - 2026-10-09
 
 ### Changed

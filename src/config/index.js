@@ -6,7 +6,7 @@
 export const config = {
   app: {
     name: import.meta.env.VITE_APP_NAME || 'FitTrack',
-    version: import.meta.env.VITE_APP_VERSION || '1.0.0',
+    version: import.meta.env.VITE_APP_VERSION || '1.3.0',
     description: import.meta.env.VITE_APP_DESCRIPTION || 'Workout Tracker',
   },
   

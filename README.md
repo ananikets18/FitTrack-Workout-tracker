@@ -48,16 +48,16 @@ It is intentionally lightweight and self-contained.
 
 ---
 
-## 🆕 Recent Enhancements (v1.1.0)
+## 🆕 Recent Enhancements (v1.3.0)
 
-- ✅ Added production-ready logging utility
-- ✅ Implemented performance monitoring (LCP, FID, CLS)
-- ✅ Enhanced accessibility with screen reader support
-- ✅ Improved service worker caching strategies
-- ✅ Added security headers and CSP policies
-- ✅ Created comprehensive utility libraries
-- ✅ Added offline detection hook
-- ✅ Implemented centralized error handling
+- Daily workout checklists with manual exercise completion and inline set logging
+- Paste routines with warm-up, strength, superset, cardio, and cool-down sections
+- Reuse templates and previous workouts, or copy a plan to another date
+- Save progress on your device and sync with Supabase after database setup
+- Save completed exercises to History and update the same record on later saves
+- Open the planner from Home, navigation, or the Wellness calendar
+
+**Upgrading:** Apply [the planner migration](supabase/migrations/20261119_add_workout_planner.sql) in your Supabase SQL Editor to enable cloud sync and saving to History. See the [setup guide](docs/WORKOUT_PLANNER.md).
 
 See [CHANGELOG.md](./CHANGELOG.md) for detailed changes.
 
