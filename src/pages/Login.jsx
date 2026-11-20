@@ -120,7 +120,7 @@ const Login = () => {
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="relative">
-              <DumbbellIcon className="w-12 h-12 text-primary-600 " aria-hidden="true" />
+              <DumbbellIcon className="w-12 h-12 text-primary-600  dark:text-primary-300" aria-hidden="true" />
               <SparklesIcon className="w-6 h-6 text-yellow-400 absolute -top-1 -right-1 animate-pulse" aria-hidden="true" />
             </div>
           </div>

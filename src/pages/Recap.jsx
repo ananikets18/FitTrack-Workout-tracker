@@ -220,7 +220,7 @@ const Recap = () => {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Sparkles className="w-7 h-7 text-purple-600" aria-hidden="true" />
+            <Sparkles className="w-7 h-7 text-purple-600 dark:text-purple-300" aria-hidden="true" />
             Recap
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -344,7 +344,7 @@ const Recap = () => {
                     <div className="flex flex-wrap gap-2 mt-5">
                       <button
                         onClick={handleShare}
-                        className="flex items-center gap-2 bg-white text-gray-900 font-bold px-5 py-3 rounded-full hover:bg-gray-100 transition-colors"
+                        className="flex items-center gap-2 bg-white text-gray-900 font-bold px-5 py-3 rounded-full hover:bg-gray-100 transition-colors dark:bg-gray-800 dark:text-gray-100"
                       >
                         <Share2 className="w-4 h-4" aria-hidden="true" /> Copy recap
                       </button>
@@ -399,7 +399,7 @@ const Recap = () => {
             { label: 'PRs', value: recap.prs.length, icon: Trophy, sub: recap.prs[0] ? `${recap.prs[0].exercise} ${recap.prs[0].weight}kg` : 'Next one soon' },
           ].map((s) => (
             <Card key={s.label} elevated className="text-center !p-5">
-              <s.icon className="w-6 h-6 mx-auto text-purple-600 mb-2" aria-hidden="true" />
+              <s.icon className="w-6 h-6 mx-auto text-purple-600 mb-2 dark:text-purple-300" aria-hidden="true" />
               <div className="text-2xl font-bold text-gray-900 dark:text-white">{s.value}</div>
               <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{s.label}</div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{s.sub}</div>
@@ -408,7 +408,7 @@ const Recap = () => {
           <Card className="col-span-2 lg:col-span-2">
             <h3 className="font-bold text-gray-900 dark:text-white mb-3">Top moves</h3>
             {recap.topExercises.length === 0 ? (
-              <p className="text-sm text-gray-500">No lifts logged.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">No lifts logged.</p>
             ) : (
               <div className="space-y-2">
                 {recap.topExercises.map((t, i) => (
@@ -423,7 +423,7 @@ const Recap = () => {
           <Card className="col-span-2 lg:col-span-2">
             <h3 className="font-bold text-gray-900 dark:text-white mb-3">Muscle focus</h3>
             {recap.muscleSplit.length === 0 ? (
-              <p className="text-sm text-gray-500">No data.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">No data.</p>
             ) : (
               <div className="space-y-2">
                 {recap.muscleSplit.map((m) => (

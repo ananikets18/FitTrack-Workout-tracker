@@ -123,7 +123,7 @@ const BodyMeasurementsTracker = () => {
     if (loading) {
         return (
             <Card>
-                <div className="text-center py-8 text-gray-500">Loading measurements...</div>
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">Loading measurements...</div>
             </Card>
         );
     }
@@ -133,19 +133,19 @@ const BodyMeasurementsTracker = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2 dark:text-gray-100">
+                        <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-300" />
                         Body Measurements
                     </h2>
                     {latestMeasurement && (
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 mt-1 dark:text-gray-300">
                             Latest: {latestMeasurement.weight}kg
                             {weightTrend && (
                                 <>
                                     {' • '}
-                                    {weightTrend.trend === 'gaining' && <TrendingUp className="inline w-4 h-4 text-green-600" />}
-                                    {weightTrend.trend === 'losing' && <TrendingDown className="inline w-4 h-4 text-blue-600" />}
-                                    {weightTrend.trend === 'stable' && <Minus className="inline w-4 h-4 text-gray-600" />}
+                                    {weightTrend.trend === 'gaining' && <TrendingUp className="inline w-4 h-4 text-green-600 dark:text-green-300" />}
+                                    {weightTrend.trend === 'losing' && <TrendingDown className="inline w-4 h-4 text-blue-600 dark:text-blue-300" />}
+                                    {weightTrend.trend === 'stable' && <Minus className="inline w-4 h-4 text-gray-600 dark:text-gray-300" />}
                                     {' '}{weightTrend.change}kg ({weightTrend.percentage}%)
                                 </>
                             )}
@@ -164,10 +164,10 @@ const BodyMeasurementsTracker = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Current Weight */}
                     <Card>
-                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Current Weight</h3>
-                        <p className="text-3xl font-bold text-purple-600">{latestMeasurement.weight} kg</p>
+                        <h3 className="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Current Weight</h3>
+                        <p className="text-3xl font-bold text-purple-600 dark:text-purple-300">{latestMeasurement.weight} kg</p>
                         {bmi && (
-                            <p className="text-sm text-gray-600 mt-2">
+                            <p className="text-sm text-gray-600 mt-2 dark:text-gray-300">
                                 BMI: {bmi.value} ({bmi.category})
                             </p>
                         )}
@@ -176,12 +176,12 @@ const BodyMeasurementsTracker = () => {
                     {/* Weight Change */}
                     {weightChangeRate && (
                         <Card>
-                            <h3 className="text-sm font-semibold text-gray-700 mb-2">Change Rate</h3>
-                            <p className="text-3xl font-bold text-blue-600">
+                            <h3 className="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Change Rate</h3>
+                            <p className="text-3xl font-bold text-blue-600 dark:text-blue-300">
                                 {weightChangeRate.changePerWeek > 0 ? '+' : ''}
                                 {weightChangeRate.changePerWeek} kg/week
                             </p>
-                            <p className="text-sm text-gray-600 mt-2">
+                            <p className="text-sm text-gray-600 mt-2 dark:text-gray-300">
                                 Over {weightChangeRate.weeks} weeks
                             </p>
                         </Card>
@@ -190,8 +190,8 @@ const BodyMeasurementsTracker = () => {
                     {/* Body Fat */}
                     {latestMeasurement.body_fat_percentage && (
                         <Card>
-                            <h3 className="text-sm font-semibold text-gray-700 mb-2">Body Fat</h3>
-                            <p className="text-3xl font-bold text-orange-600">
+                            <h3 className="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Body Fat</h3>
+                            <p className="text-3xl font-bold text-orange-600 dark:text-orange-300">
                                 {latestMeasurement.body_fat_percentage}%
                             </p>
                         </Card>
@@ -203,7 +203,7 @@ const BodyMeasurementsTracker = () => {
             {measurements.length === 0 ? (
                 <Card className="text-center py-12">
                     <Scale className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-600 mb-4">No measurements yet. Start tracking your progress!</p>
+                    <p className="text-gray-600 mb-4 dark:text-gray-300">No measurements yet. Start tracking your progress!</p>
                     <Button onClick={() => setIsModalOpen(true)}>
                         <Plus className="w-5 h-5 mr-2" />
                         Log Your First Measurement
@@ -211,58 +211,58 @@ const BodyMeasurementsTracker = () => {
                 </Card>
             ) : (
                 <Card>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Measurement History</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 dark:text-gray-100">Measurement History</h3>
                     <div className="overflow-x-auto -mx-4 sm:mx-0">
                         <div className="inline-block min-w-full align-middle">
                             <table className="min-w-full">
                                 <thead>
-                                    <tr className="border-b border-gray-200">
-                                        <th className="text-left py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Date</th>
-                                        <th className="text-right py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Weight</th>
-                                        <th className="hidden md:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap">BF%</th>
-                                        <th className="hidden lg:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Chest</th>
-                                        <th className="hidden lg:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Waist</th>
-                                        <th className="hidden lg:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap">Arms</th>
-                                        <th className="text-right py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Actions</th>
+                                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                                        <th className="text-left py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap dark:text-gray-200">Date</th>
+                                        <th className="text-right py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap dark:text-gray-200">Weight</th>
+                                        <th className="hidden md:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap dark:text-gray-200">BF%</th>
+                                        <th className="hidden lg:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap dark:text-gray-200">Chest</th>
+                                        <th className="hidden lg:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap dark:text-gray-200">Waist</th>
+                                        <th className="hidden lg:table-cell text-right py-2 px-3 text-sm font-semibold text-gray-700 whitespace-nowrap dark:text-gray-200">Arms</th>
+                                        <th className="text-right py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap dark:text-gray-200">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {measurements.slice(0, 20).map((m) => (
-                                        <tr key={m.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                            <td className="py-3 px-2 sm:px-3 text-xs sm:text-sm text-gray-900 whitespace-nowrap">
+                                        <tr key={m.id} className="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800">
+                                            <td className="py-3 px-2 sm:px-3 text-xs sm:text-sm text-gray-900 whitespace-nowrap dark:text-gray-100">
                                                 {new Date(m.date).toLocaleDateString('en-US', {
                                                     month: 'short',
                                                     day: 'numeric',
                                                     year: window.innerWidth < 640 ? '2-digit' : 'numeric'
                                                 })}
                                             </td>
-                                            <td className="py-3 px-2 sm:px-3 text-xs sm:text-sm text-right font-semibold text-gray-900 whitespace-nowrap">
+                                            <td className="py-3 px-2 sm:px-3 text-xs sm:text-sm text-right font-semibold text-gray-900 whitespace-nowrap dark:text-gray-100">
                                                 {m.weight ? `${m.weight} kg` : '-'}
                                             </td>
-                                            <td className="hidden md:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap">
+                                            <td className="hidden md:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap dark:text-gray-200">
                                                 {m.body_fat_percentage ? `${m.body_fat_percentage}%` : '-'}
                                             </td>
-                                            <td className="hidden lg:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap">
+                                            <td className="hidden lg:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap dark:text-gray-200">
                                                 {m.chest ? `${m.chest} cm` : '-'}
                                             </td>
-                                            <td className="hidden lg:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap">
+                                            <td className="hidden lg:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap dark:text-gray-200">
                                                 {m.waist ? `${m.waist} cm` : '-'}
                                             </td>
-                                            <td className="hidden lg:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap">
+                                            <td className="hidden lg:table-cell py-3 px-3 text-sm text-right text-gray-700 whitespace-nowrap dark:text-gray-200">
                                                 {m.left_arm || m.right_arm ? `${m.left_arm || m.right_arm} cm` : '-'}
                                             </td>
                                             <td className="py-3 px-2 sm:px-3 text-right whitespace-nowrap">
                                                 <div className="flex justify-end gap-1">
                                                     <button
                                                         onClick={() => handleEdit(m)}
-                                                        className="p-1.5 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                                                        className="p-1.5 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors dark:text-gray-300"
                                                         aria-label="Edit measurement"
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(m.id)}
-                                                        className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                        className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors dark:text-gray-300"
                                                         aria-label="Delete measurement"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -313,7 +313,7 @@ const BodyMeasurementsTracker = () => {
                     </div>
 
                     <div className="border-t pt-4">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">Body Measurements (cm)</h4>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Body Measurements (cm)</h4>
                         <div className="grid grid-cols-2 gap-4">
                             <Input
                                 label="Chest"
@@ -375,14 +375,14 @@ const BodyMeasurementsTracker = () => {
                     </div>
 
                     <div>
-                        <label className="text-sm font-semibold text-gray-700 mb-1 block">
+                        <label className="text-sm font-semibold text-gray-700 mb-1 block dark:text-gray-200">
                             Notes (Optional)
                         </label>
                         <textarea
                             value={formData.notes}
                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                             placeholder="Any observations or context..."
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-gray-600"
                             rows={2}
                         />
                     </div>

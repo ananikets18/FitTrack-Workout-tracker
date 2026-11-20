@@ -6,10 +6,10 @@ import { format } from 'date-fns';
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-3 rounded-lg shadow-lifted border border-gray-200 ">
-        <p className="text-sm font-semibold text-gray-900 ">{label}</p>
+      <div className="bg-white p-3 rounded-lg shadow-lifted border border-gray-200  dark:bg-gray-800 dark:border-gray-700">
+        <p className="text-sm font-semibold text-gray-900  dark:text-gray-100">{label}</p>
         {payload.map((entry, index) => (
-          <p key={index} className="text-sm text-gray-600 ">
+          <p key={index} className="text-sm text-gray-600  dark:text-gray-300">
             {entry.name}: <span className="font-bold">{entry.value}</span>
           </p>
         ))}
@@ -47,7 +47,7 @@ export const TreadmillProgressChart = ({ workouts }) => {
 
   if (treadmillWorkouts.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
+      <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
         <div className="text-center">
           <p className="text-4xl mb-2">🏃‍♂️</p>
           <p>No treadmill data available yet</p>
@@ -131,14 +131,14 @@ export const TreadmillProgressChart = ({ workouts }) => {
   return (
     <div className="space-y-4">
       {/* Modern Tab Navigation */}
-      <div className="flex gap-2 p-1 bg-gray-100 rounded-xl overflow-x-auto">
+      <div className="flex gap-2 p-1 bg-gray-100 rounded-xl overflow-x-auto dark:bg-gray-800">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 flex items-center justify-center px-3 md:px-4 py-2.5 rounded-lg font-medium text-xs md:text-sm transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
-              ? 'bg-white text-primary-600 shadow-md'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-white text-primary-600 shadow-md dark:bg-gray-700 dark:text-primary-300'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
               }`}
           >
             <span className="md:mr-1">{tab.icon}</span>
@@ -308,28 +308,28 @@ export const TreadmillProgressChart = ({ workouts }) => {
             </ResponsiveContainer>
             <div className="space-y-2">
               {intensityData.map((zone) => (
-                <div key={zone.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={zone.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg dark:bg-gray-900">
                   <div className="flex items-center gap-3">
                     <div
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: zone.color }}
                     />
-                    <span className="font-medium text-gray-900">{zone.name} Intensity</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{zone.name} Intensity</span>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-gray-900">{zone.value} sessions</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="font-bold text-gray-900 dark:text-gray-100">{zone.value} sessions</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
                       {((zone.value / treadmillWorkouts.length) * 100).toFixed(0)}%
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-              <p className="text-xs text-amber-800">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 dark:bg-amber-900/30 dark:border-amber-800">
+              <p className="text-xs text-amber-800 dark:text-amber-300">
                 <strong>💡 Intensity Formula:</strong> Speed + (Incline × 0.5)
                 <br />
-                <span className="text-amber-700">
+                <span className="text-amber-700 dark:text-amber-300">
                   Low: &lt;6 | Moderate: 6-10 | High: &gt;10
                 </span>
               </p>
@@ -341,60 +341,60 @@ export const TreadmillProgressChart = ({ workouts }) => {
         {activeTab === 'records' && (
           <div className="space-y-3">
             <div className="grid grid-cols-1 gap-3">
-              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-4">
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-4 dark:border-yellow-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center text-2xl">
                       ⚡
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 font-semibold">Fastest Speed</p>
-                      <p className="text-2xl font-bold text-gray-900">{maxSpeed} km/h</p>
+                      <p className="text-sm text-gray-600 font-semibold dark:text-gray-300">Fastest Speed</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{maxSpeed} km/h</p>
                     </div>
                   </div>
                   <span className="text-3xl">🏆</span>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4 dark:border-green-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-green-400 rounded-full flex items-center justify-center text-2xl">
                       📈
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 font-semibold">Highest Incline</p>
-                      <p className="text-2xl font-bold text-gray-900">{maxIncline}%</p>
+                      <p className="text-sm text-gray-600 font-semibold dark:text-gray-300">Highest Incline</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{maxIncline}%</p>
                     </div>
                   </div>
                   <span className="text-3xl">🏔️</span>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-4">
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-4 dark:border-purple-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-purple-400 rounded-full flex items-center justify-center text-2xl">
                       📏
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 font-semibold">Longest Distance</p>
-                      <p className="text-2xl font-bold text-gray-900">{maxDistance.toFixed(2)} km</p>
+                      <p className="text-sm text-gray-600 font-semibold dark:text-gray-300">Longest Distance</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{maxDistance.toFixed(2)} km</p>
                     </div>
                   </div>
                   <span className="text-3xl">🎯</span>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-4">
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-4 dark:border-blue-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center text-2xl">
                       ⏱️
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 font-semibold">Longest Duration</p>
-                      <p className="text-2xl font-bold text-gray-900">{maxDuration} min</p>
+                      <p className="text-sm text-gray-600 font-semibold dark:text-gray-300">Longest Duration</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{maxDuration} min</p>
                     </div>
                   </div>
                   <span className="text-3xl">⏳</span>
@@ -403,26 +403,26 @@ export const TreadmillProgressChart = ({ workouts }) => {
             </div>
 
             {/* Total Stats Summary */}
-            <div className="bg-gray-50 rounded-xl p-4 space-y-2 mt-4">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2 mt-4 dark:bg-gray-900">
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2 dark:text-gray-100">
                 <span>📊</span> Total Statistics
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs text-gray-600">Total Distance</p>
-                  <p className="text-lg font-bold text-gray-900">{totalDistance} km</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">Total Distance</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{totalDistance} km</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Total Time</p>
-                  <p className="text-lg font-bold text-gray-900">{totalDuration} min</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">Total Time</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{totalDuration} min</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Avg Speed</p>
-                  <p className="text-lg font-bold text-gray-900">{avgSpeed} km/h</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">Avg Speed</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{avgSpeed} km/h</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Avg Incline</p>
-                  <p className="text-lg font-bold text-gray-900">{avgIncline}%</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">Avg Incline</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{avgIncline}%</p>
                 </div>
               </div>
             </div>

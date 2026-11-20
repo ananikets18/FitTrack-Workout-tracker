@@ -785,8 +785,8 @@ const WorkoutLogMobile = () => {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 flex-1">
-              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
-                <span className="font-bold text-gray-700">{setIndex + 1}</span>
+              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-800">
+                <span className="font-bold text-gray-700 dark:text-gray-200">{setIndex + 1}</span>
               </div>
 
               <div className="flex-1">
@@ -800,45 +800,45 @@ const WorkoutLogMobile = () => {
                       {exercise.name.toLowerCase().includes('treadmill') && (set.incline || set.speed) ? (
                         // Treadmill display with incline and speed
                         <>
-                          <span className="font-bold text-gray-900">{set.duration || 0}</span>
-                          <span className="text-gray-500">mins</span>
+                          <span className="font-bold text-gray-900 dark:text-gray-100">{set.duration || 0}</span>
+                          <span className="text-gray-500 dark:text-gray-400">mins</span>
                           <span className="text-gray-400">|</span>
-                          <span className="font-bold text-gray-900">{set.incline || 0}</span>
-                          <span className="text-gray-500">%</span>
+                          <span className="font-bold text-gray-900 dark:text-gray-100">{set.incline || 0}</span>
+                          <span className="text-gray-500 dark:text-gray-400">%</span>
                           <span className="text-gray-400">|</span>
-                          <span className="font-bold text-gray-900">{set.speed || 0}</span>
-                          <span className="text-gray-500">km/h</span>
+                          <span className="font-bold text-gray-900 dark:text-gray-100">{set.speed || 0}</span>
+                          <span className="text-gray-500 dark:text-gray-400">km/h</span>
                         </>
                       ) : (
                         // Regular cardio display
                         <>
-                          <span className="font-bold text-gray-900">{set.duration || 0}</span>
-                          <span className="text-gray-500">mins</span>
+                          <span className="font-bold text-gray-900 dark:text-gray-100">{set.duration || 0}</span>
+                          <span className="text-gray-500 dark:text-gray-400">mins</span>
                         </>
                       )}
                     </>
                   ) : exercise.category === 'mobility' || isIsometricExercise(exercise.name) ? (
                     <>
-                      <span className="font-bold text-gray-900">{set.duration || set.reps || 0}</span>
-                      <span className="text-gray-500">secs</span>
+                      <span className="font-bold text-gray-900 dark:text-gray-100">{set.duration || set.reps || 0}</span>
+                      <span className="text-gray-500 dark:text-gray-400">secs</span>
                       {set.weight > 0 && (
                         <>
                           <span className="text-gray-400 mx-1">|</span>
-                          <span className="font-bold text-gray-900">{set.weight}</span>
-                          <span className="text-gray-500">kg</span>
+                          <span className="font-bold text-gray-900 dark:text-gray-100">{set.weight}</span>
+                          <span className="text-gray-500 dark:text-gray-400">kg</span>
                         </>
                       )}
                     </>
                   ) : (
                     <>
-                      <span className="font-bold text-gray-900">{set.reps}</span>
-                      <span className="text-gray-500">reps ×</span>
-                      <span className="font-bold text-gray-900">
+                      <span className="font-bold text-gray-900 dark:text-gray-100">{set.reps}</span>
+                      <span className="text-gray-500 dark:text-gray-400">reps ×</span>
+                      <span className="font-bold text-gray-900 dark:text-gray-100">
                         {isBarbellExercise(exercise.name)
                           ? getEffectiveWeight(set.weight, exercise.name)
                           : set.weight}
                       </span>
-                      <span className="text-gray-500">kg</span>
+                      <span className="text-gray-500 dark:text-gray-400">kg</span>
                       {isBarbellExercise(exercise.name) && (
                         <span className="text-xs text-blue-500 font-medium">(bar+plates)</span>
                       )}
@@ -850,7 +850,7 @@ const WorkoutLogMobile = () => {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={handleCopyPreviousSet}
-                    className="mt-1 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center space-x-1"
+                    className="mt-1 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center space-x-1 dark:text-blue-300"
                   >
                     <span>↑ Copy previous</span>
                   </motion.button>
@@ -932,9 +932,9 @@ const WorkoutLogMobile = () => {
       </div>
 
       {isEditMode && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center space-x-2">
-          <Edit className="w-5 h-5 text-blue-600" />
-          <span className="text-blue-800 font-medium">Editing Workout</span>
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center space-x-2 dark:bg-blue-900/30 dark:border-blue-800">
+          <Edit className="w-5 h-5 text-blue-600 dark:text-blue-300" />
+          <span className="text-blue-800 font-medium dark:text-blue-300">Editing Workout</span>
         </div>
       )}
 
@@ -1037,13 +1037,13 @@ const WorkoutLogMobile = () => {
                   })}
                   <button
                     onClick={() => setCollapsedIds(new Set(exercises.map((e) => e.id)))}
-                    className="flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-semibold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800"
+                    className="flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-semibold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 dark:text-gray-400"
                   >
                     Collapse all
                   </button>
                   <button
                     onClick={() => setCollapsedIds(new Set())}
-                    className="flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-semibold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800"
+                    className="flex-shrink-0 min-h-[40px] px-3 rounded-full text-[13px] font-semibold text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 dark:text-gray-400"
                   >
                     Expand all
                   </button>
@@ -1085,7 +1085,7 @@ const WorkoutLogMobile = () => {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsExerciseModalOpen(false)}
-              className="flex-1 px-4 py-2.5 md:py-3 bg-gray-200 active:bg-gray-300 rounded-xl font-semibold text-gray-700 text-sm md:text-base"
+              className="flex-1 px-4 py-2.5 md:py-3 bg-gray-200 active:bg-gray-300 rounded-xl font-semibold text-gray-700 text-sm md:text-base dark:bg-gray-700 dark:text-gray-200"
             >
               Cancel
             </motion.button>
@@ -1101,7 +1101,7 @@ const WorkoutLogMobile = () => {
       >
         <div className="space-y-4 md:space-y-6">
           <div className="relative">
-            <label className="text-sm font-semibold text-gray-700 mb-2 block">
+            <label className="text-sm font-semibold text-gray-700 mb-2 block dark:text-gray-200">
               Exercise Name *
             </label>
             <div className="relative">
@@ -1114,7 +1114,7 @@ const WorkoutLogMobile = () => {
                   if (suggestions.length > 0) setShowSuggestions(true);
                 }}
                 placeholder="Start typing or select below..."
-                className="w-full px-4 py-3 md:py-3.5 pr-10 text-base md:text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 md:py-3.5 pr-10 text-base md:text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:border-gray-600"
                 autoComplete="off"
               />
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -1124,17 +1124,17 @@ const WorkoutLogMobile = () => {
             {showSuggestions && suggestions.length > 0 && (
               <div
                 ref={suggestionsRef}
-                className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto"
+                className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto dark:bg-gray-800 dark:border-gray-700"
               >
                 <div className="p-2">
-                  <div className="text-xs font-semibold text-gray-500 uppercase px-3 py-2">
+                  <div className="text-xs font-semibold text-gray-500 uppercase px-3 py-2 dark:text-gray-400">
                     {newExercise.name.trim() ? 'Matching Exercises' : 'Popular Exercises'}
                   </div>
                   {suggestions.map((exercise, index) => (
                     <button
                       key={index}
                       onClick={() => handleSelectExercise(exercise)}
-                      className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition-colors text-base text-gray-900 font-medium"
+                      className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition-colors text-base text-gray-900 font-medium dark:text-gray-100"
                     >
                       {exercise}
                     </button>
@@ -1145,13 +1145,13 @@ const WorkoutLogMobile = () => {
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2 block">
+            <label className="text-sm font-semibold text-gray-700 mb-2 block dark:text-gray-200">
               Category
             </label>
             <select
               value={newExercise.category}
               onChange={(e) => setNewExercise({ ...newExercise, category: e.target.value })}
-              className="w-full px-4 py-3 md:py-3.5 text-base md:text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-3 md:py-3.5 text-base md:text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 dark:border-gray-600"
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
@@ -1163,11 +1163,11 @@ const WorkoutLogMobile = () => {
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-semibold text-gray-700">Sets</label>
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Sets</label>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={handleAddSet}
-                className="flex items-center space-x-1 px-2.5 py-1.5 bg-blue-100 text-blue-700 font-semibold rounded-lg active:bg-blue-200"
+                className="flex items-center space-x-1 px-2.5 py-1.5 bg-blue-100 text-blue-700 font-semibold rounded-lg active:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300"
               >
                 <Plus className="w-4 h-4" />
                 <span className="text-xs">Add Set</span>
@@ -1181,13 +1181,13 @@ const WorkoutLogMobile = () => {
                 const isIsometric = isIsometricExercise(newExercise.name);
 
                 return (
-                  <div key={index} className="bg-gray-50 rounded-lg p-2.5 md:p-3">
+                  <div key={index} className="bg-gray-50 rounded-lg p-2.5 md:p-3 dark:bg-gray-900">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm md:text-base font-bold text-gray-900">Set {index + 1}</span>
+                      <span className="text-sm md:text-base font-bold text-gray-900 dark:text-gray-100">Set {index + 1}</span>
                       {newExercise.sets.length > 1 && (
                         <button
                           onClick={() => handleRemoveSet(index)}
-                          className="p-1 active:bg-red-100 rounded-lg text-red-600"
+                          className="p-1 active:bg-red-100 rounded-lg text-red-600 dark:text-red-300"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1323,12 +1323,12 @@ const WorkoutLogMobile = () => {
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2 block">Notes (Optional)</label>
+            <label className="text-sm font-semibold text-gray-700 mb-2 block dark:text-gray-200">Notes (Optional)</label>
             <textarea
               value={newExercise.notes}
               onChange={(e) => setNewExercise({ ...newExercise, notes: e.target.value })}
               placeholder="Form cues, how it felt, etc..."
-              className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none dark:border-gray-600"
               rows={3}
             />
           </div>
@@ -1380,8 +1380,8 @@ const WorkoutLogMobile = () => {
           {/* Templates List Header */}
           {templates.length > 0 && (
             <div className="flex items-center justify-between pt-2">
-              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Your Templates</h3>
-              <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">{templates.length}</span>
+              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide dark:text-gray-300">Your Templates</h3>
+              <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full dark:bg-gray-700 dark:text-gray-300">{templates.length}</span>
             </div>
           )}
 
@@ -1390,8 +1390,8 @@ const WorkoutLogMobile = () => {
             {templates.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600 mb-2">No templates saved yet</p>
-                <p className="text-sm text-gray-500 ">Create a workout with exercises, then save it as a template!</p>
+                <p className="text-gray-600 mb-2 dark:text-gray-300">No templates saved yet</p>
+                <p className="text-sm text-gray-500  dark:text-gray-400">Create a workout with exercises, then save it as a template!</p>
               </div>
             ) : (
               templates.map((template) => (
@@ -1447,7 +1447,7 @@ const WorkoutLogMobile = () => {
               <>
                 {/* Cardio Exercise */}
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block dark:text-gray-200">
                     Duration (minutes)
                   </label>
                   <NumberPicker
@@ -1466,7 +1466,7 @@ const WorkoutLogMobile = () => {
                 {editingSet.exercise.name.toLowerCase().includes('treadmill') && (
                   <>
                     <div>
-                      <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                      <label className="text-sm font-semibold text-gray-700 mb-2 block dark:text-gray-200">
                         Incline (%)
                       </label>
                       <NumberPicker
@@ -1482,7 +1482,7 @@ const WorkoutLogMobile = () => {
                     </div>
 
                     <div>
-                      <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                      <label className="text-sm font-semibold text-gray-700 mb-2 block dark:text-gray-200">
                         Speed (km/h)
                       </label>
                       <NumberPicker
@@ -1503,7 +1503,7 @@ const WorkoutLogMobile = () => {
               <>
                 {/* Isometric Exercise */}
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block dark:text-gray-200">
                     Duration (seconds)
                   </label>
                   <NumberPicker
@@ -1519,7 +1519,7 @@ const WorkoutLogMobile = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block dark:text-gray-200">
                     Weight (kg)
                   </label>
                   <NumberPicker
@@ -1538,7 +1538,7 @@ const WorkoutLogMobile = () => {
               <>
                 {/* Regular Exercise */}
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 mb-2 block">
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block dark:text-gray-200">
                     Reps
                   </label>
                   <NumberPicker
@@ -1598,12 +1598,12 @@ const WorkoutLogMobile = () => {
       >
         <div className="space-y-4">
           <div className="flex items-start space-x-3">
-            <div className="bg-yellow-100 p-2 rounded-full flex-shrink-0">
-              <AlertTriangle className="w-6 h-6 text-yellow-600" />
+            <div className="bg-yellow-100 p-2 rounded-full flex-shrink-0 dark:bg-yellow-900/30">
+              <AlertTriangle className="w-6 h-6 text-yellow-600 dark:text-yellow-300" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-1">You have unsaved changes</h3>
-              <p className="text-gray-600 text-sm">
+              <h3 className="font-semibold text-gray-900 mb-1 dark:text-gray-100">You have unsaved changes</h3>
+              <p className="text-gray-600 text-sm dark:text-gray-300">
                 Are you sure you want to leave? All unsaved changes will be lost.
               </p>
             </div>
@@ -1613,7 +1613,7 @@ const WorkoutLogMobile = () => {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleCancelWarning}
-              className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold text-gray-700"
+              className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-200"
             >
               Stay
             </motion.button>

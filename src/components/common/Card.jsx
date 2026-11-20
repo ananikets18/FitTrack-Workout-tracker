@@ -15,7 +15,7 @@ const Card = ({
     : '';
 
   const gradientStyles = gradient
-    ? 'bg-gradient-card dark:bg-gray-800 backdrop-blur-sm border border-gray-100/50 dark:border-gray-700/50 '
+    ? 'bg-gradient-card dark:bg-none dark:bg-gray-800 backdrop-blur-sm border border-gray-100/50 dark:border-gray-700/50 '
     : 'border border-gray-100/80 dark:border-gray-700/80 ';
 
   const paddingStyles = 'p-6 sm:p-7';

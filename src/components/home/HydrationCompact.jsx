@@ -31,7 +31,7 @@ const HydrationCompact = ({ amount, onAdd, onUndo, goalReached, justStarted }) =
           onClick={onUndo}
           disabled={amount === 0}
           aria-label={`Undo ${WATER_INTAKE.UNDO_AMOUNT_ML} milliliters`}
-          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors dark:text-gray-400"
         >
           <Undo2 className="w-5 h-5" aria-hidden="true" />
         </button>

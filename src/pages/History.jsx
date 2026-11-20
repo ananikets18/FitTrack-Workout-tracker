@@ -33,8 +33,8 @@ const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
       {workout.type === 'rest_day' ? (
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-2 md:space-x-3 flex-1">
-            <div className="bg-purple-100 rounded-xl p-2 md:p-3 flex-shrink-0">
-              <Hotel className="w-5 h-5 md:w-6 md:h-6 text-purple-600 " />
+            <div className="bg-purple-100 rounded-xl p-2 md:p-3 flex-shrink-0 dark:bg-purple-900/30">
+              <Hotel className="w-5 h-5 md:w-6 md:h-6 text-purple-600  dark:text-purple-300" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white transition-colors">Rest Day</h3>
@@ -60,7 +60,7 @@ const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
                   {workout.activities.map((activity, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full"
+                      className="px-2 py-0.5 md:py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full dark:bg-purple-900/30 dark:text-purple-300"
                     >
                       {activity ? activity.replace('_', ' ') : 'Unknown'}
                     </span>
@@ -77,7 +77,7 @@ const WorkoutCard = ({ workout, onClick, onEdit, onDelete }) => {
                 e.stopPropagation();
                 onDelete(workout);
               }}
-              className="action-button p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors active:scale-95"
+              className="action-button p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors active:scale-95 dark:bg-red-900/30 dark:text-red-300"
               title="Delete"
             >
               <Trash2 className="w-4 h-4" />
@@ -630,7 +630,7 @@ const History = () => {
             <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar items-center">
               {/* Type Filter */}
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none dark:text-gray-400" />
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
@@ -645,7 +645,7 @@ const History = () => {
 
               {/* Sort Dropdown */}
               <div className="relative min-w-[140px]">
-                <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
+                <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none dark:text-gray-400" />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -699,7 +699,7 @@ const History = () => {
                 {dateRange !== 'all' && (
                   <button
                     onClick={() => setDateRange('all')}
-                    className="px-2 h-9 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                    className="px-2 h-9 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors dark:bg-gray-800 dark:text-gray-200"
                     title="Clear date filter"
                   >
                     <X className="w-4 h-4" />
@@ -714,14 +714,14 @@ const History = () => {
                     type="date"
                     value={customStartDate}
                     onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600"
                     placeholder="Start date"
                   />
                   <input
                     type="date"
                     value={customEndDate}
                     onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-gray-600"
                     placeholder="End date"
                   />
                 </div>
@@ -748,7 +748,7 @@ const History = () => {
                 {muscleGroupFilter !== 'all' && (
                   <button
                     onClick={() => setMuscleGroupFilter('all')}
-                    className="px-2 h-9 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                    className="px-2 h-9 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors dark:bg-gray-800 dark:text-gray-200"
                     title="Clear muscle filter"
                   >
                     <X className="w-4 h-4" />
@@ -761,24 +761,24 @@ const History = () => {
           {/* Active Filters Summary */}
           {(dateRange !== 'all' || muscleGroupFilter !== 'all' || filterType !== 'all' || searchTerm) && (
             <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
-              <span className="text-xs font-semibold text-gray-600">Active Filters:</span>
+              <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Active Filters:</span>
               {dateRange !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded dark:bg-blue-900/30 dark:text-blue-300">
                   📅 {dateRange === 'custom' ? 'Custom Range' : dateRange.replace(/([A-Z])/g, ' $1').trim()}
                 </span>
               )}
               {muscleGroupFilter !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded capitalize">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded capitalize dark:bg-purple-900/30 dark:text-purple-300">
                   💪 {muscleGroupFilter}
                 </span>
               )}
               {filterType !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded capitalize">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded capitalize dark:bg-green-900/30 dark:text-green-300">
                   🏋️ {filterType.replace('_', ' ')}
                 </span>
               )}
               {searchTerm && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded">
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded dark:bg-amber-900/30 dark:text-amber-300">
                   🔍 "{searchTerm}"
                 </span>
               )}
@@ -892,11 +892,11 @@ const History = () => {
               {/* Rest Day Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 ">Date</p>
-                  <p className="font-semibold text-gray-900 ">{formatDate(selectedWorkout.date)}</p>
+                  <p className="text-sm text-gray-600  dark:text-gray-300">Date</p>
+                  <p className="font-semibold text-gray-900  dark:text-gray-100">{formatDate(selectedWorkout.date)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 ">Recovery Quality</p>
+                  <p className="text-sm text-gray-600  dark:text-gray-300">Recovery Quality</p>
                   <div className="flex items-center space-x-1 mt-1">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -911,12 +911,12 @@ const History = () => {
               {/* Active Recovery Activities */}
               {selectedWorkout.activities && selectedWorkout.activities.length > 0 && (
                 <div>
-                  <p className="text-sm text-gray-600 mb-3">Active Recovery Activities</p>
+                  <p className="text-sm text-gray-600 mb-3 dark:text-gray-300">Active Recovery Activities</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedWorkout.activities.map((activity, idx) => (
                       <span
                         key={idx}
-                        className="px-3 py-2 text-sm font-semibold bg-purple-100 text-purple-700 rounded-lg"
+                        className="px-3 py-2 text-sm font-semibold bg-purple-100 text-purple-700 rounded-lg dark:bg-purple-900/30 dark:text-purple-300"
                       >
                         {activity ? activity.replace('_', ' ') : 'Unknown'}
                       </span>
@@ -928,8 +928,8 @@ const History = () => {
               {/* Notes */}
               {selectedWorkout.notes && (
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">Notes</p>
-                  <p className="p-3 bg-gray-50 rounded-lg text-gray-900 ">{selectedWorkout.notes}</p>
+                  <p className="text-sm text-gray-600 mb-2 dark:text-gray-300">Notes</p>
+                  <p className="p-3 bg-gray-50 rounded-lg text-gray-900  dark:bg-gray-900 dark:text-gray-100">{selectedWorkout.notes}</p>
                 </div>
               )}
             </div>
@@ -938,36 +938,36 @@ const History = () => {
               {/* Workout Info */}
               <div className="grid grid-cols-2 gap-2.5 md:gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 ">Date</p>
-                  <p className="font-semibold text-gray-900 text-sm md:text-base">{formatDate(selectedWorkout.date)}</p>
+                  <p className="text-sm text-gray-600  dark:text-gray-300">Date</p>
+                  <p className="font-semibold text-gray-900 text-sm md:text-base dark:text-gray-100">{formatDate(selectedWorkout.date)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 ">Duration</p>
-                  <p className="font-semibold text-gray-900 text-sm md:text-base">
+                  <p className="text-sm text-gray-600  dark:text-gray-300">Duration</p>
+                  <p className="font-semibold text-gray-900 text-sm md:text-base dark:text-gray-100">
                     {selectedWorkout.duration && selectedWorkout.duration > 0 ? `${selectedWorkout.duration} min` : 'Not recorded'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 ">Total Exercises</p>
-                  <p className="font-semibold text-gray-900 text-sm md:text-base">{selectedWorkout.exercises?.length || 0}</p>
+                  <p className="text-sm text-gray-600  dark:text-gray-300">Total Exercises</p>
+                  <p className="font-semibold text-gray-900 text-sm md:text-base dark:text-gray-100">{selectedWorkout.exercises?.length || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 ">Total Sets</p>
-                  <p className="font-semibold text-gray-900 text-sm md:text-base">{calculateTotalSets(selectedWorkout)}</p>
+                  <p className="text-sm text-gray-600  dark:text-gray-300">Total Sets</p>
+                  <p className="font-semibold text-gray-900 text-sm md:text-base dark:text-gray-100">{calculateTotalSets(selectedWorkout)}</p>
                 </div>
               </div>
 
               {/* Notes */}
               {selectedWorkout.notes && (
                 <div>
-                  <p className="text-sm text-gray-600 mb-2">Notes</p>
-                  <p className="p-3 bg-gray-50 rounded-lg text-gray-900 text-sm md:text-base">{selectedWorkout.notes}</p>
+                  <p className="text-sm text-gray-600 mb-2 dark:text-gray-300">Notes</p>
+                  <p className="p-3 bg-gray-50 rounded-lg text-gray-900 text-sm md:text-base dark:bg-gray-900 dark:text-gray-100">{selectedWorkout.notes}</p>
                 </div>
               )}
 
               {/* Exercises */}
               <div>
-                <h3 className="text-sm md:text-lg font-semibold text-gray-900 mb-2.5 md:mb-4">Exercises</h3>
+                <h3 className="text-sm md:text-lg font-semibold text-gray-900 mb-2.5 md:mb-4 dark:text-gray-100">Exercises</h3>
                 <div className="space-y-2.5 md:space-y-4">
                   {selectedWorkout.exercises?.map((exercise) => {
                     if (!exercise) return null;
@@ -978,26 +978,26 @@ const History = () => {
                     const isCardioOrBodyweight = exercise.category === 'cardio' || maxWeight === 0;
 
                     return (
-                      <div key={exercise.id} className="border border-gray-200 rounded-lg p-3 md:p-4">
+                      <div key={exercise.id} className="border border-gray-200 rounded-lg p-3 md:p-4 dark:border-gray-700">
                         <div className="flex items-start justify-between mb-2 md:mb-3">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 text-sm md:text-base">{exercise.name}</h4>
+                            <h4 className="font-semibold text-gray-900 text-sm md:text-base dark:text-gray-100">{exercise.name}</h4>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <span className="inline-block px-2 py-0.5 md:py-1 text-xs font-semibold text-primary-600 bg-primary-50 rounded-full">
+                              <span className="inline-block px-2 py-0.5 md:py-1 text-xs font-semibold text-primary-600 bg-primary-50 rounded-full dark:bg-primary-900/30 dark:text-primary-300">
                                 {exercise.category}
                               </span>
                               {!isCardioOrBodyweight && (
                                 <>
-                                  <span className="text-xs text-gray-600">
+                                  <span className="text-xs text-gray-600 dark:text-gray-300">
                                     Vol: {kgToTons(exerciseVolume)}T
                                   </span>
-                                  <span className="text-xs text-gray-600">
+                                  <span className="text-xs text-gray-600 dark:text-gray-300">
                                     Max: {maxWeight}kg
                                   </span>
                                 </>
                               )}
                               {isCardioOrBodyweight && (
-                                <span className="text-xs text-gray-600">
+                                <span className="text-xs text-gray-600 dark:text-gray-300">
                                   Duration/BW
                                 </span>
                               )}
@@ -1013,7 +1013,7 @@ const History = () => {
                               </div>
                             )}
                             {progressData && progressData.status === 'new' && (
-                              <div className="text-xs text-blue-600 font-medium mt-2">
+                              <div className="text-xs text-blue-600 font-medium mt-2 dark:text-blue-300">
                                 🎉 {progressData.message}
                               </div>
                             )}
@@ -1024,7 +1024,7 @@ const History = () => {
                           {isCardioOrBodyweight ? (
                             // Cardio/Bodyweight display
                             <>
-                              <div className="grid grid-cols-3 gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700">
+                              <div className="grid grid-cols-3 gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-200">
                                 <div>Set</div>
                                 <div>Duration/Reps</div>
                                 <div className="text-right">Status</div>
@@ -1051,7 +1051,7 @@ const History = () => {
                           ) : (
                             // Weight training display
                             <>
-                              <div className="grid grid-cols-4 gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700">
+                              <div className="grid grid-cols-4 gap-1 md:gap-2 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-200">
                                 <div>Set</div>
                                 <div>Weight × Reps</div>
                                 <div className="text-right">Vol</div>
@@ -1071,7 +1071,7 @@ const History = () => {
                                     <div className="font-semibold truncate">
                                       {effectiveWeight}×{set.reps || 0}
                                       {isBarbellExercise(exercise.name) && (
-                                        <span className="text-[10px] text-gray-500 font-normal ml-1">({set.weight || 0}/side)</span>
+                                        <span className="text-[10px] text-gray-500 font-normal ml-1 dark:text-gray-400">({set.weight || 0}/side)</span>
                                       )}
                                     </div>
                                     <div className="text-right font-medium truncate">{setVolume}</div>
@@ -1086,7 +1086,7 @@ const History = () => {
                         </div>
 
                         {exercise.notes && (
-                          <p className="text-xs md:text-sm text-gray-600 mt-2 md:mt-3 p-2 bg-amber-50 border border-amber-200 rounded">
+                          <p className="text-xs md:text-sm text-gray-600 mt-2 md:mt-3 p-2 bg-amber-50 border border-amber-200 rounded dark:bg-amber-900/30 dark:text-gray-300 dark:border-amber-800">
                             📝 {exercise.notes}
                           </p>
                         )}
@@ -1121,7 +1121,7 @@ const History = () => {
       >
         <div className="space-y-6">
           <div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600 mb-4 dark:text-gray-300">
               Select the time period for your workout data export
             </p>
 
@@ -1187,16 +1187,16 @@ const History = () => {
             {/* Date Picker - Only show when not "all" */}
             {exportPeriod !== 'all' && (
               <div className="mt-4">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2 dark:text-gray-100">
                   Reference Date
                 </label>
                 <input
                   type="date"
                   value={exportDate}
                   onChange={(e) => setExportDate(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600"
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 mt-2 dark:text-gray-400">
                   {exportPeriod === 'day' && 'Export workouts from this specific day'}
                   {exportPeriod === 'week' && 'Export workouts from the week containing this date (Mon-Sun)'}
                   {exportPeriod === 'month' && 'Export workouts from the month containing this date'}

@@ -174,7 +174,7 @@ const BottomNav = () => {
                 <button
                   onClick={() => setIsMoreOpen(false)}
                   aria-label="Close more menu"
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"
                 >
                   <X className="w-5 h-5" aria-hidden="true" />
                 </button>

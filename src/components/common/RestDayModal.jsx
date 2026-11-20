@@ -136,13 +136,13 @@ const RestDayModal = ({
             value={restDayData.date}
             onChange={(e) => setRestDayData({ ...restDayData, date: e.target.value })}
             max={today}
-            className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:border-gray-600"
           />
         </div>
 
         {/* Recovery Quality Rating */}
         <div>
-          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3">
+          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">
             <Star className="w-4 h-4" />
             <span>Recovery Quality</span>
           </label>
@@ -166,7 +166,7 @@ const RestDayModal = ({
               </motion.button>
             ))}
           </div>
-          <p className="text-center text-sm text-gray-500 mt-2">
+          <p className="text-center text-sm text-gray-500 mt-2 dark:text-gray-400">
             {restDayData.recoveryQuality === 1 && "Poor - Need more rest"}
             {restDayData.recoveryQuality === 2 && "Fair - Still recovering"}
             {restDayData.recoveryQuality === 3 && "Good - Normal recovery"}
@@ -177,7 +177,7 @@ const RestDayModal = ({
 
         {/* Activity Tags */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 mb-3 block">
+          <label className="text-sm font-semibold text-gray-700 mb-3 block dark:text-gray-200">
             Active Recovery (Optional)
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -201,7 +201,7 @@ const RestDayModal = ({
 
         {/* Notes */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 mb-2 block">
+          <label className="text-sm font-semibold text-gray-700 mb-2 block dark:text-gray-200">
             Notes (Optional)
           </label>
           <textarea
@@ -209,7 +209,7 @@ const RestDayModal = ({
             onChange={(e) => setRestDayData({ ...restDayData, notes: e.target.value })}
             placeholder="How are you feeling? Any soreness?"
             rows={3}
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none dark:border-gray-600"
           />
         </div>
 

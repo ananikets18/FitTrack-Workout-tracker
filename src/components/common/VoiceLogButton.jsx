@@ -146,7 +146,7 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
             setShowTextInput((prev) => !prev);
             setDismissed(false);
           }}
-          className="flex items-center justify-center w-11 h-11 rounded-full bg-white/95 text-gray-700 hover:text-indigo-600 shadow-md border border-gray-200 hover:border-indigo-300 transition-colors"
+          className="flex items-center justify-center w-11 h-11 rounded-full bg-white/95 text-gray-700 hover:text-indigo-600 shadow-md border border-gray-200 hover:border-indigo-300 transition-colors dark:text-gray-200 dark:border-gray-700"
           title="Quick text entry"
           aria-label="Quick text entry"
         >
@@ -214,16 +214,16 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed bottom-40 right-5 left-5 z-50 max-w-md mx-auto"
           >
-            <div className="bg-white rounded-2xl shadow-2xl border border-indigo-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-2xl border border-indigo-100 overflow-hidden dark:bg-gray-800 dark:border-indigo-800">
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
-                      <Keyboard className="w-4 h-4 text-indigo-600" />
+                    <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center dark:bg-indigo-900/30">
+                      <Keyboard className="w-4 h-4 text-indigo-600 dark:text-indigo-300" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 text-sm">Quick Workout Logger</h3>
-                      <p className="text-xs text-gray-500">Type or paste natural language</p>
+                      <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">Quick Workout Logger</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Type or paste natural language</p>
                     </div>
                   </div>
                   <button
@@ -243,7 +243,7 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
                       onChange={(e) => setManualText(e.target.value)}
                       placeholder='e.g. "bench press 4 sets 12 reps 60 kg"'
                       autoFocus
-                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 placeholder:text-gray-400"
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 placeholder:text-gray-400 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700"
                     />
                     <p className="text-[11px] text-gray-400 mt-1.5">
                       Supports uniform sets, pyramid/varied sets (&ldquo;12 at 60, 10 at 70&rdquo;), or duration (&ldquo;plank 60s&rdquo;).
@@ -261,7 +261,7 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
                     <button
                       type="button"
                       onClick={handleDismiss}
-                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-xl transition-colors"
+                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-xl transition-colors dark:bg-gray-800 dark:text-gray-200"
                     >
                       Cancel
                     </button>
@@ -280,7 +280,7 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="fixed bottom-40 right-5 left-5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 p-4 max-w-md mx-auto"
+            className="fixed bottom-40 right-5 left-5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 p-4 max-w-md mx-auto dark:border-gray-700"
           >
             <div className="flex items-start space-x-3">
               <div className="flex-shrink-0 mt-1">
@@ -291,10 +291,10 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 dark:text-gray-400">
                   Listening...
                 </p>
-                <p className="text-gray-900 font-medium text-base">
+                <p className="text-gray-900 font-medium text-base dark:text-gray-100">
                   {transcript || interimText}
                   {interimText && !transcript && (
                     <motion.span
@@ -320,7 +320,7 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed bottom-40 right-5 left-5 z-50 max-w-md mx-auto"
           >
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden dark:bg-gray-800 dark:border-gray-700">
               {/* Header */}
               <div className="bg-gradient-to-r from-violet-500 to-indigo-600 px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -335,15 +335,15 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
               {/* Content */}
               <div className="p-4">
                 {/* Heard text */}
-                <p className="text-xs text-gray-500 mb-1">I heard:</p>
-                <p className="text-sm text-gray-600 italic mb-3 bg-gray-50 rounded-lg px-3 py-2">
+                <p className="text-xs text-gray-500 mb-1 dark:text-gray-400">I heard:</p>
+                <p className="text-sm text-gray-600 italic mb-3 bg-gray-50 rounded-lg px-3 py-2 dark:bg-gray-900 dark:text-gray-300">
                   &ldquo;{transcript}&rdquo;
                 </p>
 
                 {/* Parsed result */}
                 <div className="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-xl p-3 mb-3">
-                  <h3 className="font-bold text-gray-900 text-lg">{parsedResult.exercise.name}</h3>
-                  <span className="inline-block text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full mt-1">
+                  <h3 className="font-bold text-gray-900 text-lg dark:text-gray-100">{parsedResult.exercise.name}</h3>
+                  <span className="inline-block text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full mt-1 dark:bg-indigo-900/30 dark:text-indigo-300">
                     {parsedResult.exercise.category}
                   </span>
 
@@ -354,20 +354,20 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
                         key={i}
                         className="flex items-center space-x-2 text-sm bg-white/70 rounded-lg px-3 py-1.5"
                       >
-                        <span className="font-bold text-indigo-600 w-6">S{i + 1}</span>
+                        <span className="font-bold text-indigo-600 w-6 dark:text-indigo-300">S{i + 1}</span>
                         {parsedResult.exercise.category === 'cardio' ? (
-                          <span className="text-gray-700">
+                          <span className="text-gray-700 dark:text-gray-200">
                             {set.duration || 0} mins
                             {set.incline ? ` · ${set.incline}% incline` : ''}
                             {set.speed ? ` · ${set.speed} km/h` : ''}
                           </span>
                         ) : set.duration !== undefined ? (
-                          <span className="text-gray-700">
+                          <span className="text-gray-700 dark:text-gray-200">
                             {set.duration}s hold
                             {set.weight > 0 ? ` · ${set.weight}kg` : ''}
                           </span>
                         ) : (
-                          <span className="text-gray-700">
+                          <span className="text-gray-700 dark:text-gray-200">
                             <span className="font-semibold">{set.reps}</span> reps
                             {' × '}
                             <span className="font-semibold">{set.weight}</span> kg
@@ -391,7 +391,7 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={handleRetry}
-                    className="flex items-center justify-center px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
+                    className="flex items-center justify-center px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors dark:bg-gray-800 dark:text-gray-200"
                   >
                     <RotateCcw className="w-5 h-5" />
                   </motion.button>
@@ -412,17 +412,17 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed bottom-40 right-5 left-5 z-50 max-w-md mx-auto"
           >
-            <div className="bg-white rounded-2xl shadow-2xl border border-red-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-2xl border border-red-100 overflow-hidden dark:bg-gray-800 dark:border-red-800">
               <div className="p-4">
                 <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center dark:bg-red-900/30">
                     <AlertCircle className="w-5 h-5 text-red-500" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900 mb-1">
+                    <p className="font-semibold text-gray-900 mb-1 dark:text-gray-100">
                       {voiceError ? 'Voice Connection Issue' : "Couldn't parse that"}
                     </p>
-                    <p className="text-sm text-gray-600 leading-relaxed">{displayError}</p>
+                    <p className="text-sm text-gray-600 leading-relaxed dark:text-gray-300">{displayError}</p>
                     {!voiceError && (
                       <p className="text-xs text-gray-400 mt-2">
                         Try: &ldquo;bench press 3 sets 12 reps 60 kg&rdquo;
@@ -443,16 +443,16 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={handleDismiss}
-                    className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
+                    className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors dark:bg-gray-800 dark:text-gray-200"
                   >
                     Dismiss
                   </motion.button>
                 </div>
 
                 {/* Inline Text Fallback */}
-                <div className="mt-3.5 pt-3 border-t border-gray-100">
-                  <p className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
-                    <Keyboard className="w-3.5 h-3.5 text-indigo-600" />
+                <div className="mt-3.5 pt-3 border-t border-gray-100 dark:border-gray-800">
+                  <p className="text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5 dark:text-gray-200">
+                    <Keyboard className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300" />
                     <span>Or type/paste your workout:</span>
                   </p>
                   <form onSubmit={handleManualSubmit} className="flex gap-2">
@@ -461,7 +461,7 @@ const VoiceLogButton = ({ onExerciseParsed }) => {
                       value={manualText}
                       onChange={(e) => setManualText(e.target.value)}
                       placeholder='e.g. "bench press 3 sets 12 reps 60 kg"'
-                      className="flex-1 text-xs px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800"
+                      className="flex-1 text-xs px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700"
                     />
                     <button
                       type="submit"

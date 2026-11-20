@@ -69,7 +69,7 @@ export default function PlannerExercise({ exercise, index, total, onChange, onRe
       </div>
       <label className="block text-xs font-medium text-gray-500 dark:text-gray-400">Notes (optional)<textarea aria-label={`Notes for ${name}`} rows={2} maxLength={500} value={exercise.notes} onChange={(event) => onChange({ notes: event.target.value })} placeholder="Form cues, how it felt…" className={`${fieldClass} mt-1 resize-y`} /></label>
       <div className="flex items-center justify-between border-t border-gray-100 pt-2 dark:border-gray-800">
-        <div className="flex gap-1"><button type="button" disabled={index === 0} onClick={() => onMove(-1)} aria-label={`Move ${name} up`} className="rounded-lg p-3 text-gray-500 disabled:opacity-25"><ArrowUp className="h-4 w-4" /></button><button type="button" disabled={index === total - 1} onClick={() => onMove(1)} aria-label={`Move ${name} down`} className="rounded-lg p-3 text-gray-500 disabled:opacity-25"><ArrowDown className="h-4 w-4" /></button></div>
+        <div className="flex gap-1"><button type="button" disabled={index === 0} onClick={() => onMove(-1)} aria-label={`Move ${name} up`} className="rounded-lg p-3 text-gray-500 disabled:opacity-25 dark:text-gray-400"><ArrowUp className="h-4 w-4" /></button><button type="button" disabled={index === total - 1} onClick={() => onMove(1)} aria-label={`Move ${name} down`} className="rounded-lg p-3 text-gray-500 disabled:opacity-25 dark:text-gray-400"><ArrowDown className="h-4 w-4" /></button></div>
         <button type="button" onClick={onRemove} className="min-h-11 rounded-xl px-3 text-sm font-medium text-danger-600 dark:text-red-400">Remove exercise</button>
       </div>
     </div>}

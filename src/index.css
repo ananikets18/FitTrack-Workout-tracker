@@ -8,10 +8,23 @@
   }
 
   html {
+    color-scheme: light;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* Improve text rendering */
     text-rendering: optimizeLegibility;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html.dark .recharts-cartesian-grid line {
+    stroke: #374151;
+  }
+
+  html.dark .recharts-cartesian-axis-tick text {
+    fill: #d1d5db;
   }
 
   body {

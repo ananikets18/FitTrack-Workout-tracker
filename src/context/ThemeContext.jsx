@@ -13,8 +13,9 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }) => {
     const [theme, setTheme] = useState(() => {
         // Check local storage first
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
+        let savedTheme;
+        try { savedTheme = localStorage.getItem('theme'); } catch { /* Storage can be unavailable. */ }
+        if (savedTheme === 'light' || savedTheme === 'dark') {
             return savedTheme;
         }
         // Fall back to system preference
@@ -34,7 +35,7 @@ export const ThemeProvider = ({ children }) => {
         root.classList.add(theme);
         
         // Save to local storage
-        localStorage.setItem('theme', theme);
+        try { localStorage.setItem('theme', theme); } catch { /* Keep the current theme for this session. */ }
     }, [theme]);
 
     const toggleTheme = () => {

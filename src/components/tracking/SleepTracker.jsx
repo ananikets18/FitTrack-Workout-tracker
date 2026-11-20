@@ -330,9 +330,9 @@ const SleepTracker = () => {
                     <Card className="!p-4 text-center">
                         <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Trend</p>
                         <p className="text-2xl font-bold text-primary-600 dark:text-primary-300 flex items-center justify-center gap-1">
-                            {trend === 'improving' && <TrendingUp className="w-6 h-6 text-green-600" aria-label="Improving" />}
-                            {trend === 'declining' && <TrendingDown className="w-6 h-6 text-red-600" aria-label="Declining" />}
-                            {trend === 'stable' && <Minus className="w-6 h-6 text-gray-500" aria-label="Stable" />}
+                            {trend === 'improving' && <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-300" aria-label="Improving" />}
+                            {trend === 'declining' && <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-300" aria-label="Declining" />}
+                            {trend === 'stable' && <Minus className="w-6 h-6 text-gray-500 dark:text-gray-400" aria-label="Stable" />}
                         </p>
                     </Card>
                 </div>

@@ -122,17 +122,17 @@ const InteractiveChart = ({ workouts, title = 'Workout Progress', metric = 'acti
         if (active && payload && payload.length) {
             const data = payload[0].payload;
             return (
-                <div className="bg-white p-4 rounded-lg shadow-lifted border-2 border-gray-200">
-                    <p className="text-sm font-bold text-gray-900 mb-2">{data.date}</p>
+                <div className="bg-white p-4 rounded-lg shadow-lifted border-2 border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                    <p className="text-sm font-bold text-gray-900 mb-2 dark:text-gray-100">{data.date}</p>
                     <div className="space-y-1">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
                             <span className="font-semibold" style={{ color: metricConfig.color }}>
                                 {metricConfig.label}:
                             </span>{' '}
                             {data[metricConfig.dataKey].toLocaleString()}
                         </p>
                         {metric !== 'workouts' && (
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                                 Workouts: {data.workouts}
                             </p>
                         )}
@@ -266,20 +266,20 @@ const InteractiveChart = ({ workouts, title = 'Workout Progress', metric = 'acti
             {/* Header with controls */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h3 className="text-lg font-bold text-gray-900">{title}</h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{title}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                         {dataGranularity === 'daily' ? 'Daily' : 'Weekly'} view • Last {timeRange} days
                     </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
                     {/* Chart type selector */}
-                    <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+                    <div className="flex gap-1 p-1 bg-gray-100 rounded-lg dark:bg-gray-800">
                         <button
                             onClick={() => setChartType('line')}
                             className={`p-2 rounded transition-all ${chartType === 'line'
-                                    ? 'bg-white text-primary-600 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-white text-primary-600 shadow-sm dark:bg-gray-700 dark:text-primary-300'
+                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
                                 }`}
                             title="Line Chart"
                         >
@@ -288,8 +288,8 @@ const InteractiveChart = ({ workouts, title = 'Workout Progress', metric = 'acti
                         <button
                             onClick={() => setChartType('bar')}
                             className={`p-2 rounded transition-all ${chartType === 'bar'
-                                    ? 'bg-white text-primary-600 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-white text-primary-600 shadow-sm dark:bg-gray-700 dark:text-primary-300'
+                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
                                 }`}
                             title="Bar Chart"
                         >
@@ -298,8 +298,8 @@ const InteractiveChart = ({ workouts, title = 'Workout Progress', metric = 'acti
                         <button
                             onClick={() => setChartType('area')}
                             className={`p-2 rounded transition-all ${chartType === 'area'
-                                    ? 'bg-white text-primary-600 shadow-sm'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-white text-primary-600 shadow-sm dark:bg-gray-700 dark:text-primary-300'
+                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
                                 }`}
                             title="Area Chart"
                         >
@@ -311,7 +311,7 @@ const InteractiveChart = ({ workouts, title = 'Workout Progress', metric = 'acti
                     <select
                         value={timeRange}
                         onChange={(e) => setTimeRange(Number(e.target.value))}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:border-gray-600"
                     >
                         <option value={7}>7 days</option>
                         <option value={14}>14 days</option>
@@ -324,7 +324,7 @@ const InteractiveChart = ({ workouts, title = 'Workout Progress', metric = 'acti
                     <select
                         value={dataGranularity}
                         onChange={(e) => setDataGranularity(e.target.value)}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:border-gray-600"
                     >
                         <option value="daily">Daily</option>
                         <option value="weekly">Weekly</option>
@@ -335,7 +335,7 @@ const InteractiveChart = ({ workouts, title = 'Workout Progress', metric = 'acti
                         onClick={() => setShowBrush(!showBrush)}
                         className={`p-2 rounded-lg transition-all ${showBrush
                                 ? 'bg-primary-100 text-primary-600'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                             }`}
                         title="Toggle zoom brush"
                     >
@@ -345,7 +345,7 @@ const InteractiveChart = ({ workouts, title = 'Workout Progress', metric = 'acti
                     {/* Export button */}
                     <button
                         onClick={exportData}
-                        className="p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-all"
+                        className="p-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-all dark:bg-gray-800 dark:text-gray-300"
                         title="Export data as CSV"
                     >
                         <Download className="w-4 h-4" />
@@ -390,7 +390,7 @@ const InteractiveChart = ({ workouts, title = 'Workout Progress', metric = 'acti
 
             {/* Help text */}
             {showBrush && chartData.length > 10 && (
-                <p className="text-xs text-gray-500 text-center">
+                <p className="text-xs text-gray-500 text-center dark:text-gray-400">
                     💡 Drag the brush at the bottom to zoom into specific time periods
                 </p>
             )}

@@ -54,7 +54,7 @@ const RecommendationCard = ({ recommendation, onStart }) => {
 
       {recommendation.alternatives?.length > 0 && (
         <details className="mt-3">
-          <summary className="text-[13px] text-gray-500 hover:text-gray-900 dark:hover:text-white cursor-pointer font-medium min-h-[44px] flex items-center">
+          <summary className="text-[13px] text-gray-500 hover:text-gray-900 dark:hover:text-white cursor-pointer font-medium min-h-[44px] flex items-center dark:text-gray-400">
             {recommendation.alternatives.length} alternative{recommendation.alternatives.length > 1 ? 's' : ''}
           </summary>
           <div className="mt-2 space-y-1.5">

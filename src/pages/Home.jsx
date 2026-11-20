@@ -154,7 +154,7 @@ const Home = () => {
               {thisWeekWorkouts} sessions down — see your recap
             </p>
           </div>
-          <span className="flex-shrink-0 bg-white text-gray-900 text-sm font-bold px-4 py-2 rounded-full">
+          <span className="flex-shrink-0 bg-white text-gray-900 text-sm font-bold px-4 py-2 rounded-full dark:bg-gray-800 dark:text-gray-100">
             Open
           </span>
         </Link>

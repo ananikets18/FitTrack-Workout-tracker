@@ -86,9 +86,9 @@ const Calendar = () => {
 
     // Base styling
     if (!isCurrentMonth) {
-      className += 'text-gray-300 ';
+      className += 'text-gray-300 dark:text-gray-500 ';
     } else {
-      className += 'text-gray-900 ';
+      className += 'text-gray-900 dark:text-gray-100 ';
     }
 
     // Today highlight
@@ -98,9 +98,9 @@ const Calendar = () => {
 
     // Dynamic workout density colors based on actual data
     if (density.hasRestDay && density.count === 0) {
-      className += 'bg-purple-100 hover:bg-purple-200 ';
+      className += 'bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/50 dark:hover:bg-purple-800 ';
     } else if (density.count === 0) {
-      className += 'hover:bg-gray-100 ';
+      className += 'hover:bg-gray-100 dark:hover:bg-gray-800 ';
     } else if (intensityStats.hasData) {
       // Use dynamic scaling based on user's actual range
       const { min, max } = intensityStats;
@@ -117,10 +117,10 @@ const Calendar = () => {
 
       // Apply color based on intensity level
       const colorClasses = [
-        'bg-green-50 hover:bg-green-100',           // 0 - Lightest
-        'bg-green-100 hover:bg-green-200',          // 1
-        'bg-green-200 hover:bg-green-300',          // 2
-        'bg-green-300 hover:bg-green-400',          // 3
+        'bg-green-50 hover:bg-green-100 dark:bg-green-950 dark:hover:bg-green-900',
+        'bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800',
+        'bg-green-200 hover:bg-green-300 dark:bg-green-800 dark:hover:bg-green-700',
+        'bg-green-300 hover:bg-green-400 dark:bg-green-700 dark:hover:bg-green-600',
         'bg-green-400 hover:bg-green-500 text-white', // 4 - Start white text
         'bg-green-500 hover:bg-green-600 text-white', // 5
         'bg-green-600 hover:bg-green-700 text-white', // 6
@@ -241,9 +241,9 @@ const Calendar = () => {
       {/* Smart Dynamic Legend */}
       <Card>
         <div className="flex items-start justify-between mb-3">
-          <h3 className="text-sm font-semibold text-gray-700">Workout Intensity</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">Workout Intensity</h3>
           {intensityStats.hasData && (
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
               <span className="font-medium">Avg: {intensityStats.avg}</span>
               <span className="mx-1">•</span>
               <span>Peak: {intensityStats.max}</span>
@@ -255,7 +255,7 @@ const Calendar = () => {
           <div className="space-y-3">
             {/* Dynamic Gradient Bar */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 font-medium w-12">{intensityStats.min}</span>
+              <span className="text-xs text-gray-500 font-medium w-12 dark:text-gray-400">{intensityStats.min}</span>
               <div className="flex-1 h-8 rounded-lg overflow-hidden flex shadow-inner">
                 {gradientStops.map((stop, idx) => {
                   const intensity = Math.min(Math.round((stop / 9) * 8), 8);
@@ -279,13 +279,13 @@ const Calendar = () => {
                   );
                 })}
               </div>
-              <span className="text-xs text-gray-500 font-medium w-12 text-right">{intensityStats.max}+</span>
+              <span className="text-xs text-gray-500 font-medium w-12 text-right dark:text-gray-400">{intensityStats.max}+</span>
             </div>
 
             {/* Dynamic Labels */}
-            <div className="flex items-center justify-between text-xs text-gray-600">
+            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-300">
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-100"></span>
+                <span className="w-2 h-2 rounded-full bg-green-100 dark:bg-green-900/30"></span>
                 Light
               </span>
               <span className="flex items-center gap-1">
@@ -306,14 +306,14 @@ const Calendar = () => {
 
             {/* Rest Day Indicator */}
             <div className="flex items-center space-x-2 pt-2 border-t">
-              <div className="w-6 h-6 rounded bg-purple-100 border border-purple-200 flex items-center justify-center">
-                <Hotel className="w-3 h-3 text-purple-600" />
+              <div className="w-6 h-6 rounded bg-purple-100 border border-purple-200 flex items-center justify-center dark:bg-purple-900/30 dark:border-purple-800">
+                <Hotel className="w-3 h-3 text-purple-600 dark:text-purple-300" />
               </div>
-              <span className="text-gray-600 text-sm">Rest Day</span>
+              <span className="text-gray-600 text-sm dark:text-gray-300">Rest Day</span>
             </div>
           </div>
         ) : (
-          <div className="text-center py-6 text-gray-500">
+          <div className="text-center py-6 text-gray-500 dark:text-gray-400">
             <p className="text-sm">Start logging workouts to see your intensity scale!</p>
           </div>
         )}
@@ -327,11 +327,11 @@ const Calendar = () => {
             onClick={handlePrevMonth}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <ChevronLeft className="w-6 h-6 text-gray-600 " />
+            <ChevronLeft className="w-6 h-6 text-gray-600  dark:text-gray-300" />
           </button>
 
           <div className="flex items-center space-x-3">
-            <h2 className="text-2xl font-bold text-gray-900 ">
+            <h2 className="text-2xl font-bold text-gray-900  dark:text-gray-100">
               {format(currentMonth, 'MMMM yyyy')}
             </h2>
             <Button variant="outline" size="sm" onClick={handleToday}>
@@ -343,14 +343,14 @@ const Calendar = () => {
             onClick={handleNextMonth}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <ChevronRight className="w-6 h-6 text-gray-600 " />
+            <ChevronRight className="w-6 h-6 text-gray-600  dark:text-gray-300" />
           </button>
         </div>
 
         {/* Week Days */}
         <div className="grid grid-cols-7 gap-2 mb-2">
           {weekDays.map((day) => (
-            <div key={day} className="text-center text-sm font-semibold text-gray-600 py-2">
+            <div key={day} className="text-center text-sm font-semibold text-gray-600 py-2 dark:text-gray-300">
               {day}
             </div>
           ))}
@@ -387,30 +387,30 @@ const Calendar = () => {
       {/* Monthly Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card elevated className="text-center">
-          <CalendarIcon className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900 ">
+          <CalendarIcon className="w-8 h-8 text-blue-600 mx-auto mb-2 dark:text-blue-300" />
+          <div className="text-2xl font-bold text-gray-900  dark:text-gray-100">
             {workouts.filter(w => {
               const workoutDate = new Date(w.date);
               return isSameMonth(workoutDate, currentMonth) && w.type !== 'rest_day';
             }).length}
           </div>
-          <div className="text-sm text-gray-600 ">Workouts This Month</div>
+          <div className="text-sm text-gray-600  dark:text-gray-300">Workouts This Month</div>
         </Card>
 
         <Card elevated className="text-center">
-          <Hotel className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900 ">
+          <Hotel className="w-8 h-8 text-purple-600 mx-auto mb-2 dark:text-purple-300" />
+          <div className="text-2xl font-bold text-gray-900  dark:text-gray-100">
             {workouts.filter(w => {
               const workoutDate = new Date(w.date);
               return isSameMonth(workoutDate, currentMonth) && w.type === 'rest_day';
             }).length}
           </div>
-          <div className="text-sm text-gray-600 ">Rest Days</div>
+          <div className="text-sm text-gray-600  dark:text-gray-300">Rest Days</div>
         </Card>
 
         <Card elevated className="text-center">
-          <Weight className="w-8 h-8 text-green-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900 ">
+          <Weight className="w-8 h-8 text-green-600 mx-auto mb-2 dark:text-green-300" />
+          <div className="text-2xl font-bold text-gray-900  dark:text-gray-100">
             {kgToTons(
               workouts
                 .filter(w => {
@@ -420,12 +420,12 @@ const Calendar = () => {
                 .reduce((sum, w) => sum + calculateTotalVolume(w), 0)
             )}T
           </div>
-          <div className="text-sm text-gray-600 ">Volume Lifted</div>
+          <div className="text-sm text-gray-600  dark:text-gray-300">Volume Lifted</div>
         </Card>
 
         <Card elevated className="text-center">
-          <Clock className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900 ">
+          <Clock className="w-8 h-8 text-orange-600 mx-auto mb-2 dark:text-orange-300" />
+          <div className="text-2xl font-bold text-gray-900  dark:text-gray-100">
             {workouts
               .filter(w => {
                 const workoutDate = new Date(w.date);
@@ -433,7 +433,7 @@ const Calendar = () => {
               })
               .reduce((sum, w) => sum + (w.duration || 0), 0)}
           </div>
-          <div className="text-sm text-gray-600 ">Minutes Trained</div>
+          <div className="text-sm text-gray-600  dark:text-gray-300">Minutes Trained</div>
         </Card>
       </div>
 
@@ -450,12 +450,12 @@ const Calendar = () => {
             </button>
             {selectedDate.workouts.length === 0 ? (
               <div className="py-6 text-center space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto text-gray-400">
+                <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto text-gray-400 dark:bg-gray-800">
                   <CalendarIcon className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-800 ">No activity logged</h4>
-                  <p className="text-xs text-gray-500 mt-1">Schedule a workout or record a rest day for this date</p>
+                  <h4 className="font-semibold text-gray-800  dark:text-gray-100">No activity logged</h4>
+                  <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">Schedule a workout or record a rest day for this date</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 pt-2">
                   <Button
@@ -471,14 +471,14 @@ const Calendar = () => {
                   </Button>
                   <Button
                     variant="secondary"
-                    className="flex-1 text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 "
+                    className="flex-1 text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200  dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800"
                     onClick={() => {
                       setIsSheetOpen(false);
                       setRestDayModalMode('single');
                       setIsRestDayModalOpen(true);
                     }}
                   >
-                    <Hotel className="w-4 h-4 mr-1.5 text-purple-600" />
+                    <Hotel className="w-4 h-4 mr-1.5 text-purple-600 dark:text-purple-300" />
                     Log Rest Day
                   </Button>
                 </div>
@@ -495,11 +495,11 @@ const Calendar = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex items-center space-x-3">
                             <div className="bg-purple-200 rounded-xl p-2">
-                              <Hotel className="w-5 h-5 text-purple-600 " />
+                              <Hotel className="w-5 h-5 text-purple-600  dark:text-purple-300" />
                             </div>
                             <div>
-                              <h4 className="font-bold text-lg text-gray-900 ">Rest Day</h4>
-                              <p className="text-sm text-gray-500 mt-1">
+                              <h4 className="font-bold text-lg text-gray-900  dark:text-gray-100">Rest Day</h4>
+                              <p className="text-sm text-gray-500 mt-1 dark:text-gray-400">
                                 {new Date(workout.date).toLocaleTimeString('en-US', {
                                   hour: 'numeric',
                                   minute: '2-digit',
@@ -510,9 +510,9 @@ const Calendar = () => {
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-purple-200 ">
+                        <div className="pt-2 border-t border-purple-200  dark:border-purple-800">
                           <div className="flex items-center space-x-2 mb-2">
-                            <span className="text-sm text-gray-600 ">Recovery:</span>
+                            <span className="text-sm text-gray-600  dark:text-gray-300">Recovery:</span>
                             <div className="flex items-center">
                               {[...Array(5)].map((_, i) => (
                                 <Star
@@ -525,12 +525,12 @@ const Calendar = () => {
 
                           {workout.activities && workout.activities.length > 0 && (
                             <div>
-                              <span className="text-sm text-gray-600 block mb-2">Activities:</span>
+                              <span className="text-sm text-gray-600 block mb-2 dark:text-gray-300">Activities:</span>
                               <div className="flex flex-wrap gap-2">
                                 {workout.activities.map((activity, actIdx) => (
                                   <span
                                     key={actIdx}
-                                    className="px-2 py-1 text-xs font-semibold bg-purple-200 text-purple-700 rounded-lg"
+                                    className="px-2 py-1 text-xs font-semibold bg-purple-200 text-purple-700 rounded-lg dark:text-purple-300"
                                   >
                                     {activity.replace('_', ' ')}
                                   </span>
@@ -541,7 +541,7 @@ const Calendar = () => {
                         </div>
 
                         {workout.notes && (
-                          <p className="text-sm text-gray-600 italic pt-2 border-t border-purple-200 ">
+                          <p className="text-sm text-gray-600 italic pt-2 border-t border-purple-200  dark:text-gray-300 dark:border-purple-800">
                             {workout.notes}
                           </p>
                         )}
@@ -550,8 +550,8 @@ const Calendar = () => {
                       <>
                         <div className="flex items-start justify-between">
                           <div>
-                            <h4 className="font-bold text-lg text-gray-900 ">{workout.name}</h4>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <h4 className="font-bold text-lg text-gray-900  dark:text-gray-100">{workout.name}</h4>
+                            <p className="text-sm text-gray-500 mt-1 dark:text-gray-400">
                               {new Date(workout.date).toLocaleTimeString('en-US', {
                                 hour: 'numeric',
                                 minute: '2-digit',
@@ -559,28 +559,28 @@ const Calendar = () => {
                               })}
                             </p>
                           </div>
-                          <div className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-sm font-semibold">
+                          <div className="bg-primary-100 text-primary-700 px-3 py-1 rounded-lg text-sm font-semibold dark:bg-primary-900/30 dark:text-primary-300">
                             {workout.exercises?.length || 0} exercises
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 ">
+                        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200  dark:border-gray-700">
                           {workout.duration > 0 && (
                             <div className="flex items-center space-x-2">
                               <Clock className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm text-gray-600 ">{workout.duration} min</span>
+                              <span className="text-sm text-gray-600  dark:text-gray-300">{workout.duration} min</span>
                             </div>
                           )}
                           <div className="flex items-center space-x-2">
                             <Weight className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-600 ">
+                            <span className="text-sm text-gray-600  dark:text-gray-300">
                               {kgToTons(calculateTotalVolume(workout))}T moved
                             </span>
                           </div>
                         </div>
 
                         {workout.notes && (
-                          <p className="text-sm text-gray-600 italic pt-2 border-t border-gray-200 ">
+                          <p className="text-sm text-gray-600 italic pt-2 border-t border-gray-200  dark:text-gray-300 dark:border-gray-700">
                             {workout.notes}
                           </p>
                         )}

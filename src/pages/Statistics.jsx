@@ -34,7 +34,7 @@ const StatsAccordion = ({ iconBg, icon, title, subtitle, isOpen, onToggle, child
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100"
+    className="bg-white rounded-2xl overflow-hidden shadow-card border border-gray-100 dark:bg-gray-800 dark:border-gray-800"
   >
     <button
       onClick={onToggle}
@@ -45,8 +45,8 @@ const StatsAccordion = ({ iconBg, icon, title, subtitle, isOpen, onToggle, child
           {icon}
         </div>
         <div className="text-left">
-          <h2 className="text-lg md:text-xl font-bold text-gray-900">{title}</h2>
-          <p className="text-xs md:text-sm text-gray-600">{subtitle}</p>
+          <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">{title}</h2>
+          <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300">{subtitle}</p>
           {!isOpen && (
             <p className="text-xs text-gray-400 mt-0.5">Tap to expand</p>
           )}
@@ -57,7 +57,7 @@ const StatsAccordion = ({ iconBg, icon, title, subtitle, isOpen, onToggle, child
         animate={{ rotate: isOpen ? 180 : 0 }}
         transition={{ duration: 0.3 }}
       >
-        <ChevronDown className="w-5 h-5 text-gray-600" />
+        <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-300" />
       </motion.div>
     </button>
 
@@ -70,7 +70,7 @@ const StatsAccordion = ({ iconBg, icon, title, subtitle, isOpen, onToggle, child
           transition={{ duration: 0.3 }}
           className="overflow-hidden"
         >
-          <div className="px-4 md:px-6 pb-6 border-t border-gray-100">
+          <div className="px-4 md:px-6 pb-6 border-t border-gray-100 dark:border-gray-800">
             <div className="pt-6">
               {children}
             </div>
@@ -83,7 +83,7 @@ const StatsAccordion = ({ iconBg, icon, title, subtitle, isOpen, onToggle, child
 
 const NotEnoughDataHint = () => (
   <Card className="text-center py-8">
-    <p className="text-gray-600">Log at least 3 workouts to unlock charts</p>
+    <p className="text-gray-600 dark:text-gray-300">Log at least 3 workouts to unlock charts</p>
   </Card>
 );
 
@@ -124,11 +124,11 @@ const PersonalRecordsCard = ({ personalRecords, prMuscleFilter, setPrMuscleFilte
   return (
     <Card>
       <div className="flex items-center space-x-2 mb-4">
-        <Award className="w-6 h-6 text-yellow-600" />
-        <h2 className="text-xl font-semibold text-gray-900">Personal Records</h2>
+        <Award className="w-6 h-6 text-yellow-600 dark:text-yellow-300" />
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Personal Records</h2>
       </div>
       {prEntries.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <p>No personal records yet</p>
           <p className="text-sm mt-1">Complete workouts to track your PRs</p>
         </div>
@@ -142,7 +142,7 @@ const PersonalRecordsCard = ({ personalRecords, prMuscleFilter, setPrMuscleFilte
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   prMuscleFilter === 'all'
                     ? 'bg-yellow-500 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                 }`}
               >
                 All
@@ -154,7 +154,7 @@ const PersonalRecordsCard = ({ personalRecords, prMuscleFilter, setPrMuscleFilte
                   className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                     prMuscleFilter === g
                       ? 'bg-yellow-500 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                   }`}
                 >
                   {muscleGroupLabels[g]}
@@ -166,7 +166,7 @@ const PersonalRecordsCard = ({ personalRecords, prMuscleFilter, setPrMuscleFilte
           {/* PR list */}
           <div className="space-y-3">
             {filtered.length === 0 ? (
-              <div className="text-center py-6 text-gray-500 text-sm">
+              <div className="text-center py-6 text-gray-500 text-sm dark:text-gray-400">
                 No PRs found for this muscle group
               </div>
             ) : (
@@ -174,10 +174,10 @@ const PersonalRecordsCard = ({ personalRecords, prMuscleFilter, setPrMuscleFilte
                 <button
                   key={exercise}
                   onClick={() => onExerciseClick(exercise)}
-                  className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98"
+                  className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer active:scale-98 dark:bg-gray-900"
                 >
-                  <span className="font-medium text-gray-900 truncate mr-3" title={exercise}>{exercise}</span>
-                  <span className="text-lg font-bold text-primary-600 flex-shrink-0">{weight} kg</span>
+                  <span className="font-medium text-gray-900 truncate mr-3 dark:text-gray-100" title={exercise}>{exercise}</span>
+                  <span className="text-lg font-bold text-primary-600 flex-shrink-0 dark:text-primary-300">{weight} kg</span>
                 </button>
               ))
             )}
@@ -315,8 +315,8 @@ const Statistics = () => {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Statistics</h1>
-        <p className="text-gray-600 mt-2">Track your progress and achievements</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Statistics</h1>
+        <p className="text-gray-600 mt-2 dark:text-gray-300">Track your progress and achievements</p>
       </div>
 
       {/* Tab switcher */}
@@ -327,7 +327,7 @@ const Statistics = () => {
             onClick={() => setActiveTab(tab.value)}
             className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${activeTab === tab.value
                 ? 'bg-primary-600 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
               }`}
           >
             {tab.label}
@@ -350,10 +350,10 @@ const Statistics = () => {
               <div className={`inline-flex items-center justify-center w-11 h-11 md:w-14 md:h-14 rounded-2xl ${stat.bgColor} mb-2 md:mb-3 shadow-soft`}>
                 <stat.icon className={`w-5 h-5 md:w-7 md:h-7 ${stat.color}`} />
               </div>
-              <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 tabular-nums">{stat.value}</div>
-              <div className="text-gray-600 text-xs md:text-sm font-medium">{stat.label}</div>
+              <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 tabular-nums dark:text-gray-100">{stat.value}</div>
+              <div className="text-gray-600 text-xs md:text-sm font-medium dark:text-gray-300">{stat.label}</div>
               {stat.subtitle && (
-                <div className="text-xs text-gray-500 mt-1 hidden md:block">{stat.subtitle}</div>
+                <div className="text-xs text-gray-500 mt-1 hidden md:block dark:text-gray-400">{stat.subtitle}</div>
               )}
             </Card>
           ))}
@@ -404,7 +404,7 @@ const Statistics = () => {
         ) : (
           <>
             <Card>
-              <h2 className="text-xl font-semibold text-gray-900 mb-5">Advanced Analytics</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-5 dark:text-gray-100">Advanced Analytics</h2>
               {/* Metric tab switcher */}
               <div className="flex flex-wrap gap-2 mb-5">
                 {[
@@ -417,7 +417,7 @@ const Statistics = () => {
                     onClick={() => setAnalyticsMetric(tab.value)}
                     className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${analyticsMetric === tab.value
                         ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                       }`}
                   >
                     {tab.label}
@@ -478,32 +478,32 @@ const Statistics = () => {
                   <PRTimeline workouts={workouts} />
                 </Suspense>
               ) : (
-                <p className="text-gray-600 text-center py-4">Log at least 3 workouts to unlock charts</p>
+                <p className="text-gray-600 text-center py-4 dark:text-gray-300">Log at least 3 workouts to unlock charts</p>
               )}
             </StatsAccordion>
 
             {/* Most Frequent Exercises */}
             <Card>
                 <div className="flex items-center space-x-2 mb-6">
-                  <TrendingUp className="w-6 h-6 text-green-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">Top Exercises</h2>
+                  <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-300" />
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Top Exercises</h2>
                 </div>
                 {topExercises.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <p>No exercises logged yet</p>
                     <p className="text-sm mt-1">Start tracking to see your favorites</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {topExercises.map(([exercise, count], index) => (
-                      <div key={exercise} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => handleExerciseClick(exercise)}>
+                      <div key={exercise} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer dark:bg-gray-900" onClick={() => handleExerciseClick(exercise)}>
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
-                          <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm flex-shrink-0 dark:bg-primary-900/30 dark:text-primary-300">
                             #{index + 1}
                           </div>
-                          <span className="font-medium text-gray-900 truncate" title={exercise}>{exercise}</span>
+                          <span className="font-medium text-gray-900 truncate dark:text-gray-100" title={exercise}>{exercise}</span>
                         </div>
-                        <span className="text-sm text-gray-600 flex-shrink-0 ml-3">{count} times</span>
+                        <span className="text-sm text-gray-600 flex-shrink-0 ml-3 dark:text-gray-300">{count} times</span>
                       </div>
                     ))}
                   </div>
@@ -517,8 +517,8 @@ const Statistics = () => {
       {workouts.length === 0 && (
         <Card className="text-center py-12">
           <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No statistics yet</h3>
-          <p className="text-gray-600">Start logging workouts to see your progress and stats!</p>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2 dark:text-gray-100">No statistics yet</h3>
+          <p className="text-gray-600 dark:text-gray-300">Start logging workouts to see your progress and stats!</p>
         </Card>
       )}
 

@@ -144,9 +144,9 @@ const GymSessionLogBanner = ({ isEditMode }) => {
               <button
                 type="button"
                 onClick={endSession}
-                className="flex-1 min-h-[46px] px-4 py-2.5 rounded-xl bg-white text-gray-950 hover:bg-gray-100 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-colors"
+                className="flex-1 min-h-[46px] px-4 py-2.5 rounded-xl bg-white text-gray-950 hover:bg-gray-100 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-colors dark:bg-gray-800"
               >
-                <Square className="w-4 h-4 fill-current text-red-600" />
+                <Square className="w-4 h-4 fill-current text-red-600 dark:text-red-300" />
                 <span>End Gym Session Now &amp; Unlock Logging</span>
               </button>
               <button
@@ -168,7 +168,7 @@ const GymSessionLogBanner = ({ isEditMode }) => {
             <button
               type="button"
               onClick={endSession}
-              className="px-3 py-1.5 rounded-lg bg-white text-gray-900 font-extrabold text-xs hover:bg-gray-100 transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-white text-gray-900 font-extrabold text-xs hover:bg-gray-100 transition-colors dark:bg-gray-800 dark:text-gray-100"
             >
               End Session Now
             </button>
@@ -207,9 +207,9 @@ const GymSessionLogBanner = ({ isEditMode }) => {
             type="button"
             onClick={openCompleteModal}
             title="View Leaving the Gym Tips"
-            className="px-3 py-1.5 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-white text-gray-900 hover:bg-gray-100 text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition-colors dark:bg-gray-800 dark:text-gray-100"
           >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300" />
             <span>Post-Gym Tips</span>
           </button>
           <button

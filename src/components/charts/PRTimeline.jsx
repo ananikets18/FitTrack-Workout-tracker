@@ -112,9 +112,9 @@ const PRTimeline = ({ workouts }) => {
 
     if (prTimeline.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+            <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-gray-400">
                 <Trophy className="w-16 h-16 text-gray-300 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No PRs Yet</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2 dark:text-gray-100">No PRs Yet</h3>
                 <p className="text-sm">Start lifting to track your personal records!</p>
             </div>
         );
@@ -124,48 +124,48 @@ const PRTimeline = ({ workouts }) => {
         <div className="space-y-6">
             {/* Stats Overview */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-4 border border-yellow-200">
+                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-4 border border-yellow-200 dark:border-yellow-800">
                     <div className="flex items-center gap-2 mb-2">
-                        <Trophy className="w-4 h-4 text-yellow-600" />
-                        <span className="text-xs font-semibold text-yellow-700">Total PRs</span>
+                        <Trophy className="w-4 h-4 text-yellow-600 dark:text-yellow-300" />
+                        <span className="text-xs font-semibold text-yellow-700 dark:text-yellow-300">Total PRs</span>
                     </div>
-                    <div className="text-2xl font-bold text-yellow-900">{totalPRs}</div>
+                    <div className="text-2xl font-bold text-yellow-900 dark:text-yellow-300">{totalPRs}</div>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-2 mb-2">
-                        <Target className="w-4 h-4 text-blue-600" />
-                        <span className="text-xs font-semibold text-blue-700">Exercises</span>
+                        <Target className="w-4 h-4 text-blue-600 dark:text-blue-300" />
+                        <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">Exercises</span>
                     </div>
-                    <div className="text-2xl font-bold text-blue-900">{uniqueExercises}</div>
+                    <div className="text-2xl font-bold text-blue-900 dark:text-blue-300">{uniqueExercises}</div>
                 </div>
 
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200 dark:border-green-800">
                     <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="w-4 h-4 text-green-600" />
-                        <span className="text-xs font-semibold text-green-700">Avg Gain</span>
+                        <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-300" />
+                        <span className="text-xs font-semibold text-green-700 dark:text-green-300">Avg Gain</span>
                     </div>
-                    <div className="text-2xl font-bold text-green-900">{avgImprovement} kg</div>
+                    <div className="text-2xl font-bold text-green-900 dark:text-green-300">{avgImprovement} kg</div>
                 </div>
 
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
                     <div className="flex items-center gap-2 mb-2">
-                        <Zap className="w-4 h-4 text-purple-600" />
-                        <span className="text-xs font-semibold text-purple-700">This Month</span>
+                        <Zap className="w-4 h-4 text-purple-600 dark:text-purple-300" />
+                        <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">This Month</span>
                     </div>
-                    <div className="text-2xl font-bold text-purple-900">{recentPRs}</div>
+                    <div className="text-2xl font-bold text-purple-900 dark:text-purple-300">{recentPRs}</div>
                 </div>
             </div>
 
             {/* Exercise Filter */}
             <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Filter by Exercise</h3>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Filter by Exercise</h3>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                     <button
                         onClick={() => setSelectedExercise(null)}
                         className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${selectedExercise === null
                             ? 'bg-primary-600 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                             }`}
                     >
                         All PRs
@@ -176,7 +176,7 @@ const PRTimeline = ({ workouts }) => {
                             onClick={() => setSelectedExercise(ex.name)}
                             className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${selectedExercise === ex.name
                                 ? 'bg-primary-600 text-white shadow-md'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                                 }`}
                         >
                             {ex.name} ({ex.count})
@@ -206,24 +206,24 @@ const PRTimeline = ({ workouts }) => {
                                 <div className="absolute left-3.5 top-4 w-5 h-5 rounded-full bg-primary-600 border-4 border-white shadow-md z-10" />
 
                                 {/* PR Card */}
-                                <div className="bg-white rounded-xl border-2 border-gray-200 hover:border-primary-300 hover:shadow-md transition-all p-4">
+                                <div className="bg-white rounded-xl border-2 border-gray-200 hover:border-primary-300 hover:shadow-md transition-all p-4 dark:bg-gray-800 dark:border-gray-700">
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1 min-w-0">
                                             {/* Exercise name */}
                                             <div className="flex items-center gap-2 mb-2">
                                                 <Award className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-                                                <h4 className="font-bold text-gray-900 truncate">
+                                                <h4 className="font-bold text-gray-900 truncate dark:text-gray-100">
                                                     {pr.exercise}
                                                 </h4>
                                             </div>
 
                                             {/* Weight info */}
                                             <div className="flex items-baseline gap-2 mb-2">
-                                                <span className="text-3xl font-bold text-primary-600">
+                                                <span className="text-3xl font-bold text-primary-600 dark:text-primary-300">
                                                     {pr.weight} kg
                                                 </span>
                                                 {pr.previousWeight > 0 && (
-                                                    <span className="text-sm text-gray-500">
+                                                    <span className="text-sm text-gray-500 dark:text-gray-400">
                                                         from {pr.previousWeight} kg
                                                     </span>
                                                 )}
@@ -231,7 +231,7 @@ const PRTimeline = ({ workouts }) => {
 
                                             {/* Improvement badge */}
                                             {pr.improvement > 0 && (
-                                                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                                                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold dark:bg-green-900/30 dark:text-green-300">
                                                     <TrendingUp className="w-4 h-4" />
                                                     +{pr.improvement} kg ({pr.improvementPercent}%)
                                                 </div>
@@ -242,7 +242,7 @@ const PRTimeline = ({ workouts }) => {
                                                 {pr.sets.map((set, idx) => (
                                                     <div
                                                         key={idx}
-                                                        className="px-2 py-1 bg-gray-100 rounded text-xs font-medium text-gray-700"
+                                                        className="px-2 py-1 bg-gray-100 rounded text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-200"
                                                     >
                                                         {isIsometricExercise(pr.exercise) ? (
                                                             `${set.duration || set.reps || 0}s @ ${getEffectiveWeight(set.weight, pr.exercise)} kg`
@@ -259,13 +259,13 @@ const PRTimeline = ({ workouts }) => {
 
                                         {/* Date */}
                                         <div className="text-right flex-shrink-0">
-                                            <div className="text-xs font-semibold text-gray-500 mb-1">
+                                            <div className="text-xs font-semibold text-gray-500 mb-1 dark:text-gray-400">
                                                 {format(pr.date, 'MMM d')}
                                             </div>
                                             <div className="text-xs text-gray-400">
                                                 {format(pr.date, 'yyyy')}
                                             </div>
-                                            <div className="mt-2 text-xs text-gray-500">
+                                            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                                                 {differenceInDays(new Date(), pr.date)} days ago
                                             </div>
                                         </div>
@@ -279,7 +279,7 @@ const PRTimeline = ({ workouts }) => {
                 {/* Show more indicator */}
                 {!selectedExercise && prTimeline.length > 20 && (
                     <div className="text-center mt-6">
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                             Showing 20 most recent PRs. Select an exercise to see all records.
                         </p>
                     </div>

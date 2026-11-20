@@ -39,14 +39,14 @@ const SetupWizard = ({ isOpen, onClose, onComplete }) => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center space-x-3">
                         <div className="bg-gradient-primary rounded-xl p-2.5">
                             <Dumbbell className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900">Welcome to FitTrack!</h2>
-                            <p className="text-sm text-gray-500">Let's personalize your workout experience</p>
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Welcome to FitTrack!</h2>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Let's personalize your workout experience</p>
                         </div>
                     </div>
                     <button
@@ -129,11 +129,11 @@ const SetupWizard = ({ isOpen, onClose, onComplete }) => {
                     {step === 2 && (
                         <div className="space-y-4">
                             <div className="text-center mb-6">
-                                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-2xl mb-3">
-                                    <Calendar className="w-8 h-8 text-purple-600" />
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-2xl mb-3 dark:bg-purple-900/30">
+                                    <Calendar className="w-8 h-8 text-purple-600 dark:text-purple-300" />
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">Workout Frequency</h3>
-                                <p className="text-gray-600">How many days per week do you want to train?</p>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2 dark:text-gray-100">Workout Frequency</h3>
+                                <p className="text-gray-600 dark:text-gray-300">How many days per week do you want to train?</p>
                             </div>
 
                             <div className="max-w-md mx-auto">
@@ -144,7 +144,7 @@ const SetupWizard = ({ isOpen, onClose, onComplete }) => {
                                             onClick={() => setPreferences(prev => ({ ...prev, weeklyFrequency: days }))}
                                             className={`aspect-square rounded-xl font-bold text-lg transition-all ${preferences.weeklyFrequency === days
                                                     ? 'bg-gradient-primary text-white shadow-lg scale-110'
-                                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                                                 }`}
                                         >
                                             {days}
@@ -152,12 +152,12 @@ const SetupWizard = ({ isOpen, onClose, onComplete }) => {
                                     ))}
                                 </div>
 
-                                <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-200">
-                                    <p className="text-center text-gray-700">
-                                        <span className="text-3xl font-bold text-purple-600">{preferences.weeklyFrequency}</span>
-                                        <span className="text-gray-600 ml-2">days per week</span>
+                                <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+                                    <p className="text-center text-gray-700 dark:text-gray-200">
+                                        <span className="text-3xl font-bold text-purple-600 dark:text-purple-300">{preferences.weeklyFrequency}</span>
+                                        <span className="text-gray-600 ml-2 dark:text-gray-300">days per week</span>
                                     </p>
-                                    <p className="text-sm text-gray-600 text-center mt-2">
+                                    <p className="text-sm text-gray-600 text-center mt-2 dark:text-gray-300">
                                         {preferences.weeklyFrequency <= 2 && 'Perfect for beginners or busy schedules'}
                                         {preferences.weeklyFrequency >= 3 && preferences.weeklyFrequency <= 4 && 'Great balance for most people'}
                                         {preferences.weeklyFrequency >= 5 && preferences.weeklyFrequency <= 6 && 'Ideal for serious lifters'}
@@ -172,15 +172,15 @@ const SetupWizard = ({ isOpen, onClose, onComplete }) => {
                     {step === 3 && (
                         <div className="space-y-4">
                             <div className="text-center mb-6">
-                                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-2xl mb-3">
-                                    <Target className="w-8 h-8 text-green-600" />
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-2xl mb-3 dark:bg-green-900/30">
+                                    <Target className="w-8 h-8 text-green-600 dark:text-green-300" />
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">Volume Targets</h3>
-                                <p className="text-gray-600">We've set science-based defaults for you</p>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2 dark:text-gray-100">Volume Targets</h3>
+                                <p className="text-gray-600 dark:text-gray-300">We've set science-based defaults for you</p>
                             </div>
 
-                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                                <p className="text-sm text-blue-800">
+                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 dark:bg-blue-900/30 dark:border-blue-800">
+                                <p className="text-sm text-blue-800 dark:text-blue-300">
                                     <strong>💡 Tip:</strong> These are recommended weekly sets per muscle group. You can customize these later in settings.
                                 </p>
                             </div>
@@ -189,22 +189,22 @@ const SetupWizard = ({ isOpen, onClose, onComplete }) => {
                                 {Object.entries(DEFAULT_VOLUME_TARGETS).map(([muscle, target]) => (
                                     <div
                                         key={muscle}
-                                        className="bg-white border border-gray-200 rounded-xl p-4"
+                                        className="bg-white border border-gray-200 rounded-xl p-4 dark:bg-gray-800 dark:border-gray-700"
                                     >
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="font-semibold text-gray-900 capitalize">{muscle}</span>
-                                            <span className="text-sm text-gray-500">
+                                            <span className="font-semibold text-gray-900 capitalize dark:text-gray-100">{muscle}</span>
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">
                                                 {muscle === 'cardio' ? 'sessions/week' : 'sets/week'}
                                             </span>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                            <div className="flex-1 bg-gray-200 rounded-full h-2 dark:bg-gray-700">
                                                 <div
                                                     className="bg-gradient-primary h-2 rounded-full"
                                                     style={{ width: `${(target.min / target.max) * 100}%` }}
                                                 />
                                             </div>
-                                            <span className="text-sm font-bold text-gray-700">
+                                            <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
                                                 {target.min}-{target.max}
                                             </span>
                                         </div>
@@ -212,8 +212,8 @@ const SetupWizard = ({ isOpen, onClose, onComplete }) => {
                                 ))}
                             </div>
 
-                            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-4">
-                                <p className="text-sm text-green-800 text-center">
+                            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-4 dark:bg-green-900/30 dark:border-green-800">
+                                <p className="text-sm text-green-800 text-center dark:text-green-300">
                                     ✅ You're all set! FitTrack will now provide intelligent workout recommendations based on your preferences.
                                 </p>
                             </div>
@@ -222,7 +222,7 @@ const SetupWizard = ({ isOpen, onClose, onComplete }) => {
                 </div>
 
                 {/* Navigation Buttons */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                     <Button
                         variant="outline"
                         onClick={handleBack}
@@ -233,7 +233,7 @@ const SetupWizard = ({ isOpen, onClose, onComplete }) => {
                         <span>Back</span>
                     </Button>
 
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                         Step {step} of 3
                     </div>
 

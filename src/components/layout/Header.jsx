@@ -43,7 +43,7 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
-            <Dumbbell className="w-7 h-7 text-primary-600" />
+            <Dumbbell className="w-7 h-7 text-primary-600 dark:text-primary-300" />
             <span className="text-xl font-bold text-gray-900 dark:text-white transition-colors">FitTrack</span>
           </Link>
 

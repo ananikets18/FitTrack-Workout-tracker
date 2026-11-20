@@ -94,7 +94,7 @@ const FloatingSessionPill = () => {
               </p>
             </div>
           </div>
-          <span className="flex items-center gap-1 bg-white text-gray-900 font-extrabold text-xs px-3 py-1.5 rounded-xl flex-shrink-0">
+          <span className="flex items-center gap-1 bg-white text-gray-900 font-extrabold text-xs px-3 py-1.5 rounded-xl flex-shrink-0 dark:bg-gray-800 dark:text-gray-100">
             Log Now <ArrowRight className="w-3.5 h-3.5" />
           </span>
         </motion.button>
@@ -214,9 +214,9 @@ const FloatingSessionPill = () => {
                 <button
                   type="button"
                   onClick={handleEndAndLog}
-                  className="flex-1 min-h-[42px] px-3 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-md transition-colors"
+                  className="flex-1 min-h-[42px] px-3 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-md transition-colors dark:bg-gray-800 dark:text-gray-100"
                 >
-                  <Square className="w-3.5 h-3.5 fill-current text-red-600" />
+                  <Square className="w-3.5 h-3.5 fill-current text-red-600 dark:text-red-300" />
                   <span>End Gym &amp; Log Workouts</span>
                 </button>
 

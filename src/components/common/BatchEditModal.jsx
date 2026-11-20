@@ -41,7 +41,7 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
       <div className="space-y-6">
         {/* Edit Type Selection */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 mb-3 block">
+          <label className="text-sm font-semibold text-gray-700 mb-3 block dark:text-gray-200">
             What to adjust
           </label>
           <div className="grid grid-cols-1 gap-2">
@@ -74,8 +74,8 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
                   }`} aria-hidden="true" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-gray-900 ">{type.label}</div>
-                  <div className="text-sm text-gray-500 mt-0.5">{type.description}</div>
+                  <div className="font-semibold text-gray-900  dark:text-gray-100">{type.label}</div>
+                  <div className="text-sm text-gray-500 mt-0.5 dark:text-gray-400">{type.description}</div>
                 </div>
               </motion.button>
             ))}
@@ -84,7 +84,7 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
 
         {/* Operation Selection */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 mb-3 block">
+          <label className="text-sm font-semibold text-gray-700 mb-3 block dark:text-gray-200">
             Operation
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -117,7 +117,7 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
 
         {/* Value Selector */}
         <div>
-          <label className="text-sm font-semibold text-gray-700 mb-3 block">
+          <label className="text-sm font-semibold text-gray-700 mb-3 block dark:text-gray-200">
             Amount
           </label>
           {editType === 'weight' && (
@@ -157,12 +157,12 @@ const BatchEditModal = ({ isOpen, onClose, onApply }) => {
         </div>
 
         {/* Preview */}
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 dark:bg-blue-900/30 dark:border-blue-800">
           <div className="flex items-center space-x-2 mb-2">
-            <TrendingUp className="w-5 h-5 text-blue-600 " />
-            <span className="font-semibold text-blue-900 ">Preview</span>
+            <TrendingUp className="w-5 h-5 text-blue-600  dark:text-blue-300" />
+            <span className="font-semibold text-blue-900  dark:text-blue-300">Preview</span>
           </div>
-          <p className="text-blue-800 font-medium">
+          <p className="text-blue-800 font-medium dark:text-blue-300">
             {getPreviewText()}
           </p>
         </div>

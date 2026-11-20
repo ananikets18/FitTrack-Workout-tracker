@@ -59,7 +59,7 @@ const HeatmapCalendar = ({ workouts }) => {
 
         // 1. Logged Rest Day (pure rest day with no active workout)
         if (hasRestDay && count === 0) {
-            return 'bg-purple-100 border-purple-300 text-purple-900 hover:bg-purple-200 hover:scale-110 cursor-pointer';
+            return 'bg-purple-100 border-purple-300 text-purple-900 hover:bg-purple-200 dark:bg-purple-900/50 dark:border-purple-700 dark:text-purple-200 dark:hover:bg-purple-800 hover:scale-110 cursor-pointer';
         }
 
         // 2. Logged Workout Day (has activity points)
@@ -75,11 +75,11 @@ const HeatmapCalendar = ({ workouts }) => {
 
         // 3. Unlogged Future Day
         if (isFutureDay) {
-            return 'bg-gray-50/40 border-dashed border-gray-200 text-gray-400 opacity-50';
+            return 'bg-gray-50/40 border-dashed border-gray-200 text-gray-400 dark:bg-gray-800 dark:border-gray-700 opacity-50';
         }
 
         // 4. Unlogged Past Day (Missed log)
-        return 'bg-amber-50/60 border-dashed border-amber-300 text-amber-800 hover:border-amber-400 hover:bg-amber-100/70 hover:scale-105 cursor-pointer';
+        return 'bg-amber-50/60 border-dashed border-amber-300 text-amber-800 hover:border-amber-400 hover:bg-amber-100/70 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-900/50 hover:scale-105 cursor-pointer';
     };
 
     // Navigation handlers
@@ -125,10 +125,10 @@ const HeatmapCalendar = ({ workouts }) => {
                         <Calendar className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-lg md:text-xl font-bold text-gray-900">
+                        <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">
                             {format(currentMonth, 'MMMM yyyy')}
                         </h3>
-                        <p className="text-xs md:text-sm text-gray-600">
+                        <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300">
                             {monthlyStats.activeDays} active • {monthlyStats.restDays} rest • {monthlyStats.unloggedDays} unlogged • {consistencyRate}% consistency
                         </p>
                     </div>
@@ -140,11 +140,11 @@ const HeatmapCalendar = ({ workouts }) => {
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         aria-label="Previous month"
                     >
-                        <ChevronLeft className="w-5 h-5 text-gray-600" />
+                        <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </button>
                     <button
                         onClick={goToToday}
-                        className="px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors hidden md:block"
+                        className="px-3 py-1.5 text-xs font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors hidden md:block dark:text-primary-300"
                     >
                         Today
                     </button>
@@ -153,7 +153,7 @@ const HeatmapCalendar = ({ workouts }) => {
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         aria-label="Next month"
                     >
-                        <ChevronRight className="w-5 h-5 text-gray-600" />
+                        <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </button>
                 </div>
             </div>
@@ -165,7 +165,7 @@ const HeatmapCalendar = ({ workouts }) => {
                     {weekDays.map((day) => (
                         <div
                             key={day}
-                            className="text-center text-xs font-semibold text-gray-500 py-1"
+                            className="text-center text-xs font-semibold text-gray-500 py-1 dark:text-gray-400"
                         >
                             {day.slice(0, 3)}
                         </div>
@@ -206,7 +206,7 @@ const HeatmapCalendar = ({ workouts }) => {
                                             ? 'text-amber-800'
                                             : isFutureDay
                                             ? 'text-gray-400'
-                                            : 'text-gray-700'
+                                            : 'text-gray-700 dark:text-gray-200'
                                     }`}>
                                         {format(day, 'd')}
                                     </span>
@@ -277,53 +277,53 @@ const HeatmapCalendar = ({ workouts }) => {
             </div>
 
             {/* Legend */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex flex-wrap items-center gap-3">
                     {/* Activity Scale */}
                     <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-gray-600 font-medium">Less</span>
+                        <span className="text-xs text-gray-600 font-medium dark:text-gray-300">Less</span>
                         <div className="flex gap-1 items-center">
-                            <div className="w-3.5 h-3.5 rounded bg-primary-200 border border-primary-300" title="Low activity" />
+                            <div className="w-3.5 h-3.5 rounded bg-primary-200 border border-primary-300 dark:border-primary-800" title="Low activity" />
                             <div className="w-3.5 h-3.5 rounded bg-primary-300 border border-primary-400" title="Moderate activity" />
                             <div className="w-3.5 h-3.5 rounded bg-primary-500 border border-primary-600" title="High activity" />
                             <div className="w-3.5 h-3.5 rounded bg-primary-600 border border-primary-700" title="Peak activity" />
                         </div>
-                        <span className="text-xs text-gray-600 font-medium">More</span>
+                        <span className="text-xs text-gray-600 font-medium dark:text-gray-300">More</span>
                     </div>
 
                     {/* Rest Day Legend */}
-                    <div className="flex items-center gap-1.5 pl-2 border-l border-gray-200">
-                        <div className="w-3.5 h-3.5 rounded bg-purple-100 border border-purple-300 flex items-center justify-center">
-                            <Hotel className="w-2 h-2 text-purple-600" />
+                    <div className="flex items-center gap-1.5 pl-2 border-l border-gray-200 dark:border-gray-700">
+                        <div className="w-3.5 h-3.5 rounded bg-purple-100 border border-purple-300 flex items-center justify-center dark:bg-purple-900/30 dark:border-purple-800">
+                            <Hotel className="w-2 h-2 text-purple-600 dark:text-purple-300" />
                         </div>
-                        <span className="text-xs text-purple-700 font-semibold">Rest Day</span>
+                        <span className="text-xs text-purple-700 font-semibold dark:text-purple-300">Rest Day</span>
                     </div>
 
                     {/* Unlogged Day Legend */}
-                    <div className="flex items-center gap-1.5 pl-2 border-l border-gray-200">
-                        <div className="w-3.5 h-3.5 rounded bg-amber-50/80 border border-dashed border-amber-300 flex items-center justify-center">
-                            <AlertCircle className="w-2 h-2 text-amber-600" />
+                    <div className="flex items-center gap-1.5 pl-2 border-l border-gray-200 dark:border-gray-700">
+                        <div className="w-3.5 h-3.5 rounded bg-amber-50/80 border border-dashed border-amber-300 flex items-center justify-center dark:border-amber-800">
+                            <AlertCircle className="w-2 h-2 text-amber-600 dark:text-amber-300" />
                         </div>
-                        <span className="text-xs text-amber-700 font-semibold">Unlogged</span>
+                        <span className="text-xs text-amber-700 font-semibold dark:text-amber-300">Unlogged</span>
                     </div>
 
                     {/* Future Legend */}
-                    <div className="flex items-center gap-1.5 pl-2 border-l border-gray-200">
-                        <div className="w-3.5 h-3.5 rounded bg-gray-50/40 border border-dashed border-gray-200 opacity-60" />
+                    <div className="flex items-center gap-1.5 pl-2 border-l border-gray-200 dark:border-gray-700">
+                        <div className="w-3.5 h-3.5 rounded bg-gray-50/40 border border-dashed border-gray-200 opacity-60 dark:border-gray-700" />
                         <span className="text-xs text-gray-400">Future</span>
                     </div>
                 </div>
 
                 {/* Monthly summary */}
                 <div className="flex items-center gap-3 text-xs">
-                    <div className="text-gray-600">
-                        <span className="font-bold text-gray-900">{monthlyStats.totalWorkouts}</span> workouts
+                    <div className="text-gray-600 dark:text-gray-300">
+                        <span className="font-bold text-gray-900 dark:text-gray-100">{monthlyStats.totalWorkouts}</span> workouts
                     </div>
-                    <div className="text-gray-600">
-                        <span className="font-bold text-purple-700">{monthlyStats.restDays}</span> rest
+                    <div className="text-gray-600 dark:text-gray-300">
+                        <span className="font-bold text-purple-700 dark:text-purple-300">{monthlyStats.restDays}</span> rest
                     </div>
-                    <div className="text-gray-600">
-                        <span className="font-bold text-amber-700">{monthlyStats.unloggedDays}</span> unlogged
+                    <div className="text-gray-600 dark:text-gray-300">
+                        <span className="font-bold text-amber-700 dark:text-amber-300">{monthlyStats.unloggedDays}</span> unlogged
                     </div>
                 </div>
             </div>

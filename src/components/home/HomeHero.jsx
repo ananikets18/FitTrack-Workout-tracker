@@ -112,9 +112,9 @@ const HomeHero = ({
                 endSession();
                 navigate('/log');
               }}
-              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-colors"
+              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-colors dark:bg-gray-800 dark:text-gray-100"
             >
-              <Square className="w-3.5 h-3.5 fill-current text-red-600" />
+              <Square className="w-3.5 h-3.5 fill-current text-red-600 dark:text-red-300" />
               <span>End &amp; Log Workouts</span>
             </button>
           </div>
@@ -137,7 +137,7 @@ const HomeHero = ({
             </div>
             <Link
               to="/log"
-              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-colors"
+              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white text-gray-900 hover:bg-gray-100 font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-colors dark:bg-gray-800 dark:text-gray-100"
             >
               <span>Log Workouts</span>
               <ArrowRight className="w-3.5 h-3.5" />

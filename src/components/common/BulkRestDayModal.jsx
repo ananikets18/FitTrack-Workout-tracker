@@ -355,7 +355,7 @@ const BulkRestDayModal = ({
             >
               <CalendarDays className="w-5 h-5 mb-1 text-primary-500" />
               <span className="text-xs font-bold">Date Range</span>
-              <span className="text-[13px] text-gray-500">Deload / Vacation</span>
+              <span className="text-[13px] text-gray-500 dark:text-gray-400">Deload / Vacation</span>
             </button>
 
             <button
@@ -369,7 +369,7 @@ const BulkRestDayModal = ({
             >
               <Repeat className="w-5 h-5 mb-1 text-purple-500" />
               <span className="text-xs font-bold">Recurring</span>
-              <span className="text-[13px] text-gray-500">Weekly Schedule</span>
+              <span className="text-[13px] text-gray-500 dark:text-gray-400">Weekly Schedule</span>
             </button>
 
             <button
@@ -383,7 +383,7 @@ const BulkRestDayModal = ({
             >
               <Layers className="w-5 h-5 mb-1 text-emerald-500" />
               <span className="text-xs font-bold">Multi-Select</span>
-              <span className="text-[13px] text-gray-500">Pick on Calendar</span>
+              <span className="text-[13px] text-gray-500 dark:text-gray-400">Pick on Calendar</span>
             </button>
           </div>
         </div>
@@ -679,7 +679,7 @@ const BulkRestDayModal = ({
                 type="checkbox"
                 checked={skipExistingWorkouts}
                 onChange={(e) => setSkipExistingWorkouts(e.target.checked)}
-                className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-gray-300"
+                className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-gray-300 dark:text-primary-300 dark:border-gray-600"
               />
               <span>Skip dates with existing workouts</span>
               {workoutConflicts.length > 0 && (
@@ -694,7 +694,7 @@ const BulkRestDayModal = ({
                 type="checkbox"
                 checked={skipExistingRestDays}
                 onChange={(e) => setSkipExistingRestDays(e.target.checked)}
-                className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-gray-300"
+                className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-gray-300 dark:text-primary-300 dark:border-gray-600"
               />
               <span>Skip dates already marked as rest day</span>
               {restDayConflicts.length > 0 && (
@@ -785,7 +785,7 @@ const BulkRestDayModal = ({
                 </motion.button>
               ))}
             </div>
-            <p className="text-center text-xs text-gray-500 mt-1">
+            <p className="text-center text-xs text-gray-500 mt-1 dark:text-gray-400">
               {recoveryQuality === 1 && 'Poor - High fatigue'}
               {recoveryQuality === 2 && 'Fair - Moderate fatigue'}
               {recoveryQuality === 3 && 'Good - Standard recovery'}

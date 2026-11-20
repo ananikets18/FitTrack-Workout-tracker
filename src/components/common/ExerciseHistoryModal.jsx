@@ -67,7 +67,7 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
         return (
             <Modal isOpen={isOpen} onClose={onClose} title={exerciseName}>
                 <div className="text-center py-8">
-                    <p className="text-gray-500">No history found for this exercise</p>
+                    <p className="text-gray-500 dark:text-gray-400">No history found for this exercise</p>
                 </div>
             </Modal>
         );
@@ -172,8 +172,8 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                 {!isTreadmill && improvement > 0 && (
                     <div className="bg-gradient-to-r from-success-50 to-emerald-50 dark:from-emerald-900/30 dark:to-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
                         <div className="flex items-center justify-center space-x-2">
-                            <TrendingUp className="w-5 h-5 text-green-600" />
-                            <span className="text-sm font-semibold text-green-800">
+                            <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-300" />
+                            <span className="text-sm font-semibold text-green-800 dark:text-green-300">
                                 +{improvement}kg improvement (+{improvementPercent}%)
                             </span>
                         </div>
@@ -181,17 +181,17 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                 )}
 
                 {isTreadmill && firstSession && latestSession && (
-                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-3">
+                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-3 dark:border-blue-800">
                         <div className="grid grid-cols-2 gap-3 text-center">
                             <div>
-                                <div className="text-xs text-gray-600 mb-1">Speed Progress</div>
-                                <div className="text-lg font-bold text-blue-700">
+                                <div className="text-xs text-gray-600 mb-1 dark:text-gray-300">Speed Progress</div>
+                                <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
                                     {firstSession.maxSpeed}→{latestSession.maxSpeed} km/h
                                 </div>
                             </div>
                             <div>
-                                <div className="text-xs text-gray-600 mb-1">Incline Progress</div>
-                                <div className="text-lg font-bold text-blue-700">
+                                <div className="text-xs text-gray-600 mb-1 dark:text-gray-300">Incline Progress</div>
+                                <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
                                     {firstSession.maxIncline}→{latestSession.maxIncline}%
                                 </div>
                             </div>
@@ -200,12 +200,12 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                 )}
 
                 {/* View Toggle */}
-                <div className="flex space-x-2 bg-gray-100 rounded-lg p-1">
+                <div className="flex space-x-2 bg-gray-100 rounded-lg p-1 dark:bg-gray-800">
                     <button
                         onClick={() => setViewMode('chart')}
                         className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${viewMode === 'chart'
                             ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900'
+                            : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
                             }`}
                     >
                         Chart View
@@ -214,7 +214,7 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                         onClick={() => setViewMode('list')}
                         className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${viewMode === 'list'
                             ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900'
+                            : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
                             }`}
                     >
                         List View
@@ -223,8 +223,8 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
 
                 {/* Chart View */}
                 {viewMode === 'chart' && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                    <div className="bg-gray-50 rounded-lg p-4 dark:bg-gray-900">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-4 dark:text-gray-100">
                             {isTreadmill ? 'Speed Progression' : 'Weight Progression'}
                         </h3>
                         <ResponsiveContainer width="100%" height={250}>
@@ -286,32 +286,32 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                                         <div>
                                             <div className="flex items-center space-x-2">
                                                 <Calendar className="w-4 h-4 text-gray-400" />
-                                                <span className="text-sm font-medium text-gray-900">{formatDate(session.date)}</span>
+                                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatDate(session.date)}</span>
                                                 {(isPR || isSpeedRecord) && (
-                                                    <span className="px-2 py-0.5 text-xs font-bold bg-yellow-400 text-yellow-900 rounded-full">
+                                                    <span className="px-2 py-0.5 text-xs font-bold bg-yellow-400 text-yellow-900 rounded-full dark:text-yellow-300">
                                                         {isTreadmill ? '⚡ BEST' : 'PR'}
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-gray-500 mt-1">{session.workoutName}</p>
+                                            <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">{session.workoutName}</p>
                                         </div>
                                         <div className="text-right">
                                             {isTreadmill ? (
                                                 <>
-                                                    <div className="text-lg font-bold text-gray-900">{session.maxSpeed}km/h</div>
-                                                    <div className="text-xs text-gray-500">Max Speed</div>
+                                                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{session.maxSpeed}km/h</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">Max Speed</div>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <div className="text-lg font-bold text-gray-900">{session.maxWeight}kg</div>
-                                                    <div className="text-xs text-gray-500">Max Weight</div>
+                                                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{session.maxWeight}kg</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">Max Weight</div>
                                                 </>
                                             )}
                                         </div>
                                     </div>
 
                                     {isTreadmill ? (
-                                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-3 pt-3 border-t">
+                                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-3 pt-3 border-t dark:text-gray-300">
                                             <div>
                                                 <span className="font-medium">{session.totalDuration}</span> mins
                                             </div>
@@ -323,7 +323,7 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-3 pt-3 border-t">
+                                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-3 pt-3 border-t dark:text-gray-300">
                                             <div>
                                                 <span className="font-medium">{session.setCount}</span> sets
                                             </div>
@@ -338,12 +338,12 @@ const ExerciseHistoryModal = ({ isOpen, onClose, exerciseName, workouts }) => {
 
                                     {/* Sets breakdown */}
                                     <div className="mt-3 pt-3 border-t">
-                                        <div className="text-xs font-semibold text-gray-700 mb-2">Sets:</div>
+                                        <div className="text-xs font-semibold text-gray-700 mb-2 dark:text-gray-200">Sets:</div>
                                         <div className="flex flex-wrap gap-2">
                                             {session.sets.map((set, setIdx) => (
                                                 <span
                                                     key={setIdx}
-                                                    className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium"
+                                                    className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium dark:bg-gray-800 dark:text-gray-200"
                                                 >
                                                     {isTreadmill ? (
                                                         `${set.duration}min @ ${set.speed}km/h, ${set.incline}%`
